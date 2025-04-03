@@ -9,6 +9,7 @@ from reportlab.lib.pagesizes import A4
 from django.utils import timezone
 from .widgets import AmparoLegalWidget
 from django import forms
+from .pdf_templates import render_notificacao_template
 
 # ============== FUNÇÕES DE AÇÃO ============== #
 def export_to_csv(modeladmin, request, queryset):
@@ -93,28 +94,49 @@ class CrrAdmin(admin.ModelAdmin):
         ("Dados do Veículo", {
             'fields': ('placa_chassi', 'marca', 'modelo', 'especie', 'categoria','uf_veiculo','municipio_veiculo',)
         }),
-        ("Localização/Status", {
-            'fields': (  'local_remocao',)
+         ("Local Da Remoção", {
+            'fields': ('local_remocao',)
         }),
+        ("CONDUTOR", {
+            'fields': ('habilitacao_condutor','uf_cnh','cpf','nome_condutor',)
+        
+        }),
+        
+        
     )
 
 
 
 @admin.register(Notificacao)
-class NotificacaoAdmin(admin.ModelAdmin):
-  
-    list_display = ('numero_controle',  'data_emissao',  'imagem_preview')
-    search_fields = ('numero_controle', 'crr__numero_crr', 'destinatario')
-    list_filter = ('data_emissao', 'uf_destinatario')
-    readonly_fields = ('imagem_preview',)
-    actions = [export_to_csv, gerar_pdf_notificacoes]
+class NotificacaoAdmin(admin.ModelAdmin):   
+    list_display = ('crr__numero_crr','numero_controle',  'data_emissao','get_ait','imagem_preview','imagem')
+    search_fields = ('crr__numero_crr','numero_controle', 'destinatario')
+    list_filter = ('data_emissao', 'crr__numero_crr')
+    readonly_fields = ('imagem_preview','numero_controle')
+   
+    actions = [export_to_csv,gerar_pdf_notificacoes]
+
+    def get_ait(self, obj):
+        """ Retorna todos os AITs associados ao CRR da Notificação """
+        aits = obj.crr.ait.all()  # Busca todos os AITs relacionados ao CRR
+        return ", ".join([ait.ait for ait in aits]) if aits else "Sem AIT"
+
+    get_ait.short_description = "AITs"  # Nome da coluna no Django Admin
+
+    def get_enquadramento(self, obj):
+        """ Retorna todos os enquadramentos associados ao CRR da Notificação """
+        enquadramentos = obj.crr.enquadramento.all()  # Busca todos os enquadramentos
+        return ", ".join([enq.codigo for enq in enquadramentos]) if enquadramentos else "Sem enquadramento"
+    
+    get_enquadramento.short_description = "Enquadramentos"  # Nome da coluna no admin
+    
     
     fieldsets = (
         (None, {
             'fields': ('numero_controle', 'crr', 'data_emissao', 'data_postagem','descricao_infracao')
         }),
         ("Destinatário", {
-            'fields': ('destinatario', 'endereco', 'complemento', 'cep')
+            'fields': ('destinatario', 'endereco','numero' ,'complemento','bairro','cidade_destinatario', 'cep')
         }),
         ("Detalhes", {
             'fields': ('amparo_legal', 'prazo_leilao','imagem', 'imagem_preview')
@@ -124,10 +146,7 @@ class NotificacaoAdmin(admin.ModelAdmin):
     
     
     def imagem_preview(self, obj):
-        return format_html(
-            '<img src="{}" style="max-height:100px; max-width:100px;" />', 
-            obj.imagem.url
-        ) if obj.imagem else "Sem imagem"
+        return format_html('<img src="{}" style="max-height:100px; max-width:100px;" />', obj.imagem.url) if obj.imagem else "Sem imagem"
     imagem_preview.short_description = "Pré-visualização"
 
 

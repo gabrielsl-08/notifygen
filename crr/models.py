@@ -29,44 +29,40 @@ ESTADO_CHOICES = [
 
 STATUS_CHOICES = [  ('retido', 'Retido'), ('liberado', 'Liberado'),]
 
-PLACA_REGEX = r'^([A-Z]{3}-\d{4}|[A-Z]{3}-\d[A-Z]\d{2}|[A-Za-z0-9]{17})$' 
-CPF_REGEX = r'^\d{3}\.\d{3}\.\d{3}-\d{2}$'
+
 
 class Crr(models.Model):
-    
-    
-    numero_crr = models.CharField(max_length=10, blank=False, null=False)
-    placa_chassi = models.CharField( max_length=17,validators=[RegexValidator(regex=PLACA_REGEX, message='Formato inválido. Use: AAA-1234, AAA-1A23 ou 17 caracteres alfanuméricos')],blank=False, null=False)
-    marca = models.CharField(max_length=20, blank=False, null=False)
-    modelo = models.CharField(max_length=20, blank=False, null=False)
-    especie = models.CharField(max_length=20 ,choices=ESPECIE_CHOICES, blank=False, null=False)
-    categoria = models.CharField(max_length=20,choices=CATEGORIA_CHOICES, blank=False, null=False)
-    uf_veiculo = models.CharField(max_length=6, choices=ESTADO_CHOICES,default='SP', blank=False, null=False)
+    numero_crr = models.CharField(max_length=10,unique=True, blank=False, null=False,verbose_name='número do crr')
+    placa_chassi = models.CharField( max_length=17,blank=True, null=False,verbose_name='placa~chassi')
+    marca = models.CharField(max_length=20, blank=True, null=False)
+    modelo = models.CharField(max_length=20, blank=True, null=False)
+    especie = models.CharField(max_length=20 ,choices=ESPECIE_CHOICES, blank=True, null=False)
+    categoria = models.CharField(max_length=20,choices=CATEGORIA_CHOICES, blank=True, null=False)
+    uf_veiculo = models.CharField(max_length=6, choices=ESTADO_CHOICES,default='SP', blank=True, null=False)
     municipio_veiculo = models.CharField(max_length=25, blank=False, null=False)
     local_remocao = models.CharField(max_length=100, blank=False, null=False)
     data_remocao = models.DateField(blank=False, null=False)
     hora_remocao = models.TimeField(blank=False, null=False)
     observacao = models.CharField(max_length=100, blank=True, null=True)
     agente_autuador = models.CharField(max_length=10, blank=False, null=False)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES,default='retido',help_text="Status atual do veículo (Retido/Liberado)")
-
-    # ---------------- CONDUTOR ---------------- #
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES,default='retido',help_text="Status atual do veículo (Retido/Liberado)")    
     habilitacao_condutor = models.CharField(max_length=11, blank=True, null=False)
     uf_cnh = models.CharField(max_length=6,choices=ESTADO_CHOICES,default='SP', blank=True, null=False)
-    cpf = models.CharField(max_length=14,validators=[RegexValidator(regex=CPF_REGEX, message='CPF deve estar no formato 000.000.000-00')],unique=True,verbose_name='CPF', blank=True, null=False)
+    cpf = models.CharField(max_length=14,verbose_name='CPF', blank=True, null=False)
     nome_condutor = models.CharField(max_length=50, blank=True, null=False)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    editado_em = models.DateTimeField(auto_now=True)
 
     def __str__(self):
          return f"CRR {self.numero_crr} - {self.placa_chassi}" 
+    
 
 class Ait(models.Model):
-    AIT_REGEX = r'^[A-Z]\d{2}-\d{7}$'  # Padrão A12-0123456
     crr = models.ForeignKey(Crr,on_delete=models.CASCADE,related_name='ait')
-    ait = models.CharField(max_length=11,validators=[RegexValidator(regex=AIT_REGEX,message='Formato inválido. Use: ''A12-0123456')],
-    verbose_name='Código de AIT',help_text='Formato: Letra + 2 números + hífen + 7 números (Ex: A12-0123456)', blank=True, null=False
-    )   
+    ait = models.CharField(max_length=11,verbose_name='Código de AIT', blank=True, null=False)   
     def __str__(self):
         return self.ait
+    
     
 class Enquadramento(models.Model):    
     crr = models.ForeignKey(Crr,on_delete=models.CASCADE,related_name='enquadramento')
@@ -75,9 +71,6 @@ class Enquadramento(models.Model):
     def __str__(self):
         return self.enquadramento
 
-
-# ---------------- NOTIFICAÇÃO ---------------- #
-CEP_REGEX = r'^\d{5}-\d{3}$'
 
 class Notificacao(models.Model):
     AMPAROS_PREDEFINIDOS = [
@@ -88,7 +81,7 @@ class Notificacao(models.Model):
     crr = models.OneToOneField(Crr, on_delete=models.CASCADE,related_name="notificacao")
     data_emissao = models.DateField(blank=False, null=False)
     data_postagem = models.DateField(blank=False, null=False)
-    numero_controle = models.CharField(max_length=7, unique=True, blank=False)
+    numero_controle = models.IntegerField( unique=True, blank=False,null=False)
     descricao_infracao = models.CharField(max_length=100, blank=True, null=False)
     amparo_legal = models.CharField(max_length=25, blank=False, null=False)
     prazo_leilao = models.DateField(blank=False, null=False)
@@ -99,17 +92,36 @@ class Notificacao(models.Model):
     bairro = models.CharField(max_length=25, blank=False, null=False)
     cidade_destinatario = models.CharField(max_length=25, blank=False, null=False)
     uf_destinatario = models.CharField(max_length=6,choices=ESTADO_CHOICES, blank=False, null=False)
-    cep = models.CharField(max_length=9,validators=[RegexValidator(regex=CEP_REGEX,message='CEP deve estar no formato 11600-000')],verbose_name='CEP',help_text='Formato: 11600-000')
+    cep = models.CharField(max_length=9,verbose_name='CEP',help_text='Formato: 11600-000')
     imagem = models.ImageField(upload_to=upload_path, blank=True, null=False, verbose_name="Imagem da Notificação")
     criado_em = models.DateTimeField(auto_now_add=True)
+    editado_em = models.DateTimeField(auto_now=True)
 
 
     def save(self, *args, **kwargs):
-        if not self.numero_controle:
-            last_notificacao = Notificacao.objects.order_by('-id').first()
-            last_number = int(last_notificacao.numero_controle) if last_notificacao else 0
-            self.numero_controle = f"{last_number + 1:07d}"
+        if not self.numero_controle:  # Somente se ainda não tiver um número
+            ultimo = Notificacao.objects.order_by("-numero_controle").first()
+            self.numero_controle = (ultimo.numero_controle + 1) if ultimo else 1
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Notificação {self.numero_controle} - {self.data_emissao}"
+
+
+
+class Arrendatario(models.Model):
+    arrendatario = models.CharField(max_length=25, blank=True, null=False)
+    endereco_arrendatario = models.CharField(max_length=25, blank=True, null=False)
+    numero_arrendatario = models.CharField(max_length=6, blank=True, null=False)
+    complemento_arrendatario = models.CharField(max_length=10, blank=True, null=False)
+    bairro_arrendatario = models.CharField(max_length=25, blank=True, null=False)
+    cidade_arrendatario = models.CharField(max_length=25, blank=True, null=False)
+    uf_arrendatario= models.CharField(max_length=6,choices=ESTADO_CHOICES, blank=True, null=False)
+    cep_arrendatario = models.CharField(max_length=9,verbose_name='CEP')
+    cidade_arrendatario = models.CharField(max_length=25, blank=True, null=False)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    editado_em = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.arrendatario
+

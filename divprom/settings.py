@@ -103,6 +103,10 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Formatação de datas
+USE_L10N = False
+DATE_INPUT_FORMATS = ['%d/%m/%Y']
+TIME_INPUT_FORMATS = ['%H:%M']
 SHORT_DATE_FORMAT = 'd/m/Y'
 TIME_FORMAT = 'H:i'
 
