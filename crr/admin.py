@@ -10,6 +10,9 @@ from django.utils import timezone
 from .widgets import AmparoLegalWidget
 from django import forms
 from .pdf_templates import render_notificacao_template
+from django.urls import reverse
+from django.template.response import TemplateResponse
+from datetime import date, timedelta
 
 # ============== FUNÇÕES DE AÇÃO ============== #
 def export_to_csv(modeladmin, request, queryset):
@@ -78,14 +81,41 @@ class EnquadramentoInline(admin.TabularInline):
     verbose_name_plural = "Enquadramentos Jurídicos"
 
 # ============== MODELADMINS ============== #
+class FiltroCrrAtrasado(admin.SimpleListFilter):
+    title = ('CRRs sem Notificação há mais de 10 dias')
+    parameter_name = 'atrasado'
+
+    def lookups(self, request, model_admin):
+        return (('sim', ('Mais de 10 dias e sem Notificação')),) 
+
+    def queryset(self, request, queryset):
+        if self.value() == 'sim':
+            data_limite = date.today() - timedelta(days=10)
+            return queryset.filter(data_remocao__lte=data_limite, not_gerada=True)
+
 @admin.register(Crr)
 class CrrAdmin(admin.ModelAdmin):
-    list_display = ('numero_crr', 'placa_chassi', 'marca', 'modelo', 'especie', 'status')
+    list_display = ('numero_crr','data_remocao', 'placa_chassi', 'marca', 'modelo', 'especie', 'status')
     search_fields = ('numero_crr', 'placa_chassi', 'marca', 'modelo')
-    list_filter = ('especie', 'uf_veiculo', 'status')
+    list_filter = ('especie', 'uf_veiculo', 'status',)
+    list_filter = (FiltroCrrAtrasado,)
     list_editable = ('status',)
     ordering = ('numero_crr',)
     inlines = [AitInline, EnquadramentoInline]  # Corrigido: ambas inlines juntas
+    
+    def changelist_view(self, request, extra_context=None):
+        if extra_context is None:
+            extra_context = {}
+
+        # URL que aplica o filtro atrasado
+        filtro_url = f"{reverse('admin:crr_crr_changelist')}?atrasado=sim"
+
+        # Adiciona o botão/link no contexto
+        extra_context['custom_button'] = format_html(
+            '<a class="button" href="{}" style="margin:10px 0;display:inline-block;">🔍 Ver CRRs Atrasados</a>',
+            filtro_url
+        )
+        return super().changelist_view(request, extra_context=extra_context) 
     
     fieldsets = (
         ("Dados do CRR", {
@@ -107,12 +137,13 @@ class CrrAdmin(admin.ModelAdmin):
 
 
 
+
 @admin.register(Notificacao)
-class NotificacaoAdmin(admin.ModelAdmin):   
-    list_display = ('crr__numero_crr','numero_controle',  'data_emissao','get_ait','imagem_preview','imagem')
+class NotificacaoAdmin(admin.ModelAdmin):
+    list_display = ('crr__numero_crr','numero_controle',  'data_emissao','get_ait','imagem_preview')
     search_fields = ('crr__numero_crr','numero_controle', 'destinatario')
     list_filter = ('data_emissao', 'crr__numero_crr')
-    readonly_fields = ('imagem_preview','numero_controle')
+    readonly_fields = ('numero_controle',)
    
     actions = [export_to_csv,gerar_pdf_notificacoes]
 
@@ -121,7 +152,7 @@ class NotificacaoAdmin(admin.ModelAdmin):
         aits = obj.crr.ait.all()  # Busca todos os AITs relacionados ao CRR
         return ", ".join([ait.ait for ait in aits]) if aits else "Sem AIT"
 
-    get_ait.short_description = "AITs"  # Nome da coluna no Django Admin
+    get_ait.short_description = "AITs"  # Nome da coluna no Django Admin 
 
     def get_enquadramento(self, obj):
         """ Retorna todos os enquadramentos associados ao CRR da Notificação """
@@ -132,22 +163,22 @@ class NotificacaoAdmin(admin.ModelAdmin):
     
     
     fieldsets = (
-        (None, {
-            'fields': ('numero_controle', 'crr', 'data_emissao', 'data_postagem','descricao_infracao')
+        ("Informações da Notificação", {
+            'fields': ('numero_controle', 'crr', 'data_emissao', 'data_postagem', 'descricao_infracao', 'imagem')
         }),
         ("Destinatário", {
-            'fields': ('destinatario', 'endereco','numero' ,'complemento','bairro','cidade_destinatario', 'cep')
+            'fields': ('destinatario', 'endereco', 'numero', 'complemento', 'bairro', 'cidade_destinatario', 'cep')
         }),
         ("Detalhes", {
-            'fields': ('amparo_legal', 'prazo_leilao','imagem', 'imagem_preview')
+            'fields': ('amparo_legal', 'prazo_leilao')
         }),
     )
 
     
-    
+
     def imagem_preview(self, obj):
         return format_html('<img src="{}" style="max-height:100px; max-width:100px;" />', obj.imagem.url) if obj.imagem else "Sem imagem"
-    imagem_preview.short_description = "Pré-visualização"
+    imagem_preview.short_description = "Pré-visualização"   
 
 
 
