@@ -22,6 +22,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+     'jazzmin',  
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -126,3 +127,19 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+
+JAZZMIN_SETTINGS = {
+    "site_title": "Administração",
+    "site_header": "Gestão de CRRs",
+    "custom_links": {
+        "crr": [  # Aplica ao app 'crr'
+            {
+                "name": "CRRs Atrasados",
+                "url": "/admin/crr/crr/?atrasado=sim",
+                "icon": "fas fa-clock",  # Ícone do botão (FontAwesome)
+                "permissions": ["crr.view_crr"],
+            }
+        ]
+    },
+}

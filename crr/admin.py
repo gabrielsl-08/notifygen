@@ -13,6 +13,7 @@ from .pdf_templates import render_notificacao_template
 from django.urls import reverse
 from django.template.response import TemplateResponse
 from datetime import date, timedelta
+from .utils import gerar_edital_docx
 
 # ============== FUNÇÕES DE AÇÃO ============== #
 def export_to_csv(modeladmin, request, queryset):
@@ -82,41 +83,42 @@ class EnquadramentoInline(admin.TabularInline):
 
 # ============== MODELADMINS ============== #
 class FiltroCrrAtrasado(admin.SimpleListFilter):
-    title = ('CRRs sem Notificação há mais de 10 dias')
-    parameter_name = 'atrasado'
+    title = 'Filtrar CRRs'
+    parameter_name = 'crr_filtro'
 
     def lookups(self, request, model_admin):
-        return (('sim', ('Mais de 10 dias e sem Notificação')),) 
+        return (
+            ('atrasado', 'CRR Atrasado (>10 dias e sem Notificação)'),
+            ('edital', 'CRR Edital (>30 dias e Retido)'),
+        )
 
     def queryset(self, request, queryset):
-        if self.value() == 'sim':
+        if self.value() == 'atrasado':
             data_limite = date.today() - timedelta(days=10)
-            return queryset.filter(data_remocao__lte=data_limite, not_gerada=True)
+            return queryset.filter(data_remocao__lte=data_limite, not_gerada=True, status='retido')
+
+        if self.value() == 'edital':
+            data_limite = date.today() - timedelta(days=30)
+            return queryset.filter(data_remocao__lte=data_limite, status='retido', edital_emitido=False)
+
+        return queryset  # Retorna todos os CRRs quando nenhum filtro é selecionado
 
 @admin.register(Crr)
 class CrrAdmin(admin.ModelAdmin):
-    list_display = ('numero_crr','data_remocao', 'placa_chassi', 'marca', 'modelo', 'especie', 'status')
-    search_fields = ('numero_crr', 'placa_chassi', 'marca', 'modelo')
-    list_filter = ('especie', 'uf_veiculo', 'status',)
-    list_filter = (FiltroCrrAtrasado,)
+    list_display = ('numero_crr','data_remocao', 'placa_chassi', 'marca', 'modelo', 'especie', 'status','edital_emitido')
+    search_fields = ('numero_crr', 'placa_chassi', 'marca', 'modelo','status')
+    list_filter = (FiltroCrrAtrasado,'data_remocao', 'status',)
+    actions = ['gerar_edital_docx_action']
     list_editable = ('status',)
     ordering = ('numero_crr',)
     inlines = [AitInline, EnquadramentoInline]  # Corrigido: ambas inlines juntas
     
-    def changelist_view(self, request, extra_context=None):
-        if extra_context is None:
-            extra_context = {}
+    @admin.action(description="Gerar Edital em DOCX")
+    def gerar_edital_docx_action(self, request, queryset):
+        queryset.update(edital_emitido=True)
+        return gerar_edital_docx(queryset)
+         
 
-        # URL que aplica o filtro atrasado
-        filtro_url = f"{reverse('admin:crr_crr_changelist')}?atrasado=sim"
-
-        # Adiciona o botão/link no contexto
-        extra_context['custom_button'] = format_html(
-            '<a class="button" href="{}" style="margin:10px 0;display:inline-block;">🔍 Ver CRRs Atrasados</a>',
-            filtro_url
-        )
-        return super().changelist_view(request, extra_context=extra_context) 
-    
     fieldsets = (
         ("Dados do CRR", {
             'fields': ('numero_crr', 'data_remocao', 'hora_remocao', 'agente_autuador', 'observacao','status')
@@ -161,7 +163,13 @@ class NotificacaoAdmin(admin.ModelAdmin):
     
     get_enquadramento.short_description = "Enquadramentos"  # Nome da coluna no admin
     
-    
+    def save_model(self, request, obj, form, change):
+        """Impede a criação de Notificação se o veículo não estiver 'Retido'."""
+        if obj.crr.status != 'retido':
+            raise ValidationError("A Notificação só pode ser emitida para veículos com status 'Retido'.")
+        
+        super().save_model(request, obj, form, change)
+
     fieldsets = (
         ("Informações da Notificação", {
             'fields': ('numero_controle', 'crr', 'data_emissao', 'data_postagem', 'descricao_infracao', 'imagem')

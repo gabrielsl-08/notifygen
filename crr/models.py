@@ -50,7 +50,8 @@ class Crr(models.Model):
     uf_cnh = models.CharField(max_length=6,choices=ESTADO_CHOICES,default='SP', blank=True, null=False)
     cpf = models.CharField(max_length=14,verbose_name='CPF', blank=True, null=False)
     nome_condutor = models.CharField(max_length=50, blank=True, null=False)
-    not_gerada = models.BooleanField(default=True) 
+    not_gerada = models.BooleanField(default=False)
+    edital_emitido = models.BooleanField(default=False) 
     criado_em = models.DateTimeField(auto_now_add=True)
     editado_em = models.DateTimeField(auto_now=True)
  
