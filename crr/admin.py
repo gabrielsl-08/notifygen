@@ -115,8 +115,9 @@ class CrrAdmin(admin.ModelAdmin):
     
     @admin.action(description="Gerar Edital em DOCX")
     def gerar_edital_docx_action(self, request, queryset):
-        queryset.update(edital_emitido=True)
-        return gerar_edital_docx(queryset)
+        response = gerar_edital_docx(queryset)  # Gera o documento primeiro
+        queryset.update(edital_emitido=True)  # Só agora marca como emitido
+        return response
          
 
     fieldsets = (

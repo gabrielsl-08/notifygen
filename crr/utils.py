@@ -5,31 +5,32 @@ from io import BytesIO
 from django.utils.timezone import now
 
 def gerar_edital_docx(crrs):
-    document = Document()
+    doc = Document()
+    # Carrega o template existente
+    doc = Document('C:/Users/gabriel/Desktop/divprom/media/modelo_edital.docx')
 
-    # Título
-    document.add_heading('EDITAL DE NOTIFICAÇÃO', level=1)
-    document.add_paragraph(f'Data de emissão: {now().date()}')
-    document.add_paragraph('Lista de veículos retidos há mais de 30 dias:')
+    # Adiciona a tabela no final
+    table = doc.add_table(rows=1, cols=4)
+    table.style = 'Table Grid'  # Deixa as bordas visíveis
 
-    # Tabela com os dados
-    table = document.add_table(rows=1, cols=3)
-    table.style = 'Table Grid'
-    
+    # Define cabeçalho
     hdr_cells = table.rows[0].cells
-    hdr_cells[0].text = 'ID'
-    hdr_cells[1].text = 'Data de Remoção'
-    hdr_cells[2].text = 'Status'
+    hdr_cells[0].text = 'PLACA/CHASSI'
+    hdr_cells[1].text = 'MARCA/MODELO'
+    hdr_cells[2].text = 'RESPONSÁVEL'
+    hdr_cells[3].text = 'AGENTE FINACEIRO/ARRENDATÁRIO'
 
+    # Exemplo de adição de linha — você pode depois popular com seu queryset
     for crr in crrs:
         row_cells = table.add_row().cells
-        row_cells[0].text = str(crr.id)
-        row_cells[1].text = str(crr.data_remocao)
-        row_cells[2].text = crr.status
+        row_cells[0].text = str(crr.placa_chassi)
+        row_cells[1].text = str(f"{crr.marca}/{crr.modelo}")  
+        row_cells[2].text = str(crr.cpf)
+        row_cells[3].text = str(crr.arrendatario)
 
     # Salvar o arquivo em memória
     buffer = BytesIO()
-    document.save(buffer)
+    doc.save(buffer)
     buffer.seek(0)
 
     # Criar resposta para download
@@ -39,3 +40,4 @@ def gerar_edital_docx(crrs):
     )
     response['Content-Disposition'] = f'attachment; filename="edital_{now().strftime("%Y%m%d_%H%M%S")}.docx"'
     return response
+
