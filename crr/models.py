@@ -66,7 +66,22 @@ class Crr(models.Model):
             self.not_gerada = self.data_remocao <= (date.today() - timedelta(days=10))
         self.save()
     
-   
+class Arrendatario(models.Model):
+    crr = models.ForeignKey(Crr,on_delete=models.CASCADE,related_name='arrendatario')    
+    nome_arrendatario = models.CharField(max_length=25, blank=True, null=False)
+    cnpj_arrendatario = models.CharField(max_length=14, blank=True, null=False)
+    endereco_arrendatario = models.CharField(max_length=25, blank=True, null=False)
+    numero_arrendatario = models.CharField(max_length=6, blank=True, null=False)
+    complemento_arrendatario = models.CharField(max_length=10, blank=True, null=False)
+    bairro_arrendatario = models.CharField(max_length=25, blank=True, null=False)
+    cidade_arrendatario = models.CharField(max_length=25, blank=True, null=False)
+    uf_arrendatario = models.CharField(max_length=6,choices=ESTADO_CHOICES, blank=True, null=False)
+    cep_arrendatario = models.CharField(max_length=9,verbose_name='CEP')
+    criado_em = models.DateTimeField(auto_now_add=True)
+    editado_em = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.nome_arrendatario   
     
 
 class Ait(models.Model):
@@ -124,19 +139,14 @@ class Notificacao(models.Model):
 
 
 
-class Arrendatario(models.Model):
-    arrendatario = models.CharField(max_length=25, blank=True, null=False)
-    endereco_arrendatario = models.CharField(max_length=25, blank=True, null=False)
-    numero_arrendatario = models.CharField(max_length=6, blank=True, null=False)
-    complemento_arrendatario = models.CharField(max_length=10, blank=True, null=False)
-    bairro_arrendatario = models.CharField(max_length=25, blank=True, null=False)
-    cidade_arrendatario = models.CharField(max_length=25, blank=True, null=False)
-    uf_arrendatario= models.CharField(max_length=6,choices=ESTADO_CHOICES, blank=True, null=False)
-    cep_arrendatario = models.CharField(max_length=9,verbose_name='CEP')
-    cidade_arrendatario = models.CharField(max_length=25, blank=True, null=False)
-    criado_em = models.DateTimeField(auto_now_add=True)
-    editado_em = models.DateTimeField(auto_now=True)
-    
-    def __str__(self):
-        return self.arrendatario
 
+
+class NumeroEdital(models.Model):
+    numero = models.PositiveIntegerField(default=1)
+
+    def incrementar(self):
+        self.numero += 1
+        self.save()
+
+    def __str__(self):
+        return f"Edital número {self.numero}"

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.http import HttpResponse
-from .models import Notificacao, Crr, Ait, Enquadramento
+from .models import Notificacao, Crr, Ait, Enquadramento,Arrendatario
 import csv
 from io import BytesIO
 from reportlab.pdfgen import canvas
@@ -15,56 +15,41 @@ from django.template.response import TemplateResponse
 from datetime import date, timedelta
 from .utils import gerar_edital_docx
 
-# ============== FUNÇÕES DE AÇÃO ============== #
-def export_to_csv(modeladmin, request, queryset):
-    """Exporta notificações selecionadas para CSV"""
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename="notificacoes_{timezone.now().strftime("%Y%m%d_%H%M%S")}.csv"'
-    
-    writer = csv.writer(response)
-    writer.writerow([
-        'CRR', 'Controle', 'Data Emissão', 
-        'Placa', 'Marca/Modelo', 'Espécie',
-        'Condutor', 'CPF', 'CNH'
-    ])
-    
-    for notificacao in queryset:
-        veiculo = notificacao.crr
-        
-        writer.writerow([
-            veiculo.numero_crr,
-            notificacao.numero_controle,
-            notificacao.data_emissao.strftime('%d/%m/%Y') if notificacao.data_emissao else '',
-            veiculo.placa_chassi,
-            f"{veiculo.marca}/{veiculo.modelo}",
-            veiculo.get_especie_display(),
-            veiculo.nome_condutor,
-            veiculo.cpf,
-            veiculo.habilitacao_condutor,
-        ])
-    
-    return response
-export_to_csv.short_description = "Exportar para CSV"
 
-def gerar_pdf_notificacoes(modeladmin, request, queryset):
-    """Gera PDF para as notificações selecionadas"""
+# ============== FUNÇÕES DE AÇÃO ============== #
+def gerar_pdf_notificacoes(modeladmin, request, queryset):   
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
-    largura, altura = A4
-    
+    largura, altura = A4    
     for i, notificacao in enumerate(queryset):
         if i > 0:
-            c.showPage()
-        
+            c.showPage()        
         render_notificacao_template(c, notificacao, largura, altura) 
-    
     c.save()
     buffer.seek(0)
     
     response = HttpResponse(buffer, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="notificacoes_{timezone.now().strftime("%Y%m%d_%H%M%S")}.pdf"'
     return response
-gerar_pdf_notificacoes.short_description = "Gerar PDF das notificações"
+gerar_pdf_notificacoes.short_description = "NOTIFICAÇÃO PROPRIETÁRIO"
+
+def gerar_pdf_arrendatario(modeladmin, request, queryset):   
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    largura, altura = A4
+    for i, notificacao in enumerate(queryset):
+        if i > 0:
+            c.showPage()
+        
+        render_notificacao_template(c, notificacao, largura, altura)    
+    c.save()
+    buffer.seek(0)
+    
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="notificacoes_{timezone.now().strftime("%Y%m%d_%H%M%S")}.pdf"'
+    return response
+gerar_pdf_arrendatario.short_description = "NOTIFICAÇÃO ARRENDATÁRIO"
+
 
 # ============== INLINES ============== #
 class AitInline(admin.TabularInline):
@@ -79,17 +64,25 @@ class EnquadramentoInline(admin.TabularInline):
     extra = 1
     max_num = 4
     fields = ['enquadramento']
-    verbose_name_plural = "Enquadramentos Jurídicos"
+    verbose_name_plural = "Enquadramentos"
+    
+class ArrendatarioInline(admin.TabularInline):
+    model = Arrendatario
+    extra = 1
+    max_num = 1
+    fields = ['nome_arrendatario','cnpj_arrendatario','endereco_arrendatario','numero_arrendatario',
+              'complemento_arrendatario','bairro_arrendatario','cidade_arrendatario','uf_arrendatario','cep_arrendatario' ]
+    verbose_name_plural = "Arrendatário"
 
 # ============== MODELADMINS ============== #
 class FiltroCrrAtrasado(admin.SimpleListFilter):
-    title = 'Filtrar CRRs'
+    title = 'FILTRAR CRR'
     parameter_name = 'crr_filtro'
 
     def lookups(self, request, model_admin):
         return (
-            ('atrasado', 'CRR Atrasado (>10 dias e sem Notificação)'),
-            ('edital', 'CRR Edital (>30 dias e Retido)'),
+            ('atrasado', 'CRR PARA EMITIR NOTIFICAÇÃO'),
+            ('edital', 'CRR PARA EMITIR EDITAL'),
         )
 
     def queryset(self, request, queryset):
@@ -103,6 +96,7 @@ class FiltroCrrAtrasado(admin.SimpleListFilter):
 
         return queryset  # Retorna todos os CRRs quando nenhum filtro é selecionado
 
+
 @admin.register(Crr)
 class CrrAdmin(admin.ModelAdmin):
     list_display = ('numero_crr','data_remocao', 'placa_chassi', 'marca', 'modelo', 'especie', 'status','edital_emitido')
@@ -110,8 +104,11 @@ class CrrAdmin(admin.ModelAdmin):
     list_filter = (FiltroCrrAtrasado,'data_remocao', 'status',)
     actions = ['gerar_edital_docx_action']
     list_editable = ('status',)
+    
     ordering = ('numero_crr',)
-    inlines = [AitInline, EnquadramentoInline]  # Corrigido: ambas inlines juntas
+    inlines = [AitInline,EnquadramentoInline,ArrendatarioInline]  # Corrigido: ambas inlines juntas
+
+
     
     @admin.action(description="Gerar Edital em DOCX")
     def gerar_edital_docx_action(self, request, queryset):
@@ -120,23 +117,7 @@ class CrrAdmin(admin.ModelAdmin):
         return response
          
 
-    fieldsets = (
-        ("Dados do CRR", {
-            'fields': ('numero_crr', 'data_remocao', 'hora_remocao', 'agente_autuador', 'observacao','status')
-        }),
-        ("Dados do Veículo", {
-            'fields': ('placa_chassi', 'marca', 'modelo', 'especie', 'categoria','uf_veiculo','municipio_veiculo',)
-        }),
-         ("Local Da Remoção", {
-            'fields': ('local_remocao',)
-        }),
-        ("CONDUTOR", {
-            'fields': ('habilitacao_condutor','uf_cnh','cpf','nome_condutor',)
-        
-        }),
-        
-        
-    )
+
 
 
 
@@ -148,26 +129,24 @@ class NotificacaoAdmin(admin.ModelAdmin):
     list_filter = ('data_emissao', 'crr__numero_crr')
     readonly_fields = ('numero_controle',)
    
-    actions = [export_to_csv,gerar_pdf_notificacoes]
+    actions = [gerar_pdf_notificacoes,gerar_pdf_arrendatario]
 
     def get_ait(self, obj):
-        """ Retorna todos os AITs associados ao CRR da Notificação """
+        # Retorna todos os AITs associados ao CRR da Notificação 
         aits = obj.crr.ait.all()  # Busca todos os AITs relacionados ao CRR
-        return ", ".join([ait.ait for ait in aits]) if aits else "Sem AIT"
-
-    get_ait.short_description = "AITs"  # Nome da coluna no Django Admin 
+        return ", ".join([ait.ait for ait in aits]) if aits else ""
+    get_ait.short_description = "AIT"  # Nome da coluna no Django Admin 
 
     def get_enquadramento(self, obj):
-        """ Retorna todos os enquadramentos associados ao CRR da Notificação """
+       #  Retorna todos os enquadramentos associados ao CRR da Notificação 
         enquadramentos = obj.crr.enquadramento.all()  # Busca todos os enquadramentos
-        return ", ".join([enq.codigo for enq in enquadramentos]) if enquadramentos else "Sem enquadramento"
-    
-    get_enquadramento.short_description = "Enquadramentos"  # Nome da coluna no admin
+        return ", ".join([enq.codigo for enq in enquadramentos]) if enquadramentos else ""    
+    get_enquadramento.short_description = "ENQUADRAMENTO"  # Nome da coluna no admin
     
     def save_model(self, request, obj, form, change):
-        """Impede a criação de Notificação se o veículo não estiver 'Retido'."""
+        #Impede a criação de Notificação se o veículo não estiver 'Retido'.
         if obj.crr.status != 'retido':
-            raise ValidationError("A Notificação só pode ser emitida para veículos com status 'Retido'.")
+            raise ValidationError("somente para veículos com status 'Retido'.")
         
         super().save_model(request, obj, form, change)
 
