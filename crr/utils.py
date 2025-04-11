@@ -5,9 +5,13 @@ from io import BytesIO
 from django.utils.timezone import now
 
 def gerar_edital_docx(crrs):
+
+    
+
+    #arrendatario = crrs.arrendatario
     doc = Document()
     # Carrega o template existente
-    doc = Document('C:/Users/gabriel/Desktop/divprom/media/modelo_edital.docx')
+    doc = Document('media/modelo_edital.docx')
 
     # Adiciona a tabela no final
     table = doc.add_table(rows=1, cols=4)
@@ -26,7 +30,8 @@ def gerar_edital_docx(crrs):
         row_cells[0].text = str(crr.placa_chassi)
         row_cells[1].text = str(f"{crr.marca}/{crr.modelo}")  
         row_cells[2].text = str(crr.cpf)
-        row_cells[3].text = str(crr.arrendatario)
+        arrendatario = crr.arrendatario.first()
+        row_cells[3].text = arrendatario.nome_arrendatario if arrendatario else ""
 
     # Salvar o arquivo em memória
     buffer = BytesIO()

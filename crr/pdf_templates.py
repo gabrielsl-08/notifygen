@@ -10,20 +10,20 @@ from reportlab.platypus import Paragraph, Frame
 
 
 
-def render_notificacao_template(c, notificacao, width, height):
+def render_notificacao_template(c, notificacao, width, height,output_filename):
     largura, altura = LETTER 
 
     crr = notificacao.crr
     aits = notificacao.crr.ait.all()
 
-    primeiro_ait = aits[0].ait if len(aits) > 0 else "Sem AIT"
-    segundo_ait = aits[1].ait if len(aits) > 1 else "Sem AIT"
+    primeiro_ait = aits[0].ait if len(aits) > 0 else ""
+    segundo_ait = aits[1].ait if len(aits) > 1 else ""
    
     enquadramento = crr.enquadramento.all()
   
 
-    primeiro_enquadramento = enquadramento[0].enquadramento if len(enquadramento) > 0 else "Sem Enquadramento"
-    segundo_enquadramento = enquadramento[1].enquadramento if len(enquadramento) > 1 else "Sem Enquadramento"
+    primeiro_enquadramento = enquadramento[0].enquadramento if len(enquadramento) > 0 else ""
+    segundo_enquadramento = enquadramento[1].enquadramento if len(enquadramento) > 1 else ""
 
     # Configuração da página (agora usando LETTER)
     largura, altura = LETTER  # Dimensões: 8.5 x 11 polegadas
@@ -105,48 +105,43 @@ def render_notificacao_template(c, notificacao, width, height):
     c.drawString(8 * cm, altura - 7.5 * cm, "Identificação do Veículo")
     
     c.setFont("Arial", 8)
-    c.drawString(2 * cm, altura - 8 * cm, "Placa/Chassi:") #\\\\\\\\\\\\\\\\\\\\\\\
+    c.drawString(2 * cm, altura - 8 * cm, "Placa / Chassi:") #\\\\\\\\\\\\\\\\\\\\\\\
      # Barra vertical
-    c.line(3.7* cm, altura - 7.7 * cm, 3.7 * cm, altura - 8.6 * cm)
-
+    c.line(6.3* cm, altura - 7.7 * cm, 6.3* cm, altura - 8.6 * cm)
     c.setFont("Arial", 10)
     c.drawString(2 * cm, altura - 8.5 * cm, crr.placa_chassi) #\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+    
+    c.setFont("Arial", 8)
+    c.drawString(6.5 * cm, altura - 8 * cm, "Marca / Modelo:") #\\\\\\\\\\\\\\\
+    c.setFont("Arial", 10)
+    c.drawString(6.5 * cm, altura - 8.5 * cm, f"{crr.marca}/{crr.modelo}") #\\\\\\\\\\\\\\\
+    # Barra vertical
+    c.line(9.8* cm, altura - 7.7 * cm, 9.8 * cm, altura - 8.6 * cm)
+
+   
+    c.setFont("Arial", 8)
+    c.drawString(9.9 * cm, altura - 8 * cm, "Espécie:") #\\\\\\\\\\\\\\\\\\\\\\\\\
+    # Barra vertical
+    c.setFont("Arial", 10)
+    c.drawString(9.9 * cm, altura - 8.5 * cm, crr.especie) #\\\\\\\\\\\\\\\\\\\\\
+    c.line(12.3* cm, altura - 7.7 * cm, 12.3 * cm, altura - 8.6 * cm)
+
+
+    c.setFont("Arial", 8)
+    c.drawString(12.4 * cm, altura - 8 * cm, "Categoria:") #\\\\\\\\\\\\\\\
+    c.setFont("Arial", 10)
+    c.drawString(12.4 * cm, altura - 8.5 * cm, crr.categoria) #\\\\\\\\\\\\\\\
+     # Barra vertical
+    c.line(14.7* cm, altura - 7.7 * cm, 14.7 * cm, altura - 8.6 * cm)
 
     c.setFont("Arial", 8)
     c.drawString(3.8 * cm, altura - 8 * cm, "Município / UF:") #\\\\\\\\\\\\\
     # Barra vertical
     c.line(7.8* cm, altura - 7.7 * cm, 7.8 * cm, altura - 8.6 * cm)
-
+    c.drawString(14.8 * cm, altura - 8.5 * cm, f"{crr.municipio_veiculo}/{crr.uf_veiculo}")
     c.setFont("Arial", 10)
-    c.drawString(3.8 * cm, altura - 8.5 * cm, crr.municipio_veiculo) #\\\\\\\\\\\\\\\\\\\
-    
-    c.setFont("Arial", 8)
-    c.drawString(7.9 * cm, altura - 8 * cm, "Marca/Modelo:") #\\\\\\\\\\\\\\\
-    
-    
-    c.setFont("Arial", 10)
-    c.drawString(7.9 * cm, altura - 8.5 * cm, f"{crr.marca}/{crr.modelo}") #\\\\\\\\\\\\\\\
-
-    # Barra vertical
-    c.line(10.5* cm, altura - 7.7 * cm, 10.5 * cm, altura - 8.6 * cm)
-
    
-    # Barra vertical
-    c.line(14.2* cm, altura - 7.7 * cm, 14.2 * cm, altura - 8.6 * cm)
-    
-
-    c.setFont("Arial", 8)
-    c.drawString(14.3 * cm, altura - 8 * cm, "Espécie:") #\\\\\\\\\\\\\\\\\\\\\\\\\
-    # Barra vertical
-    c.line(16.9* cm, altura - 7.7 * cm, 16.9 * cm, altura - 8.6 * cm)
-
-    c.setFont("Arial", 10)
-    c.drawString(14.3 * cm, altura - 8.5 * cm, crr.especie) #\\\\\\\\\\\\\\\\\\\\\
-
-    c.setFont("Arial", 8)
-    c.drawString(17 * cm, altura - 8 * cm, "Categoria:") #\\\\\\\\\\\\\\\
-    c.setFont("Arial", 10)
-    c.drawString(17 * cm, altura - 8.5 * cm, crr.categoria) #\\\\\\\\\\\\\\\
     
     # Linha horizontal acima de identificação do local da infração
     c.line(2 * cm, altura - 8.6 * cm, largura - 2 * cm, altura - 8.6 * cm)
@@ -402,6 +397,7 @@ def render_notificacao_template(c, notificacao, width, height):
     c.drawString(3.2 * cm, 4 * cm,f"{notificacao.endereco}, {notificacao.numero} - {notificacao.complemento} - {notificacao.bairro}")
     c.drawString(3.2 * cm, 3.5 * cm, f"{notificacao.cep}              {notificacao.cidade_destinatario} / {notificacao.uf_destinatario}")
     
-   
-    
-    
+    c.save()
+    print(f"PDF '{output_filename}' criado com sucesso!")
+
+

@@ -1,22 +1,15 @@
+# urls.py (principal)
 from django.conf import settings
 from django.conf.urls.static import static
-from django.views.static import serve
-from django.urls import re_path
-
-
 from django.contrib import admin
-from django.urls import path,include
+from django.urls import path
 
 urlpatterns = [
-    path('', admin.site.urls),
-    
+    path('', admin.site.urls),  # Recomendado usar 'admin/' como prefixo
 ]
-####### DEVE SER CONFIGURADO O SERVIDOR DE ARQUIVOS STATICOS ##########
-# Isso só deve ser adicionado em desenvolvimento (DEBUG=True)
 
 if settings.DEBUG:
-    urlpatterns += [
-        re_path(r'^media/(?P<path>.*)$', serve, {
-            'document_root': settings.MEDIA_ROOT,
-        }),
-    ]
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # Remova a linha do STATIC_ROOT se já estiver servindo via runserver
+    
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

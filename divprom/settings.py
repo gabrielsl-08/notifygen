@@ -114,32 +114,33 @@ TIME_FORMAT = 'H:i'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Alternativa moderna: BASE_DIR / 'media'
+
+
+
 
 
 JAZZMIN_SETTINGS = {
-    "site_title": "Administração",
-    "site_header": "Gestão de CRRs",
-    "custom_links": {
-        "crr": [  # Aplica ao app 'crr'
-            {
-                "name": "CRRs Atrasados",
-                "url": "/admin/crr/crr/?atrasado=sim",
-                "icon": "fas fa-clock",  # Ícone do botão (FontAwesome)
-                "permissions": ["crr.view_crr"],
-            }
-        ]
+    "site_title": "DIVPROM",
+    "site_header": "DIVPROM",
+     "site_brand": "DIVPROM",
+    "site_logo": "/divprom.jpeg",
+    "site_logo_classes": "img-circle",
+     "site_icon": None,
+
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        'crr.Notificacao':"fa-solid fa-envelope",
+        'crr.Crr': "fa-solid fa-car"
     },
+
 }

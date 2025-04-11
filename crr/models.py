@@ -33,7 +33,7 @@ STATUS_CHOICES = [  ('retido', 'Retido'), ('liberado', 'Liberado'),]
 
 class Crr(models.Model):
     numero_crr = models.CharField(max_length=10,unique=True, blank=False, null=False,verbose_name='número do crr')
-    placa_chassi = models.CharField( max_length=17,blank=True, null=False,verbose_name='placa~chassi')
+    placa_chassi = models.CharField( max_length=17,blank=True, null=False,verbose_name='placa/chassi')
     marca = models.CharField(max_length=20, blank=True, null=False)
     modelo = models.CharField(max_length=20, blank=True, null=False)
     especie = models.CharField(max_length=20 ,choices=ESPECIE_CHOICES, blank=True, null=False)
@@ -54,7 +54,10 @@ class Crr(models.Model):
     edital_emitido = models.BooleanField(default=False) 
     criado_em = models.DateTimeField(auto_now_add=True)
     editado_em = models.DateTimeField(auto_now=True)
- 
+    
+    class Meta:
+        verbose_name = "CRR"
+        verbose_name_plural = "CRRs"
     def __str__(self):
          return f"CRR {self.numero_crr} - {self.placa_chassi}" 
     
@@ -69,17 +72,20 @@ class Crr(models.Model):
 class Arrendatario(models.Model):
     crr = models.ForeignKey(Crr,on_delete=models.CASCADE,related_name='arrendatario')    
     nome_arrendatario = models.CharField(max_length=25, blank=True, null=False)
-    cnpj_arrendatario = models.CharField(max_length=14, blank=True, null=False)
+    cnpj_arrendatario = models.CharField(max_length=20, blank=True, null=False)
     endereco_arrendatario = models.CharField(max_length=25, blank=True, null=False)
     numero_arrendatario = models.CharField(max_length=6, blank=True, null=False)
     complemento_arrendatario = models.CharField(max_length=10, blank=True, null=False)
     bairro_arrendatario = models.CharField(max_length=25, blank=True, null=False)
     cidade_arrendatario = models.CharField(max_length=25, blank=True, null=False)
     uf_arrendatario = models.CharField(max_length=6,choices=ESTADO_CHOICES, blank=True, null=False)
-    cep_arrendatario = models.CharField(max_length=9,verbose_name='CEP')
+    cep_arrendatario = models.CharField(max_length=9,verbose_name='CEP', blank=True, null=False)
     criado_em = models.DateTimeField(auto_now_add=True)
     editado_em = models.DateTimeField(auto_now=True)
     
+    class Meta:
+        verbose_name = "Arrendatário"
+        verbose_name_plural = "Arrendatários"
     def __str__(self):
         return self.nome_arrendatario   
     
@@ -97,7 +103,9 @@ class Enquadramento(models.Model):
     verbose_name='Código de enquadramento'     
     def __str__(self):
         return self.enquadramento
-
+    class Meta:
+            verbose_name = "Enquadramento"
+            verbose_name_plural = "Enquadramentos"
 
 class Notificacao(models.Model):
     AMPAROS_PREDEFINIDOS = [
@@ -120,7 +128,7 @@ class Notificacao(models.Model):
     cidade_destinatario = models.CharField(max_length=25, blank=False, null=False)
     uf_destinatario = models.CharField(max_length=6,choices=ESTADO_CHOICES, blank=False, null=False)
     cep = models.CharField(max_length=9,verbose_name='CEP',help_text='Formato: 11600-000')
-    imagem = models.ImageField(upload_to='notifcacoes/', blank=True, null=False, verbose_name="Imagem da Notificação")
+    imagem = models.ImageField(upload_to='notificacoes/', blank=True, null=False, verbose_name="Imagem da Notificação")
     criado_em = models.DateTimeField(auto_now_add=True)
     editado_em = models.DateTimeField(auto_now=True)
 
@@ -133,6 +141,10 @@ class Notificacao(models.Model):
 
         super().save(*args, **kwargs)
         self.crr.atualizar_status_not_gerada()  # Atualiza o status no Crr após salvar
+
+    class Meta:
+        verbose_name = "Notificação"
+        verbose_name_plural = "Notificações"
 
     def __str__(self):
         return f"Notificação {self.numero_controle} - {self.crr}"

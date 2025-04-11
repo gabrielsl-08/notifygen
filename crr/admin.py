@@ -52,12 +52,21 @@ gerar_pdf_arrendatario.short_description = "NOTIFICAÇÃO ARRENDATÁRIO"
 
 
 # ============== INLINES ============== #
+
+class AitAdmin(admin.ModelAdmin):
+    class Media:
+        js = ('js/mascaras.js',)  # Caminho relativo à pasta "static"
+
 class AitInline(admin.TabularInline):
     model = Ait
     extra = 1
-    max_num = 4
     fields = ['ait']
-    verbose_name_plural = "Autos de Infração"
+    class Media:
+        js = ('js/mascaras.js',)
+
+class EnquadramentoAdmin(admin.ModelAdmin):
+    class Media:
+        js = ('js/mascaras.js',)  # Caminho relativo à pasta "static"
 
 class EnquadramentoInline(admin.TabularInline):
     model = Enquadramento
@@ -65,7 +74,17 @@ class EnquadramentoInline(admin.TabularInline):
     max_num = 4
     fields = ['enquadramento']
     verbose_name_plural = "Enquadramentos"
-    
+    class Media:
+        js = (
+            'js/jquery.mask.min.js',
+            'js/custom-mask.js',
+            'js/mascaras.js',
+        )
+
+class ArrendatárioAdmin(admin.ModelAdmin):
+    class Media:
+        js = ('js/mascaras.js',)  # Caminho relativo à pasta "static"
+        
 class ArrendatarioInline(admin.TabularInline):
     model = Arrendatario
     extra = 1
@@ -73,6 +92,12 @@ class ArrendatarioInline(admin.TabularInline):
     fields = ['nome_arrendatario','cnpj_arrendatario','endereco_arrendatario','numero_arrendatario',
               'complemento_arrendatario','bairro_arrendatario','cidade_arrendatario','uf_arrendatario','cep_arrendatario' ]
     verbose_name_plural = "Arrendatário"
+    class Media:
+        js = (
+            'js/jquery.mask.min.js',
+            'js/custom-mask.js',
+            'js/mascaras.js',
+        )
 
 # ============== MODELADMINS ============== #
 class FiltroCrrAtrasado(admin.SimpleListFilter):
@@ -100,7 +125,7 @@ class FiltroCrrAtrasado(admin.SimpleListFilter):
 @admin.register(Crr)
 class CrrAdmin(admin.ModelAdmin):
     list_display = ('numero_crr','data_remocao', 'placa_chassi', 'marca', 'modelo', 'especie', 'status','edital_emitido')
-    search_fields = ('numero_crr', 'placa_chassi', 'marca', 'modelo','status')
+    
     list_filter = (FiltroCrrAtrasado,'data_remocao', 'status',)
     actions = ['gerar_edital_docx_action']
     list_editable = ('status',)
@@ -108,8 +133,30 @@ class CrrAdmin(admin.ModelAdmin):
     ordering = ('numero_crr',)
     inlines = [AitInline,EnquadramentoInline,ArrendatarioInline]  # Corrigido: ambas inlines juntas
 
-
+    fieldsets = (
+        ("CRR", {
+            'fields': ('numero_crr','agente_autuador','status')
+        }),
+        ("Dados do Veículo", {
+            'fields': ('placa_chassi', 'marca', 'modelo', 'especie', 'categoria', 'uf_veiculo', 'municipio_veiculo')
+        }),
+        ("Local da Infração", {
+            'fields': ('local_remocao', 'data_remocao','hora_remocao','observacao')
+        }),
+        ("Condutor", {
+            'fields': ('nome_condutor','habilitacao_condutor', 'uf_cnh', 'cpf')
+        }),
+        
+    )
     
+    class Media:
+        js = (
+            'js/jquery.mask.min.js',
+            'js/custom-mask.js',
+            'js/mascaras.js',
+        )
+
+
     @admin.action(description="Gerar Edital em DOCX")
     def gerar_edital_docx_action(self, request, queryset):
         response = gerar_edital_docx(queryset)  # Gera o documento primeiro
@@ -119,15 +166,13 @@ class CrrAdmin(admin.ModelAdmin):
 
 
 
-
-
-
 @admin.register(Notificacao)
 class NotificacaoAdmin(admin.ModelAdmin):
     list_display = ('crr__numero_crr','numero_controle',  'data_emissao','get_ait','imagem_preview')
+    list_display_links = ('crr__numero_crr',)
     search_fields = ('crr__numero_crr','numero_controle', 'destinatario')
     list_filter = ('data_emissao', 'crr__numero_crr')
-    readonly_fields = ('numero_controle',)
+    readonly_fields = ('numero_controle','imagem_preview')
    
     actions = [gerar_pdf_notificacoes,gerar_pdf_arrendatario]
 
@@ -163,12 +208,23 @@ class NotificacaoAdmin(admin.ModelAdmin):
     )
 
     
-
     def imagem_preview(self, obj):
-        return format_html('<img src="{}" style="max-height:100px; max-width:100px;" />', obj.imagem.url) if obj.imagem else "Sem imagem"
-    imagem_preview.short_description = "Pré-visualização"   
+        if obj.imagem:
+            return format_html(
+                '<a href="{}" target="_blank"><img src="{}" style="max-height: 100px; max-width: 100px;" /></a>',
+                obj.imagem.url,
+                obj.imagem.url
+            )
+        return "Sem imagem"
 
+    imagem_preview.short_description = "Pré-visualização"
 
+    class Media:
+        js = (
+            'js/jquery.mask.min.js',
+            'js/custom-mask.js',
+            'js/mascaras.js',
+        )
 
 
 
@@ -179,6 +235,3 @@ class NotificacaoAdmin(admin.ModelAdmin):
 
 
  
-
-
-
