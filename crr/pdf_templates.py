@@ -10,7 +10,9 @@ from reportlab.platypus import Paragraph, Frame
 
 
 
-def render_notificacao_template(c, notificacao, width, height,output_filename):
+
+def render_notificacao_template(c, notificacao, width, height):
+    
     largura, altura = LETTER 
 
     crr = notificacao.crr
@@ -19,11 +21,13 @@ def render_notificacao_template(c, notificacao, width, height,output_filename):
     primeiro_ait = aits[0].ait if len(aits) > 0 else ""
     segundo_ait = aits[1].ait if len(aits) > 1 else ""
    
-    enquadramento = crr.enquadramento.all()
-  
+    enquadramentos = notificacao.crr.enquadramentos.all()
+    if enquadramentos.exists():
+        primeiro = enquadramentos.first()
+        primeiro_enquadramento = f"{primeiro.enquadramento.codigo}"
+    else:
+        primeiro_enquadramento = "—"
 
-    primeiro_enquadramento = enquadramento[0].enquadramento if len(enquadramento) > 0 else ""
-    segundo_enquadramento = enquadramento[1].enquadramento if len(enquadramento) > 1 else ""
 
     # Configuração da página (agora usando LETTER)
     largura, altura = LETTER  # Dimensões: 8.5 x 11 polegadas
@@ -235,8 +239,8 @@ def render_notificacao_template(c, notificacao, width, height,output_filename):
     c.line(9.3* cm, altura - 12.5 * cm, 9.3 * cm, altura - 14.7 * cm)
 
     c.setFont("Arial", 10)
-    c.drawString(7 * cm, altura - 13.3 * cm,f"{primeiro_enquadramento}")
-    c.drawString(7 * cm, altura - 13.8 * cm, f"{segundo_enquadramento}")
+    c.drawString(7 * cm, altura - 13.3 * cm,str(primeiro_enquadramento))
+    c.drawString(7 * cm, altura - 13.8 * cm, f"")
 
     c.setFont("Arial", 8)
     c.drawString(9.5* cm, altura - 12.8 * cm, "Auto de infração:") #\\\\\\\\\\\\\\
@@ -397,7 +401,7 @@ def render_notificacao_template(c, notificacao, width, height,output_filename):
     c.drawString(3.2 * cm, 4 * cm,f"{notificacao.endereco}, {notificacao.numero} - {notificacao.complemento} - {notificacao.bairro}")
     c.drawString(3.2 * cm, 3.5 * cm, f"{notificacao.cep}              {notificacao.cidade_destinatario} / {notificacao.uf_destinatario}")
     
-    c.save()
-    print(f"PDF '{output_filename}' criado com sucesso!")
+    
+    print("PDF '' criado com sucesso!")
 
 

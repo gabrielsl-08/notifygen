@@ -96,16 +96,21 @@ class Ait(models.Model):
     def __str__(self):
         return self.ait
     
-    
-class Enquadramento(models.Model):    
-    crr = models.ForeignKey(Crr,on_delete=models.CASCADE,related_name='enquadramento')
-    enquadramento = models.CharField(max_length=5,blank=True, null=False)
-    verbose_name='Código de enquadramento'     
+
+class TabelaEnquadramento(models.Model):
+    codigo = models.CharField(max_length=5, unique=True)
+    amparo_legal = models.CharField(max_length=100)
+    descricao_infracao = models.TextField()
+
     def __str__(self):
-        return self.enquadramento
-    class Meta:
-            verbose_name = "Enquadramento"
-            verbose_name_plural = "Enquadramentos"
+        return f"{self.codigo} - {self.descricao_infracao}"
+
+class Enquadramento(models.Model):
+    crr = models.ForeignKey(Crr, on_delete=models.CASCADE, related_name='enquadramentos')
+    enquadramento = models.ForeignKey(TabelaEnquadramento, on_delete=models.PROTECT, verbose_name="Enquadramento")
+
+    def __str__(self):
+        return f"{self.enquadramento.codigo} - {self.enquadramento.descricao_infracao[:30]}"
 
 class Notificacao(models.Model):
     AMPAROS_PREDEFINIDOS = [

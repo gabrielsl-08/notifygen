@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.http import HttpResponse
-from .models import Notificacao, Crr, Ait, Enquadramento,Arrendatario
+from .models import Notificacao, Crr, Ait, Enquadramento,Arrendatario,TabelaEnquadramento
 import csv
 from io import BytesIO
 from reportlab.pdfgen import canvas
@@ -14,7 +14,8 @@ from django.urls import reverse
 from django.template.response import TemplateResponse
 from datetime import date, timedelta
 from .utils import gerar_edital_docx
-
+from import_export.admin import ImportExportModelAdmin
+from import_export import resources
 
 # ============== FUNÇÕES DE AÇÃO ============== #
 def gerar_pdf_notificacoes(modeladmin, request, queryset):   
@@ -113,7 +114,7 @@ class FiltroCrrAtrasado(admin.SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value() == 'atrasado':
             data_limite = date.today() - timedelta(days=10)
-            return queryset.filter(data_remocao__lte=data_limite, not_gerada=True, status='retido')
+            return queryset.filter(data_remocao__lte=data_limite, not_gerada=False, status='retido')
 
         if self.value() == 'edital':
             data_limite = date.today() - timedelta(days=30)
@@ -122,9 +123,21 @@ class FiltroCrrAtrasado(admin.SimpleListFilter):
         return queryset  # Retorna todos os CRRs quando nenhum filtro é selecionado
 
 
+class TabelaEnquadramentoResource(resources.ModelResource):
+    class Meta:
+        model = TabelaEnquadramento
+        import_id_fields = ['codigo']  # chave única para atualizar se quiser
+        fields = ('codigo', 'amparo_legal', 'descricao_infracao')  # campos para importar/exportar
+
+
+@admin.register(TabelaEnquadramento)
+class TabelaEnquadramentoAdmin(ImportExportModelAdmin):
+    resource_class = TabelaEnquadramentoResource
+    list_display = ('codigo', 'amparo_legal', 'descricao_infracao')
+
 @admin.register(Crr)
 class CrrAdmin(admin.ModelAdmin):
-    list_display = ('numero_crr','data_remocao', 'placa_chassi', 'marca', 'modelo', 'especie', 'status','edital_emitido')
+    list_display = ('numero_crr','data_remocao', 'placa_chassi', 'marca', 'modelo', 'especie', 'get_enquadramentos','status','edital_emitido')
     
     list_filter = (FiltroCrrAtrasado,'data_remocao', 'status',)
     actions = ['gerar_edital_docx_action']
@@ -132,6 +145,11 @@ class CrrAdmin(admin.ModelAdmin):
     
     ordering = ('numero_crr',)
     inlines = [AitInline,EnquadramentoInline,ArrendatarioInline]  # Corrigido: ambas inlines juntas
+
+    def get_enquadramentos(self, obj):
+        enquads = obj.enquadramentos.all()
+        return ", ".join([str(enq.enquadramento.codigo) for enq in enquads]) if enquads else "—"
+    get_enquadramentos.short_description = "Enquadramento"
 
     fieldsets = (
         ("CRR", {
