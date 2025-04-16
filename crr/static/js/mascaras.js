@@ -187,3 +187,37 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
+// === REMOVER MÁSCARAS e NORMALIZAR ===
+const normalizeFields = [
+    'id_cpf',
+    'id_cnpj_arrendatario',
+    'id_cep_arrendatario',
+    'id_cep',
+    'id_numero_arrendatario',
+    'id_numero_controle',
+    'id_numero',
+    'id_enquadramento',
+    'id_agente_autuador',
+    'id_habilitacao_condutor',
+    'id_placa_chassi',
+    'id_endereco',
+    'id_bairro',
+    'id_cidade_destinatario',
+    'id_destinatario',
+    'id_nome_condutor',
+    'id_municipio_veiculo'
+];
+
+normalizeFields.forEach(id => {
+    const field = document.getElementById(id);
+    if (field) {
+        // Remove caracteres não numéricos se for numérico, senão coloca em minúsculo
+        const onlyDigits = ['cpf', 'cnpj', 'cep', 'numero', 'enquadramento', 'agente_autuador', 'habilitacao'].some(k => id.includes(k));
+        if (onlyDigits) {
+            field.value = field.value.replace(/\D/g, '');
+        } else {
+            field.value = field.value.toLowerCase();
+        }
+    }
+});

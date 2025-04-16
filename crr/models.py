@@ -2,6 +2,7 @@ from django.db import models, transaction
 from django.core.validators import RegexValidator
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from datetime import timedelta
 
 # ---------------- VEÍCULO ---------------- #
 def upload_path(instance, filename):
@@ -55,6 +56,25 @@ class Crr(models.Model):
     criado_em = models.DateTimeField(auto_now_add=True)
     editado_em = models.DateTimeField(auto_now=True)
     
+    def save(self, *args, **kwargs):
+        # Definir os campos que devem ser convertidos para minúsculas
+        lower_fields = [
+            'placa_chassi','marca', 'modelo', 'municipio_veiculo', 'local_remocao',
+            'observacao', 'nome_condutor'
+        ]
+        
+        # Aplicar normalização para minúsculas
+        for field in lower_fields:
+            value = getattr(self, field)
+            if value and isinstance(value, str):
+                setattr(self, field, value.lower())
+                     
+        # Garantir que o número do CRR não tenha espaços
+        if self.numero_crr:
+            self.numero_crr = self.numero_crr.strip()
+            
+        super().save(*args, **kwargs)
+
     class Meta:
         verbose_name = "CRR"
         verbose_name_plural = "CRRs"
@@ -68,6 +88,12 @@ class Crr(models.Model):
         else:
             self.not_gerada = self.data_remocao <= (date.today() - timedelta(days=10))
         self.save()
+
+    def calcular_prazo_leilao(self):
+        """Retorna a data de leilão (60 dias após a remoção)."""
+        if self.data_remocao:
+            return self.data_remocao + timedelta(days=60)
+        return None
     
 class Arrendatario(models.Model):
     crr = models.ForeignKey(Crr,on_delete=models.CASCADE,related_name='arrendatario')    
@@ -83,6 +109,19 @@ class Arrendatario(models.Model):
     criado_em = models.DateTimeField(auto_now_add=True)
     editado_em = models.DateTimeField(auto_now=True)
     
+    def save(self, *args, **kwargs): # normaliza banco de dados
+        lower_fields = [
+            'nome_arrendatario','endereco_arrendatario','complemento_arrendatario','bairro_arrendatario','cidade_arrendatario',
+        ]
+        
+        # Aplicar normalização para minúsculas
+        for field in lower_fields:
+            value = getattr(self, field)
+            if value and isinstance(value, str):
+                setattr(self, field, value.lower())
+                                 
+        super().save(*args, **kwargs)
+
     class Meta:
         verbose_name = "Arrendatário"
         verbose_name_plural = "Arrendatários"
@@ -98,12 +137,25 @@ class Ait(models.Model):
     
 
 class TabelaEnquadramento(models.Model):
-    codigo = models.CharField(max_length=5, unique=True)
+    codigo = models.CharField(max_length=6, unique=True)
     amparo_legal = models.CharField(max_length=100)
-    descricao_infracao = models.TextField()
+    descricao_infracao = models.CharField(max_length=500)
 
     def __str__(self):
         return f"{self.codigo} - {self.descricao_infracao}"
+
+    def save(self, *args, **kwargs): # normaliza banco de dados
+        lower_fields = [
+            'amparo_legal','descricao_infracao',
+        ]
+        
+        # Aplicar normalização para minúsculas
+        for field in lower_fields:
+            value = getattr(self, field)
+            if value and isinstance(value, str):
+                setattr(self, field, value.lower())
+                                 
+        super().save(*args, **kwargs)
 
 class Enquadramento(models.Model):
     crr = models.ForeignKey(Crr, on_delete=models.CASCADE, related_name='enquadramentos')
@@ -112,19 +164,13 @@ class Enquadramento(models.Model):
     def __str__(self):
         return f"{self.enquadramento.codigo} - {self.enquadramento.descricao_infracao[:30]}"
 
-class Notificacao(models.Model):
-    AMPAROS_PREDEFINIDOS = [
-        ('Art. 279-A C.T.B.', 'Art. 279-A C.T.B.'),
-        ('Art. 230, V - C.T.B.', 'Art. 230, V - C.T.B.'),
-    ]
+class Notificacao(models.Model):  
     
     crr = models.OneToOneField(Crr, on_delete=models.CASCADE,related_name="notificacao")
     data_emissao = models.DateField(blank=False, null=False)
     data_postagem = models.DateField(blank=False, null=False)
-    numero_controle = models.PositiveIntegerField(unique=True, blank=True, null=True)
-    descricao_infracao = models.CharField(max_length=100, blank=True, null=False)
-    amparo_legal = models.CharField(max_length=25, blank=False, null=False)
-    prazo_leilao = models.DateField(blank=False, null=False)
+    numero_controle = models.PositiveIntegerField(unique=True, blank=False, null=False)
+    prazo_leilao = models.DateField(blank=False, null=False,verbose_name="Prazo p/ Leilão")
     destinatario = models.CharField(max_length=25, blank=False, null=False)
     endereco = models.CharField(max_length=25, blank=False, null=False)
     numero = models.CharField(max_length=6, blank=False, null=False)
@@ -137,25 +183,36 @@ class Notificacao(models.Model):
     criado_em = models.DateTimeField(auto_now_add=True)
     editado_em = models.DateTimeField(auto_now=True)
 
-
     def save(self, *args, **kwargs):
+        # 1. Normalização dos campos de texto (minúsculas)
+        lower_fields = [
+            'destinatario', 'endereco', 'complemento', 
+            'bairro', 'cidade_destinatario'
+        ]
+        
+        for field in lower_fields:
+            value = getattr(self, field)
+            if value and isinstance(value, str):
+                setattr(self, field, value.lower())
+        
+        # 2. Geração do número de controle (se não existir)
         if not self.numero_controle:
             with transaction.atomic():  
                 ultimo = Notificacao.objects.select_for_update().order_by('-numero_controle').first()
                 self.numero_controle = (ultimo.numero_controle + 1) if ultimo else 1
-
+        
+        # 3. Salva a instância
         super().save(*args, **kwargs)
-        self.crr.atualizar_status_not_gerada()  # Atualiza o status no Crr após salvar
+        
+        # 4. Atualiza o status no CRR relacionado
+        self.crr.atualizar_status_not_gerada()
 
-    class Meta:
-        verbose_name = "Notificação"
-        verbose_name_plural = "Notificações"
+class Meta:
+    verbose_name = "Notificação"
+    verbose_name_plural = "Notificações"
 
-    def __str__(self):
-        return f"Notificação {self.numero_controle} - {self.crr}"
-
-
-
+def __str__(self):
+    return f"Notificação {self.numero_controle} - {self.crr}"
 
 
 class NumeroEdital(models.Model):

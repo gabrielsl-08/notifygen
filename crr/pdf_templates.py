@@ -116,13 +116,13 @@ def render_notificacao_template(c, notificacao, width, height):
      # Barra vertical
     c.line(6.3* cm, altura - 7.7 * cm, 6.3* cm, altura - 8.6 * cm)
     c.setFont("Arial", 10)
-    c.drawString(2 * cm, altura - 8.5 * cm, crr.placa_chassi) #\\\\\\\\\\\\\\\\\\\\\\\\\\
+    c.drawString(2 * cm, altura - 8.5 * cm, crr.placa_chassi.upper()) #\\\\\\\\\\\\\\\\\\\\\\\\\\
 
     
     c.setFont("Arial", 8)
     c.drawString(6.5 * cm, altura - 8 * cm, "Marca / Modelo:") #\\\\\\\\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(6.5 * cm, altura - 8.5 * cm, f"{crr.marca}/{crr.modelo}") #\\\\\\\\\\\\\\\
+    c.drawString(6.5 * cm, altura - 8.5 * cm, f"{crr.marca.upper()}/{crr.modelo.upper()}") #\\\\\\\\\\\\\\\
     # Barra vertical
     c.line(9.8* cm, altura - 7.7 * cm, 9.8 * cm, altura - 8.6 * cm)
 
@@ -131,22 +131,22 @@ def render_notificacao_template(c, notificacao, width, height):
     c.drawString(9.9 * cm, altura - 8 * cm, "Espécie:") #\\\\\\\\\\\\\\\\\\\\\\\\\
     # Barra vertical
     c.setFont("Arial", 10)
-    c.drawString(9.9 * cm, altura - 8.5 * cm, crr.especie) #\\\\\\\\\\\\\\\\\\\\\
+    c.drawString(9.9 * cm, altura - 8.5 * cm, crr.especie.upper()) #\\\\\\\\\\\\\\\\\\\\\
     c.line(12.3* cm, altura - 7.7 * cm, 12.3 * cm, altura - 8.6 * cm)
 
 
     c.setFont("Arial", 8)
     c.drawString(12.4 * cm, altura - 8 * cm, "Categoria:") #\\\\\\\\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(12.4 * cm, altura - 8.5 * cm, crr.categoria) #\\\\\\\\\\\\\\\
+    c.drawString(12.4 * cm, altura - 8.5 * cm, crr.categoria.upper()) #\\\\\\\\\\\\\\\
      # Barra vertical
     c.line(14.7* cm, altura - 7.7 * cm, 14.7 * cm, altura - 8.6 * cm)
 
     c.setFont("Arial", 8)
     c.drawString(14.8 * cm, altura - 8 * cm, "Município / UF:") #\\\\\\\\\\\\\
-    
-    c.drawString(14.8 * cm, altura - 8.5 * cm, f"{crr.municipio_veiculo}/{crr.uf_veiculo}")
     c.setFont("Arial", 10)
+    c.drawString(14.8 * cm, altura - 8.5 * cm, f"{crr.municipio_veiculo.upper()}/{crr.uf_veiculo.upper()}")
+    
    
     
     # Linha horizontal acima de identificação do local da infração
@@ -201,7 +201,7 @@ def render_notificacao_template(c, notificacao, width, height):
 
     c.setFont("Arial", 8)
     c.drawString(2 * cm, altura - 10.3 * cm, "Observação:") #\\\\\\\\\\\\\\\\\\\\\\\\
-    c.drawString(2 * cm, altura - 10.8 * cm, str(crr.observacao))
+    c.drawString(2 * cm, altura - 10.8 * cm, str(crr.observacao.upper()))
     
     # Definir estilos de texto
     styles = getSampleStyleSheet()
@@ -223,15 +223,57 @@ def render_notificacao_template(c, notificacao, width, height):
     c.line(6.8* cm, altura - 12.5 * cm, 6.8 * cm, altura - 14.7 * cm)
 
     # ------ DESCRIÇÃO DA INFRAÇÃO ------ #\\\\\\\\\\\\\\\\\\\\\\\\\\
+    # ------ DESCRIÇÃO DA INFRAÇÃO ------ #\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+    # Primeiro defina a função auxiliar para quebrar o texto
+    def quebrar_texto_em_linhas(texto, limite_por_linha=50, max_linhas=3):
+        """Quebra um texto longo em múltiplas linhas com limite de caracteres"""
+        if not texto:
+            return []
+        
+        texto_limitado = texto[:limite_por_linha * max_linhas]
+        palavras = texto_limitado.split()
+        linhas = []
+        linha_atual = ""
+        
+        for palavra in palavras:
+            if len(linha_atual) + len(palavra) + 1 <= limite_por_linha:
+                linha_atual += (" " if linha_atual else "") + palavra
+            else:
+                linhas.append(linha_atual)
+                linha_atual = palavra
+                if len(linhas) >= max_linhas:
+                    break
+        
+        if linha_atual and len(linhas) < max_linhas:
+            linhas.append(linha_atual)
+        
+        return linhas
+
+    # Agora defina a função principal para desenhar
+    def desenhar_texto_multilinha(c, texto, x, y, limite_por_linha=50, max_linhas=3, espacamento=12):
+        """Desenha texto com múltiplas linhas no PDF"""
+        linhas = quebrar_texto_em_linhas(texto, limite_por_linha, max_linhas)
+        
+        for i, linha in enumerate(linhas):
+            c.drawString(x, y - (i * espacamento), linha)
+        
+        if len(texto) > limite_por_linha * max_linhas:
+            c.drawString(x, y - (len(linhas) * espacamento),f"...")
+
+    # Configurações e renderização do texto
     texto_descricao = str(primeiro_descricao_infracao)
+    desenhar_texto_multilinha(
+        c,
+        texto_descricao,
+        x=2 * cm,
+        y=altura - 13.2 * cm,
+        limite_por_linha=35,
+        max_linhas=4,
+        espacamento=11
+    )
 
-    paragrafo = Paragraph(texto_descricao, style_normal)
-
-    # Definir uma área onde o texto será exibido (posição X, Y, largura, altura)
-    frame = Frame(1.8*cm, 11.3*cm, 5*cm, 4*cm)
-
-    # Adicionar o parágrafo ao frame
-    frame.addFromList([paragrafo], c)
+# ------------------------------------------------------
     # ------------------------------------------------------
     
     
@@ -291,7 +333,7 @@ def render_notificacao_template(c, notificacao, width, height):
     c.setFont("Arial", 8)
     c.drawString(6 * cm, altura - 16.3 * cm, "UF:") #\\\\\\\\\\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(6 * cm, altura - 16.7 * cm, crr. uf_cnh) #\\\\\\\\\\\\\
+    c.drawString(6 * cm, altura - 16.7 * cm, crr. uf_cnh.upper()) #\\\\\\\\\\\\\
 
     c.setFont("Arial", 8)
     c.drawString(7 * cm, altura - 16.3 * cm, "CPF:") # \\\\\\\\\\\\\\\\\\\\
@@ -302,7 +344,7 @@ def render_notificacao_template(c, notificacao, width, height):
     c.setFont("Arial", 8)
     c.drawString(2 * cm, altura - 17.1 * cm, "Nome:") # \\\\\\\\\\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(2 * cm, altura - 17.5 * cm, crr.nome_condutor) # \\\\\\\\\\\\\\\\\\\\\\\
+    c.drawString(2 * cm, altura - 17.5 * cm, crr.nome_condutor.upper()) # \\\\\\\\\\\\\\\\\\\\\\\
     #Linha horizontal abaixo de NOME
     c.line(2 * cm, altura - 17.6 * cm, largura - 2 * cm, altura - 17.6 * cm)
     
@@ -349,10 +391,10 @@ def render_notificacao_template(c, notificacao, width, height):
     c.setFont("Arial", 8)
     c.drawString(2.2 * cm, 28.2 * cm, "DESTINATÁRIO")
     c.setFont("Arial", 10)
-    c.drawString(2.2 * cm, 27.7 * cm, notificacao.destinatario)
+    c.drawString(2.2 * cm, 27.7 * cm, notificacao.destinatario.upper())
     
-    c.drawString(2.2 * cm, 26.6 * cm, f"{notificacao.endereco}, {notificacao.numero}    {notificacao.complemento}  -   {notificacao.bairro}")
-    c.drawString(2.2 * cm, 26.1 * cm,f"{notificacao.cep}           {notificacao.cidade_destinatario} / {notificacao.uf_destinatario}")
+    c.drawString(2.2 * cm, 26.6 * cm, f"{notificacao.endereco.upper()}, {notificacao.numero.upper()}    {notificacao.complemento.upper()}  -   {notificacao.bairro.upper()}")
+    c.drawString(2.2 * cm, 26.1 * cm,f"{notificacao.cep.upper()}           {notificacao.cidade_destinatario.upper()} / {notificacao.uf_destinatario.upper()}")
 
     c.setFont("Helvetica-Bold", 12)
     c.drawString(6 * cm, 25.15 * cm, "NOTIFCAÇÃO DE REMOÇÃO DE VEÍCULO")
@@ -400,10 +442,10 @@ def render_notificacao_template(c, notificacao, width, height):
     c.setFont("Arial", 8)
     c.drawString(3.2 * cm, 5.6 * cm, "DESTINATÁRIO")
     c.setFont("Arial", 10)
-    c.drawString(3.2 * cm, 5 * cm, notificacao.destinatario)
+    c.drawString(3.2 * cm, 5 * cm, notificacao.destinatario.upper())
     
-    c.drawString(3.2 * cm, 4 * cm,f"{notificacao.endereco}, {notificacao.numero} - {notificacao.complemento} - {notificacao.bairro}")
-    c.drawString(3.2 * cm, 3.5 * cm, f"{notificacao.cep}              {notificacao.cidade_destinatario} / {notificacao.uf_destinatario}")
+    c.drawString(3.2 * cm, 4 * cm,f"{notificacao.endereco.upper()}, {notificacao.numero.upper()} - {notificacao.complemento.upper()} - {notificacao.bairro.upper()}")
+    c.drawString(3.2 * cm, 3.5 * cm, f"{notificacao.cep.upper()}              {notificacao.cidade_destinatario.upper()} / {notificacao.uf_destinatario.upper()}")
     
     
     print("PDF '' criado com sucesso!")

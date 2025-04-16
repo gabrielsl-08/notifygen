@@ -16,6 +16,7 @@ from datetime import date, timedelta
 from .utils import gerar_edital_docx
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources
+from datetime import timedelta
 
 # ============== FUNÇÕES DE AÇÃO ============== #
 def gerar_pdf_notificacoes(modeladmin, request, queryset):   
@@ -34,23 +35,6 @@ def gerar_pdf_notificacoes(modeladmin, request, queryset):
     return response
 gerar_pdf_notificacoes.short_description = "NOTIFICAÇÃO PROPRIETÁRIO"
 
-def gerar_pdf_arrendatario(modeladmin, request, queryset):   
-    buffer = BytesIO()
-    c = canvas.Canvas(buffer, pagesize=A4)
-    largura, altura = A4
-    for i, notificacao in enumerate(queryset):
-        if i > 0:
-            c.showPage()
-        
-        render_notificacao_template(c, notificacao, largura, altura)    
-    c.save()
-    buffer.seek(0)
-    
-    response = HttpResponse(buffer, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="notificacoes_{timezone.now().strftime("%Y%m%d_%H%M%S")}.pdf"'
-    return response
-gerar_pdf_arrendatario.short_description = "NOTIFICAÇÃO ARRENDATÁRIO"
-
 
 # ============== INLINES ============== #
 
@@ -65,9 +49,7 @@ class AitInline(admin.TabularInline):
     class Media:
         js = ('js/mascaras.js',)
 
-class EnquadramentoAdmin(admin.ModelAdmin):
-    class Media:
-        js = ('js/mascaras.js',)  # Caminho relativo à pasta "static"
+
 
 class EnquadramentoInline(admin.TabularInline):
     model = Enquadramento
@@ -75,12 +57,7 @@ class EnquadramentoInline(admin.TabularInline):
     max_num = 4
     fields = ['enquadramento']
     verbose_name_plural = "Enquadramentos"
-    class Media:
-        js = (
-            'js/jquery.mask.min.js',
-            'js/custom-mask.js',
-            'js/mascaras.js',
-        )
+ 
 
 class ArrendatárioAdmin(admin.ModelAdmin):
     class Media:
@@ -183,17 +160,17 @@ class CrrAdmin(admin.ModelAdmin):
          
 
 
-
 @admin.register(Notificacao)
 class NotificacaoAdmin(admin.ModelAdmin):
-    list_display = ('crr__numero_crr','numero_controle',  'data_emissao','get_ait','imagem_preview')
+    list_display = ('crr__numero_crr','numero_controle',  'data_emissao','get_ait','imagem_preview','prazo_leilao')
     list_display_links = ('crr__numero_crr',)
     search_fields = ('crr__numero_crr','numero_controle', 'destinatario')
     list_filter = ('data_emissao', 'crr__numero_crr')
     readonly_fields = ('numero_controle','imagem_preview')
-   
-    actions = [gerar_pdf_notificacoes,gerar_pdf_arrendatario]
+    actions = [gerar_pdf_notificacoes]
 
+   
+    
     def get_ait(self, obj):
         # Retorna todos os AITs associados ao CRR da Notificação 
         aits = obj.crr.ait.all()  # Busca todos os AITs relacionados ao CRR
@@ -206,23 +183,34 @@ class NotificacaoAdmin(admin.ModelAdmin):
         return ", ".join([enq.codigo for enq in enquadramentos]) if enquadramentos else ""    
     get_enquadramento.short_description = "ENQUADRAMENTO"  # Nome da coluna no admin
     
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        
+        # Se for uma nova notificação (não editando uma existente)
+        if obj is None:
+            form.base_fields['prazo_leilao'].required = False
+        
+        return form
+
     def save_model(self, request, obj, form, change):
-        #Impede a criação de Notificação se o veículo não estiver 'Retido'.
         if obj.crr.status != 'retido':
-            raise ValidationError("somente para veículos com status 'Retido'.")
+            raise forms.ValidationError("Somente para veículos com status 'Retido'.")
+        
+        if obj.crr and obj.crr.data_remocao:
+            obj.prazo_leilao = obj.crr.data_remocao + timedelta(days=60)
+        else:
+            raise forms.ValidationError("O CRR relacionado não possui data de remoção definida.")
         
         super().save_model(request, obj, form, change)
 
     fieldsets = (
         ("Informações da Notificação", {
-            'fields': ('numero_controle', 'crr', 'data_emissao', 'data_postagem', 'descricao_infracao', 'imagem')
+            'fields': ('numero_controle', 'crr', 'data_emissao', 'data_postagem','prazo_leilao', 'imagem')
         }),
         ("Destinatário", {
             'fields': ('destinatario', 'endereco', 'numero', 'complemento', 'bairro', 'cidade_destinatario', 'cep')
         }),
-        ("Detalhes", {
-            'fields': ('amparo_legal', 'prazo_leilao')
-        }),
+       
     )
 
     
@@ -237,12 +225,7 @@ class NotificacaoAdmin(admin.ModelAdmin):
 
     imagem_preview.short_description = "Pré-visualização"
 
-    class Media:
-        js = (
-            'js/jquery.mask.min.js',
-            'js/custom-mask.js',
-            'js/mascaras.js',
-        )
+   
 
 
 
