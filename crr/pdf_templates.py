@@ -21,13 +21,16 @@ def render_notificacao_template(c, notificacao, width, height):
     primeiro_ait = aits[0].ait if len(aits) > 0 else ""
     segundo_ait = aits[1].ait if len(aits) > 1 else ""
    
-    enquadramentos = notificacao.crr.enquadramentos.all()
-    if enquadramentos.exists():
-        primeiro = enquadramentos.first()
-        primeiro_enquadramento = f"{primeiro.enquadramento.codigo}"
-    else:
-        primeiro_enquadramento = "—"
+    enquadramentos = list(notificacao.crr.enquadramentos.all())
 
+    primeiro_enquadramento = enquadramentos[0].enquadramento.codigo  if len(enquadramentos) > 0 else "—"
+    segundo_enquadramento =  enquadramentos[1].enquadramento.codigo  if len(enquadramentos) > 1 else "-"
+    terceiro_enquadramento = enquadramentos[2].enquadramento.codigo  if len(enquadramentos) > 2 else "-"
+    quarto_enquadramento =   enquadramentos[3].enquadramento.codigo if len(enquadramentos) > 3 else "-"
+
+    primeiro_amparo_legal = enquadramentos[0].enquadramento.amparo_legal  if len(enquadramentos) > 0 else "—"
+    
+    primeiro_descricao_infracao = enquadramentos[0].enquadramento.descricao_infracao  if len(enquadramentos) > 0 else "—"
 
     # Configuração da página (agora usando LETTER)
     largura, altura = LETTER  # Dimensões: 8.5 x 11 polegadas
@@ -140,9 +143,8 @@ def render_notificacao_template(c, notificacao, width, height):
     c.line(14.7* cm, altura - 7.7 * cm, 14.7 * cm, altura - 8.6 * cm)
 
     c.setFont("Arial", 8)
-    c.drawString(3.8 * cm, altura - 8 * cm, "Município / UF:") #\\\\\\\\\\\\\
-    # Barra vertical
-    c.line(7.8* cm, altura - 7.7 * cm, 7.8 * cm, altura - 8.6 * cm)
+    c.drawString(14.8 * cm, altura - 8 * cm, "Município / UF:") #\\\\\\\\\\\\\
+    
     c.drawString(14.8 * cm, altura - 8.5 * cm, f"{crr.municipio_veiculo}/{crr.uf_veiculo}")
     c.setFont("Arial", 10)
    
@@ -221,7 +223,7 @@ def render_notificacao_template(c, notificacao, width, height):
     c.line(6.8* cm, altura - 12.5 * cm, 6.8 * cm, altura - 14.7 * cm)
 
     # ------ DESCRIÇÃO DA INFRAÇÃO ------ #\\\\\\\\\\\\\\\\\\\\\\\\\\
-    texto_descricao = notificacao.descricao_infracao
+    texto_descricao = str(primeiro_descricao_infracao)
 
     paragrafo = Paragraph(texto_descricao, style_normal)
 
@@ -240,7 +242,9 @@ def render_notificacao_template(c, notificacao, width, height):
 
     c.setFont("Arial", 10)
     c.drawString(7 * cm, altura - 13.3 * cm,str(primeiro_enquadramento))
-    c.drawString(7 * cm, altura - 13.8 * cm, f"")
+    c.drawString(7 * cm, altura - 13.8 * cm, str(segundo_enquadramento))
+    c.drawString(7 * cm, altura - 13.8 * cm, str(terceiro_enquadramento))
+    c.drawString(7 * cm, altura - 13.8 * cm, str(quarto_enquadramento))
 
     c.setFont("Arial", 8)
     c.drawString(9.5* cm, altura - 12.8 * cm, "Auto de infração:") #\\\\\\\\\\\\\\
@@ -258,7 +262,7 @@ def render_notificacao_template(c, notificacao, width, height):
     c.line(5* cm, altura - 14.7 * cm, 5 * cm, altura - 15.5* cm)
 
     c.setFont("Arial", 10)
-    c.drawString(2 * cm, altura - 15.4* cm, notificacao.amparo_legal) #Art. 279-A C.T.B. \\\\\\\\
+    c.drawString(2 * cm, altura - 15.4* cm, str(primeiro_amparo_legal)) #Art. 279-A C.T.B. \\\\\\\\
 
     c.setFont("Arial", 8)
     c.drawString(6 * cm, altura - 15 * cm, "Identificação da Autoridade/Agente Autuador:") # \\\\\\\\\
