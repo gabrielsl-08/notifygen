@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.http import HttpResponse
-from .models import Notificacao, Crr, Ait, Enquadramento,Arrendatario,TabelaEnquadramento
+from .models import Notificacao, Crr, Ait, Enquadramento,Arrendatario,TabelaEnquadramento,TabelaArrendatario
 import csv
 from io import BytesIO
 from reportlab.pdfgen import canvas
@@ -67,8 +67,7 @@ class ArrendatarioInline(admin.TabularInline):
     model = Arrendatario
     extra = 1
     max_num = 1
-    fields = ['nome_arrendatario','cnpj_arrendatario','endereco_arrendatario','numero_arrendatario',
-              'complemento_arrendatario','bairro_arrendatario','cidade_arrendatario','uf_arrendatario','cep_arrendatario' ]
+    fields = ['arrendatario']
     verbose_name_plural = "Arrendatário"
     class Media:
         js = (
@@ -76,6 +75,17 @@ class ArrendatarioInline(admin.TabularInline):
             'js/custom-mask.js',
             'js/mascaras.js',
         )
+class TabelaArrendatarioResource(resources.ModelResource):
+    class Meta:
+        model = TabelaArrendatario
+        import_id_fields = ['nome_arrendatario']  # chave única para atualizar se quiser
+        fields = ('nome_arrendatario', 'cnpj_arrendatario', 'endereco_arrendatario','numero_arrendatario','complemento_arrendatario','bairro_arrendatario','cidade_arrendatario','uf_arrendatario','cep_arrendatario')  # campos para importar/exportar
+
+
+@admin.register(TabelaArrendatario)
+class TabelaArrendatarioAdmin(ImportExportModelAdmin):
+    resource_class = TabelaArrendatario
+    list_display = ('nome_arrendatario', 'cnpj_arrendatario')
 
 # ============== MODELADMINS ============== #
 class FiltroCrrAtrasado(admin.SimpleListFilter):
@@ -166,7 +176,7 @@ class NotificacaoAdmin(admin.ModelAdmin):
     list_display_links = ('crr__numero_crr',)
     search_fields = ('crr__numero_crr','numero_controle', 'destinatario')
     list_filter = ('data_emissao', 'crr__numero_crr')
-    readonly_fields = ('numero_controle','imagem_preview')
+    readonly_fields = ('numero_controle','imagem_preview',)
     actions = [gerar_pdf_notificacoes]
 
    
@@ -205,10 +215,10 @@ class NotificacaoAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ("Informações da Notificação", {
-            'fields': ('numero_controle', 'crr', 'data_emissao', 'data_postagem','prazo_leilao', 'imagem')
+            'fields': ('numero_controle','crr','data_emissao','data_postagem','prazo_leilao','imagem')
         }),
         ("Destinatário", {
-            'fields': ('destinatario', 'endereco', 'numero', 'complemento', 'bairro', 'cidade_destinatario', 'cep')
+            'fields': ('destinatario', 'endereco', 'numero', 'complemento', 'bairro', 'cidade_destinatario','uf_destinatario', 'cep')
         }),
        
     )

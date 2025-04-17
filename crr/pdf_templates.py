@@ -32,6 +32,10 @@ def render_notificacao_template(c, notificacao, width, height):
     
     primeiro_descricao_infracao = enquadramentos[0].enquadramento.descricao_infracao  if len(enquadramentos) > 0 else "—"
 
+    arrendatarios = list(notificacao.crr.arrendatarios.all())
+    nome_arrendatario = arrendatarios[0].arrendatario.nome_arrendatario  if len(arrendatarios) > 0 else "—"
+
+
     # Configuração da página (agora usando LETTER)
     largura, altura = LETTER  # Dimensões: 8.5 x 11 polegadas
    
@@ -273,9 +277,6 @@ def render_notificacao_template(c, notificacao, width, height):
         espacamento=11
     )
 
-# ------------------------------------------------------
-    # ------------------------------------------------------
-    
     
     c.setFont("Arial", 8)
     c.drawString(7 * cm, altura - 12.8 * cm, "Enquadramento:")
@@ -356,7 +357,7 @@ def render_notificacao_template(c, notificacao, width, height):
     c.setFont("Arial", 10) 
     c.drawString(2 * cm, altura - 18.4 * cm, "Veículo não reclamado (solicitado) em até 60 dias após a remoção poderá ser leiloado. (Art. 328 C.T.B.)")
     c.setFont("Arial", 10)
-    c.drawString(2 * cm, altura - 18.9 * cm, "Apto para leilão a partir de: 23/04/2025") #\\\\\\\\\\\\
+    c.drawString(2 * cm, altura - 18.9 * cm, f'Apto para leilão a partir de: {notificacao.prazo_leilao}') #\\\\\\\\\\\\
     c.drawString(2 * cm, altura - 19.4 * cm, "Nome do pátio: Patio E Guincho Universal LTDA")
     c.drawString(2 * cm, altura - 19.9 * cm, "Local do pátio: Rua Bolivia, Jaraguá - São Sebastião/SP - CEP: 11600-748")
     

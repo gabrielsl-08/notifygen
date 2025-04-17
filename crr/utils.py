@@ -30,8 +30,11 @@ def gerar_edital_docx(crrs):
         row_cells[0].text = str(crr.placa_chassi)
         row_cells[1].text = str(f"{crr.marca}/{crr.modelo}")  
         row_cells[2].text = str(crr.cpf)
-        arrendatario = crr.arrendatario.first()
-        row_cells[3].text = arrendatario.nome_arrendatario if arrendatario else ""
+        arrendatario_obj = crr.arrendatarios.first()
+    if arrendatario_obj:
+        row_cells[3].text = arrendatario_obj.arrendatario.nome_arrendatario
+    else:
+        row_cells[3].text = "—"
 
     # Salvar o arquivo em memória
     buffer = BytesIO()
