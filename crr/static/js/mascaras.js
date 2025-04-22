@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     // === PLACEHOLDERS ===
     const placeholders = {
-        'id_placa_chassi': 'AAA1A23 ou ABC-1234',
+        'id_placa_chassi': 'Placa ou Chassi',
         'id_data_remocao': 'dd/mm/aaaa',
         'id_hora_remocao': 'hh:mm',
         'id_agente_autuador': 'Somente números',
@@ -193,7 +193,6 @@ const normalizeFields = [
     'id_cpf',
     'id_cnpj_arrendatario',
     'id_cep_arrendatario',
-    'id_cep',
     'id_numero_arrendatario',
     'id_numero_controle',
     'id_numero',

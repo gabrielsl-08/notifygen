@@ -3,15 +3,47 @@ from docx.shared import Inches
 from django.http import HttpResponse
 from io import BytesIO
 from django.utils.timezone import now
+from datetime import datetime
+import locale
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+from docx.shared import Pt
+from docx.oxml.ns import qn
+from .models import NumeroEdital
+
+def obter_proximo_numero_edital():
+    obj, _ = NumeroEdital.objects.get_or_create(id=1)
+    numero_atual = obj.numero
+    obj.incrementar()
+    return numero_atual
+    
 
 def gerar_edital_docx(crrs):
 
     
-
+    
     #arrendatario = crrs.arrendatario
     doc = Document()
     # Carrega o template existente
     doc = Document('media/modelo_edital.docx')
+    # Substitui o placeholder {{DATA_ATUAL}} pela data atual formatada
+    numero_edital = str(obter_proximo_numero_edital())
+    data_formatada = now().strftime('%d DE %B DE %Y').upper()
+    for paragraph in doc.paragraphs:
+        if "{{DATA_ATUAL}}" in paragraph.text or "{{NUMERO_EDITAL}}" in paragraph.text:
+            for run in paragraph.runs:
+                if "{{DATA_ATUAL}}" in run.text:
+                    run.text = run.text.replace("{{DATA_ATUAL}}", data_formatada)
+                    run.font.name = 'Verdana'
+                    run.font.size = Pt(11)
+                    run.bold = True
+                    run._element.rPr.rFonts.set(qn('w:eastAsia'), 'Verdana')
+                if "{{NUMERO_EDITAL}}" in run.text:
+                    run.text = run.text.replace("{{NUMERO_EDITAL}}", numero_edital)
+                    run.font.name = 'Verdana'
+                    run.font.size = Pt(11)
+                    run.bold = True
+            paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+   
 
     # Adiciona a tabela no final
     table = doc.add_table(rows=1, cols=4)
@@ -26,15 +58,16 @@ def gerar_edital_docx(crrs):
 
     # Exemplo de adição de linha — você pode depois popular com seu queryset
     for crr in crrs:
-        row_cells = table.add_row().cells
-        row_cells[0].text = str(crr.placa_chassi)
-        row_cells[1].text = str(f"{crr.marca}/{crr.modelo}")  
-        row_cells[2].text = str(crr.cpf)
+        row_cells = table.add_row().cells 
+        
+        row_cells[0].text = str(crr.placa_chassi).upper()
+        row_cells[1].text = str(f"{crr.marca}/{crr.modelo}").upper() 
+        destinatario = getattr(crr.notificacao, 'destinatario', '') if hasattr(crr, 'notificacao') else ''
+        row_cells[2].text = destinatario.upper()
         arrendatario_obj = crr.arrendatarios.first()
-    if arrendatario_obj:
-        row_cells[3].text = arrendatario_obj.arrendatario.nome_arrendatario
-    else:
-        row_cells[3].text = "—"
+        row_cells[3].text = (arrendatario_obj.arrendatario.nome_arrendatario).upper()
+
+        
 
     # Salvar o arquivo em memória
     buffer = BytesIO()

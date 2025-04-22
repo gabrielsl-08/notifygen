@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.urls import path
 
 urlpatterns = [
-    path('', admin.site.urls),  # Recomendado usar 'admin/' como prefixo
+    path('admin/', admin.site.urls),  # Recomendado usar 'admin/' como prefixo
 ]
 
 if settings.DEBUG:

@@ -33,25 +33,25 @@ STATUS_CHOICES = [  ('retido', 'Retido'), ('liberado', 'Liberado'),]
 
 
 class Crr(models.Model):
-    numero_crr = models.CharField(max_length=10,unique=True, blank=False, null=False,verbose_name='número do crr')
+    numero_crr = models.PositiveIntegerField(unique=True, blank=False, null=False,verbose_name='número do crr')
     placa_chassi = models.CharField( max_length=17,blank=True, null=False,verbose_name='placa/chassi')
     marca = models.CharField(max_length=20, blank=True, null=False)
     modelo = models.CharField(max_length=20, blank=True, null=False)
-    especie = models.CharField(max_length=20 ,choices=ESPECIE_CHOICES, blank=True, null=False)
+    especie = models.CharField(max_length=20 ,choices=ESPECIE_CHOICES, blank=True, null=False,verbose_name='espécie')
     categoria = models.CharField(max_length=20,choices=CATEGORIA_CHOICES, blank=True, null=False)
-    uf_veiculo = models.CharField(max_length=6, choices=ESTADO_CHOICES,default='SP', blank=True, null=False)
-    municipio_veiculo = models.CharField(max_length=25, blank=False, null=False)
-    local_remocao = models.CharField(max_length=100, blank=False, null=False)
-    data_remocao = models.DateField(blank=False, null=False)
-    hora_remocao = models.TimeField(blank=False, null=False)
-    observacao = models.CharField(max_length=100, blank=True, null=False, default='abandonado')
-    agente_autuador = models.CharField(max_length=10, blank=False, null=False)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES,default='retido',help_text="Status atual do veículo (Retido/Liberado)")    
-    habilitacao_condutor = models.CharField(max_length=11, blank=True, null=False)
-    uf_cnh = models.CharField(max_length=6,choices=ESTADO_CHOICES,default='SP', blank=True, null=False)
-    cpf = models.CharField(max_length=14,verbose_name='CPF', blank=True, null=False)
-    nome_condutor = models.CharField(max_length=50, blank=True, null=False)
-    not_gerada = models.BooleanField(default=False)
+    uf_veiculo = models.CharField(max_length=6, choices=ESTADO_CHOICES,default='SP', blank=True, null=False,verbose_name='UF do veículo')
+    municipio_veiculo = models.CharField(max_length=25, blank=False, null=False,verbose_name='Município do veículo')
+    local_remocao = models.CharField(max_length=100, blank=False, null=False,verbose_name='Local da Remoção')
+    data_remocao = models.DateField(blank=False, null=False,verbose_name='Data da remoção')
+    hora_remocao = models.TimeField(blank=False, null=False,verbose_name='Hora da remoção')
+    observacao = models.CharField(max_length=100, blank=True, null=False,verbose_name='Observação')
+    agente_autuador = models.CharField(max_length=10, blank=False, null=False,verbose_name='Agente autuador')
+    status = models.CharField(max_length=8, choices=STATUS_CHOICES,default='retido',help_text="Status atual do veículo (Retido/Liberado)")    
+    habilitacao_condutor = models.CharField(max_length=11, blank=True, null=False,verbose_name='Habilitação do condutor')
+    uf_cnh = models.CharField(max_length=6,choices=ESTADO_CHOICES,default='SP', blank=True, null=False,verbose_name='UF da CNH')
+    cpf = models.CharField(max_length=14, blank=True, null=False,verbose_name='CPF')
+    nome_condutor = models.CharField(max_length=50, blank=True, null=False,verbose_name='Nome do condutor')
+    not_gerada = models.BooleanField(default=False,verbose_name='Status da Notificação')
     edital_emitido = models.BooleanField(default=False) 
     criado_em = models.DateTimeField(auto_now_add=True)
     editado_em = models.DateTimeField(auto_now=True)
@@ -69,9 +69,7 @@ class Crr(models.Model):
             if value and isinstance(value, str):
                 setattr(self, field, value.lower())
                      
-        # Garantir que o número do CRR não tenha espaços
-        if self.numero_crr:
-            self.numero_crr = self.numero_crr.strip()
+       
             
         super().save(*args, **kwargs)
 
@@ -96,15 +94,15 @@ class Crr(models.Model):
         return None
     
 class TabelaArrendatario(models.Model):
-    nome_arrendatario = models.CharField(max_length=25, unique=True,blank=True,null=False)
-    cnpj_arrendatario = models.CharField(max_length=20,blank=True,null=False)
-    endereco_arrendatario = models.CharField(max_length=25,blank=True,null=False)
-    numero_arrendatario = models.CharField(max_length=6,blank=True,null=False)
-    complemento_arrendatario = models.CharField(max_length=10, blank=True,null=False)
-    bairro_arrendatario = models.CharField(max_length=25,blank=True,null=False)
-    cidade_arrendatario = models.CharField(max_length=25,blank=True,null=False)
-    uf_arrendatario = models.CharField(max_length=6, choices=ESTADO_CHOICES,blank=True,null=False)
-    cep_arrendatario = models.CharField(max_length=9, verbose_name='CEP',blank=True,null=False)
+    nome_arrendatario = models.CharField(max_length=25, unique=True,blank=True,null=False,verbose_name='Nome do arrendatário')
+    cnpj_arrendatario = models.CharField(max_length=20,blank=True,null=False,verbose_name='CNPJ')
+    endereco_arrendatario = models.CharField(max_length=25,blank=True,null=False,verbose_name='Endereço')
+    numero_arrendatario = models.CharField(max_length=6,blank=True,null=False,verbose_name='número')
+    complemento_arrendatario = models.CharField(max_length=10, blank=True,null=False,verbose_name='Complemento')
+    bairro_arrendatario = models.CharField(max_length=25,blank=True,null=False,verbose_name='Bairro')
+    cidade_arrendatario = models.CharField(max_length=25,blank=True,null=False,verbose_name='Cidade')
+    uf_arrendatario = models.CharField(max_length=6, choices=ESTADO_CHOICES,blank=True,null=False,verbose_name='UF')
+    cep_arrendatario = models.CharField(max_length=9,blank=True,null=False,verbose_name='CEP')
 
     def __str__(self):
         return f"{self.nome_arrendatario} - {self.cnpj_arrendatario}"
@@ -119,6 +117,9 @@ class TabelaArrendatario(models.Model):
                 setattr(self, field, valor.lower())
 
         super().save(*args, **kwargs)
+    class Meta:
+        verbose_name = "Arrendatário"
+        verbose_name_plural = "Arrendatários"
 
 class Arrendatario(models.Model):
     crr = models.ForeignKey(Crr, on_delete=models.CASCADE, related_name='arrendatarios')
@@ -141,9 +142,9 @@ class Ait(models.Model):
     
 
 class TabelaEnquadramento(models.Model):
-    codigo = models.CharField(max_length=6, unique=True)
+    codigo = models.CharField(max_length=6, unique=True,verbose_name='Código')
     amparo_legal = models.CharField(max_length=100)
-    descricao_infracao = models.CharField(max_length=500)
+    descricao_infracao = models.CharField(max_length=500,verbose_name='Descrição da informação')
 
     def __str__(self):
         return f"{self.codigo} - {self.descricao_infracao}"
@@ -161,6 +162,10 @@ class TabelaEnquadramento(models.Model):
                                  
         super().save(*args, **kwargs)
 
+    class Meta:
+        verbose_name = "Enquadramento"
+        verbose_name_plural = "Enquadramentos"
+
 class Enquadramento(models.Model):
     crr = models.ForeignKey(Crr, on_delete=models.CASCADE, related_name='enquadramentos')
     enquadramento = models.ForeignKey(TabelaEnquadramento, on_delete=models.PROTECT, verbose_name="Enquadramento")
@@ -170,19 +175,19 @@ class Enquadramento(models.Model):
 
 class Notificacao(models.Model):  
     
-    crr = models.OneToOneField(Crr, on_delete=models.CASCADE,related_name="notificacao")
-    data_emissao = models.DateField(blank=False, null=False)
-    data_postagem = models.DateField(blank=False, null=False)
-    numero_controle = models.PositiveIntegerField(unique=True, blank=False, null=False)
-    prazo_leilao = models.DateField(blank=False, null=False,verbose_name="Prazo p/ Leilão")
-    destinatario = models.CharField(max_length=50, blank=False, null=False)
-    endereco = models.CharField(max_length=50, blank=False, null=False)
-    numero = models.CharField(max_length=6, blank=False, null=False)
-    complemento = models.CharField(max_length=10, blank=True, null=False)
-    bairro = models.CharField(max_length=25, blank=False, null=False)
-    cidade_destinatario = models.CharField(max_length=25, blank=False, null=False)
-    uf_destinatario = models.CharField(max_length=6,choices=ESTADO_CHOICES, blank=False, null=False)
-    cep = models.CharField(max_length=9,verbose_name='CEP',help_text='Formato: 11600-000')
+    crr = models.OneToOneField(Crr,unique=True, on_delete=models.CASCADE,related_name="notificacao",verbose_name='CRR')
+    data_emissao = models.DateField(blank=False, null=False,verbose_name='Data de emissão')
+    data_postagem = models.DateField(blank=False, null=False, verbose_name='Data de postagem')
+    numero_controle = models.PositiveIntegerField(unique=True, blank=False, null=False,verbose_name='Numero de controle')  
+    prazo_leilao = models.DateField(blank=False, null=False,verbose_name='Prazo p/ leilão')
+    destinatario = models.CharField(max_length=50, blank=False, null=False,verbose_name='destinatário')
+    endereco = models.CharField(max_length=50, blank=False, null=False,verbose_name='endereço')
+    numero = models.CharField(max_length=6, blank=False, null=False,verbose_name='Número')
+    complemento = models.CharField(max_length=10, blank=True, null=False,verbose_name='Complemento')
+    bairro = models.CharField(max_length=25, blank=False, null=False,verbose_name='Bairro')
+    cidade_destinatario = models.CharField(max_length=25, blank=False, null=False,verbose_name='Cidade do destinatário')
+    uf_destinatario = models.CharField(max_length=6,choices=ESTADO_CHOICES, blank=False, null=False,verbose_name='UF do destinatário')
+    cep = models.CharField(max_length=9,verbose_name='CEP')
     imagem = models.ImageField(upload_to='notificacoes/', blank=True, null=False, verbose_name="Imagem da Notificação")
     criado_em = models.DateTimeField(auto_now_add=True)
     editado_em = models.DateTimeField(auto_now=True)
@@ -211,9 +216,9 @@ class Notificacao(models.Model):
         # 4. Atualiza o status no CRR relacionado
         self.crr.atualizar_status_not_gerada()
 
-class Meta:
-    verbose_name = "Notificação"
-    verbose_name_plural = "Notificações"
+    class Meta:
+        verbose_name = "Notificação"
+        verbose_name_plural = "Notificações"
 
 def __str__(self):
     return f"Notificação {self.numero_controle} - {self.crr}"
