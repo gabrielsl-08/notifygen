@@ -3,6 +3,7 @@ from django.core.validators import RegexValidator
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from datetime import timedelta
+from django.contrib.auth.models import User
 
 # ---------------- VEÍCULO ---------------- #
 def upload_path(instance, filename):
@@ -51,6 +52,7 @@ class Crr(models.Model):
     uf_cnh = models.CharField(max_length=6,choices=ESTADO_CHOICES,default='SP', blank=True, null=False,verbose_name='UF da CNH')
     cpf = models.CharField(max_length=14, blank=True, null=False,verbose_name='CPF')
     nome_condutor = models.CharField(max_length=50, blank=True, null=False,verbose_name='Nome do condutor')
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name="crrs", verbose_name="Usuário responsável")
     not_gerada = models.BooleanField(default=False,verbose_name='Status da Notificação')
     edital_emitido = models.BooleanField(default=False) 
     criado_em = models.DateTimeField(auto_now_add=True)

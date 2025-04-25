@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>CRR #{{ crr.numero_crr }}</h2>
+<p><strong>Placa/Chassi:</strong> {{ crr.placa_chassi }}</p>
+<p><strong>Marca:</strong> {{ crr.marca }}</p>
+<p><strong>Modelo:</strong> {{ crr.modelo }}</p>
+<!-- Adicione os campos que desejar exibir -->
+<a href="javascript:window.print()">Imprimir</a>
+{% endblock %}
