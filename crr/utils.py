@@ -65,7 +65,8 @@ def gerar_edital_docx(crrs):
         destinatario = getattr(crr.notificacao, 'destinatario', '') if hasattr(crr, 'notificacao') else ''
         row_cells[2].text = destinatario.upper()
         arrendatario_obj = crr.arrendatarios.first()
-        row_cells[3].text = (arrendatario_obj.arrendatario.nome_arrendatario).upper()
+        nome_arrendatario = getattr(arrendatario_obj.arrendatario, 'nome_arrendatario', '') if arrendatario_obj and hasattr(arrendatario_obj, 'arrendatario') else ''
+        row_cells[3].text = nome_arrendatario.upper()
 
         
 

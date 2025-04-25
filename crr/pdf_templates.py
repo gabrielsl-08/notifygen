@@ -85,21 +85,23 @@ def render_notificacao_template(c, notificacao, width, height):
     c.setFont("Arial", 8)
     c.drawString(6 * cm, altura - 6.4 * cm, "N° C.R.R.") #\\\\\\\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(6 * cm, altura - 6.9 * cm, crr.numero_crr) #\\\\\\\\\\\\\\\\
+    c.drawString(6 * cm, altura - 6.9 * cm, str(crr.numero_crr)) #\\\\\\\\\\\\\\\\
     # Barra vertical em frente auto de infração
     c.line(9* cm, altura - 6.1 * cm, 9 * cm, altura - 7 * cm)
 
     c.setFont("Arial", 8)
     c.drawString(9.5 * cm, altura - 6.4 * cm, "Data da Postagem:") #\\\\\\\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(9.5 * cm, altura - 6.9 * cm, f"{notificacao.data_postagem}") #\\\\\\\\\\\\\\\
+    data_postagem = notificacao.data_postagem.strftime('%d/%m/%Y')
+    c.drawString(9.5 * cm, altura - 6.9 * cm, data_postagem) #\\\\\\\\\\\\\\\
     # Barra vertical em frente data de postagem 
     c.line(12.7* cm, altura - 6.1 * cm, 12.7 * cm, altura - 7 * cm)
 
     c.setFont("Arial", 8)
     c.drawString(13 * cm, altura - 6.4 * cm, "Data Emissão:") #\\\\\\\\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(13 * cm, altura - 6.9 * cm, f"{notificacao.data_emissao}")
+    data_emissao = notificacao.data_emissao.strftime('%d/%m/%Y')
+    c.drawString(13 * cm, altura - 6.9 * cm, f"{data_emissao}")
     # Barra vertical em frente data emissão
     c.line(15.7* cm, altura - 6.1 * cm, 15.7 * cm, altura - 7 * cm)
 
@@ -184,12 +186,13 @@ def render_notificacao_template(c, notificacao, width, height):
     c.line(9.5 * cm, altura - 11 * cm, 9.5 * cm, altura - 11.9 * cm)
 
     c.setFont("Arial", 10)
-    c.drawString(7.1 * cm, altura - 11.8 * cm, f"{crr.data_remocao}") #\\\\\\\\\\\\\\\\\\\\
+    data_remocao = crr.data_remocao.strftime('%d/%m/%Y')
+    c.drawString(7.1 * cm, altura - 11.8 * cm, data_remocao) #\\\\\\\\\\\\\\\\\\\\
 
     c.setFont("Arial", 8)
     c.drawString(9.7 * cm, altura - 11.3 * cm, "Hora da remoção:") #\\\\\\\\\\\\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(9.7 * cm, altura - 11.8 * cm, f"{crr.hora_remocao}")  #\\\\\\\\\\\\\\\\\\\\\\\
+    c.drawString(9.7 * cm, altura - 11.8 * cm, str(crr.hora_remocao))  #\\\\\\\\\\\\\\\\\\\\\\\
 
     # retangulo para imagem
         #   (x  , y,   largura, altura, stroke=1, fill=0)
@@ -357,7 +360,8 @@ def render_notificacao_template(c, notificacao, width, height):
     c.setFont("Arial", 10) 
     c.drawString(2 * cm, altura - 18.4 * cm, "Veículo não reclamado (solicitado) em até 60 dias após a remoção poderá ser leiloado. (Art. 328 C.T.B.)")
     c.setFont("Arial", 10)
-    c.drawString(2 * cm, altura - 18.9 * cm, f'Apto para leilão a partir de: {notificacao.prazo_leilao}') #\\\\\\\\\\\\
+    data_prazo_leilao = notificacao.prazo_leilao.strftime('%d/%m/%Y')
+    c.drawString(2 * cm, altura - 18.9 * cm, f'Apto para leilão a partir de: {data_prazo_leilao}') #\\\\\\\\\\\\
     c.drawString(2 * cm, altura - 19.4 * cm, "Nome do pátio: Patio E Guincho Universal LTDA")
     c.drawString(2 * cm, altura - 19.9 * cm, "Local do pátio: Rua Bolivia, Jaraguá - São Sebastião/SP - CEP: 11600-748")
     

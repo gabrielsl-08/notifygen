@@ -36,12 +36,15 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+
 
 ROOT_URLCONF = 'divprom.urls'
 
@@ -102,18 +105,16 @@ LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
 
 USE_I18N = True
-
+USE_L10N = True
 USE_TZ = True
 
 # Formatação de datas
-USE_L10N = True
 DATE_INPUT_FORMATS = ['%d/%m/%Y']
 TIME_INPUT_FORMATS = ['%H:%M']
 SHORT_DATE_FORMAT = 'd/m/Y'
 TIME_FORMAT = 'H:i'
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
+# Middleware necessário para localização funcionar corretamente
 
 
 
@@ -128,7 +129,7 @@ JAZZMIN_SETTINGS = {
     "site_title": "DIVPROM",
     "site_header": "DIVPROM",
     "site_brand": "DIVPROM",
-    "site_logo": "/divprom.jpeg",
+    "site_logo": "/brasao.jpg",
     "site_logo_classes": "img-circle",
     "site_icon": None,
 
@@ -141,11 +142,13 @@ JAZZMIN_SETTINGS = {
     },
 
     "changeform_format": "single",             # Mostra tudo em uma página (sem abas)
-    "show_save_buttons_on_top": False,         # Oculta botões de salvar no topo (Jazzmin 2.6+)
+    "show_save_buttons_on_top": False,
+     # List of apps (and/or models) to base side menu ordering 
+    "order_with_respect_to": ["crr.Crr", "crr.Notificacao"],  
+     "language_chooser": False, 
+        
     
     
- 
-
 }
 
 

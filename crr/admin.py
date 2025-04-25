@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.http import HttpResponse, HttpResponseRedirect
-from .models import Notificacao, Crr, Ait, Enquadramento,Arrendatario,TabelaEnquadramento,TabelaArrendatario
+from .models import Notificacao, Crr, Ait, Enquadramento,Arrendatario,TabelaEnquadramento,TabelaArrendatario,NumeroEdital
 import csv
 from io import BytesIO
 from reportlab.pdfgen import canvas
@@ -130,7 +130,7 @@ class TabelaEnquadramentoAdmin(ImportExportModelAdmin):
 
 @admin.register(Crr)
 class CrrAdmin(admin.ModelAdmin):
-    list_display = ('numero_crr','criar_notificacao_link', 'data_remocao', 'placa_chassi', 'marca', 'modelo', 'especie', 'get_enquadramentos','status','edital_emitido')
+    list_display = ('numero_crr','criar_notificacao_link', 'data_remocao', 'placa_chassi', 'marca', 'modelo', 'get_enquadramentos','status','edital_emitido')
     list_filter = (FiltroCrrAtrasado,'data_remocao', 'status',)
     actions = ['gerar_edital_docx_action']
     list_editable = ('status',)
@@ -179,9 +179,11 @@ class CrrAdmin(admin.ModelAdmin):
 
     criar_notificacao_link.short_description = "Nova Notificação"
 
+    
+
 @admin.register(Notificacao)
 class NotificacaoAdmin(admin.ModelAdmin):
-    list_display = ('crr__numero_crr','numero_controle',  'data_emissao','get_ait','imagem_preview','prazo_leilao')
+    list_display = ('crr__numero_crr','numero_controle','data_emissao','data_postagem','imagem_preview','prazo_leilao')
     list_display_links = ('crr__numero_crr',)
     search_fields = ('crr__numero_crr','numero_controle', 'destinatario')
     list_filter = ('data_emissao', 'crr__numero_crr')
@@ -264,3 +266,4 @@ class NotificacaoAdmin(admin.ModelAdmin):
             'js/mascaras.js',
         
         )
+
