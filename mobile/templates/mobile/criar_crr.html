@@ -1,10 +1,259 @@
+{% extends "mobile/base.html" %}
 
+{% block title %}
+    Criar CRR
+{% endblock %}
 
 {% block content %}
-<h2>Novo CRR</h2>
-<form method="post" enctype="multipart/form-data">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Salvar</button>
-</form>
+<form method="post">
+    {% csrf_token %}
+    <div id="crrCarousel" class="carousel slide" data-bs-interval="false"> <!-- Desativar auto-ride -->
+        <div class="carousel-inner">
+            <!-- ETAPA 1: Dados do Veículo -->
+            <div class="carousel-item active">
+                <h4>Dados do Veículo</h4>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.placa_chassi.label_tag }} {{ form.placa_chassi }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.marca.label_tag }} {{ form.marca }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.modelo.label_tag }} {{ form.modelo }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.especie.label_tag }} {{ form.especie }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.categoria.label_tag }} {{ form.categoria }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.uf_veiculo.label_tag }} {{ form.uf_veiculo }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.municipio_veiculo.label_tag }} {{ form.municipio_veiculo }}
+                    </div>
+                </div>
+                <button class="btn btn-custom btn-block" type="button" data-bs-target="#crrCarousel" data-bs-slide="next">
+                    Próximo
+                </button>
+            </div>
+
+            <!-- ETAPA 2: Local da Infração -->
+            <div class="carousel-item">
+                <h4>Local da Infração</h4>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        {{ form.local_remocao.label_tag }} {{ form.local_remocao }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        {{ form.data_remocao.label_tag }} {{ form.data_remocao }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        {{ form.hora_remocao.label_tag }} {{ form.hora_remocao }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        {{ form.observacao.label_tag }} {{ form.observacao }}
+                    </div>
+                </div>
+                <button class="btn btn-custom btn-block" type="button" data-bs-target="#crrCarousel" data-bs-slide="prev">
+                    Anterior
+                </button>
+                <button class="btn btn-custom btn-block" type="button" data-bs-target="#crrCarousel" data-bs-slide="next">
+                    Próximo
+                </button>
+            </div>
+
+            <!-- ETAPA 3: Auto e Enquadramento -->
+            <div class="carousel-item">
+                <h4>Auto de Infração e Enquadramentos</h4>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.ait.label_tag }} {{ form.ait }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.enquadramento.label_tag }} {{ form.enquadramento }}
+                    </div>
+                </div>
+                <button class="btn btn-custom btn-block" type="button" data-bs-target="#crrCarousel" data-bs-slide="prev">
+                    Anterior
+                </button>
+                <button class="btn btn-custom btn-block" type="button" data-bs-target="#crrCarousel" data-bs-slide="next">
+                    Próximo
+                </button>
+            </div>            
+
+            <!-- ETAPA 4: Condutor -->
+            <div class="carousel-item">
+                <h4>Dados do Condutor</h4>
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="unknown-driver" name="unknown_driver">
+                            <label class="form-check-label" for="unknown-driver">
+                                Condutor não identificado
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" id="driver-details">
+                    <div class="col-md-6 mb-3">
+                        {{ form.nome_condutor.label_tag }} {{ form.nome_condutor }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.habilitacao_condutor.label_tag }} {{ form.habilitacao_condutor }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.uf_cnh.label_tag }} {{ form.uf_cnh }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.cpf.label_tag }} {{ form.cpf }}
+                    </div>
+                    <div class="col-12 mb-3">
+                        <button type="button" class="btn btn-custom btn-block" data-bs-toggle="modal" data-bs-target="#signatureModal">
+                            Assinar
+                        </button>
+                    </div>
+                    <input type="hidden" name="signature" id="signature-output">
+                </div>
+                
+                <button class="btn btn-custom btn-block" type="button" data-bs-target="#crrCarousel" data-bs-slide="prev">
+                    Anterior
+                </button>
+                <button class="btn btn-custom btn-block" type="button" data-bs-target="#crrCarousel" data-bs-slide="next">
+                    Próximo
+                </button>
+            </div>
+            
+            <!-- Modal para Capturar Assinatura -->
+            <div class="modal fade" id="signatureModal" tabindex="-1" aria-labelledby="signatureModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="signatureModalLabel">Assinar</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                      <canvas id="signature-pad" width="383" height="251" style="border: 1px solid #000;"></canvas>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" id="clear-signature">Limpar</button>
+                      <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="save-signature">Salvar Assinatura</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+           <!-- ETAPA 5: Revisar -->
+<div class="carousel-item {% if crr_saved %}active{% endif %}">
+    <h4>Revisar e Finalizar</h4>
+    <p>Verifique se todas as informações estão corretas.</p>
+    <dl class="row">
+        <dt class="col-sm-4">Placa/Chassi:</dt>
+        <dd class="col-sm-8">{{ form.placa_chassi.value }}</dd>
+        <dt class="col-sm-4">Marca:</dt>
+        <dd class="col-sm-8">{{ form.marca.value }}</dd>
+        <dt class="col-sm-4">Modelo:</dt>
+        <dd class="col-sm-8">{{ form.modelo.value }}</dd>
+        <dt class="col-sm-4">Espécie:</dt>
+        <dd class="col-sm-8">{{ form.especie.value }}</dd>
+        <dt class="col-sm-4">Categoria:</dt>
+        <dd class="col-sm-8">{{ form.categoria.value }}</dd>
+        <dt class="col-sm-4">UF Veículo:</dt>
+        <dd class="col-sm-8">{{ form.uf_veiculo.value }}</dd>
+        <dt class="col-sm-4">Município Veículo:</dt>
+        <dd class="col-sm-8">{{ form.municipio_veiculo.value }}</dd>
+        <dt class="col-sm-4">Local Remoção:</dt>
+        <dd class="col-sm-8">{{ form.local_remocao.value }}</dd>
+        <dt class="col-sm-4">Data Remoção:</dt>
+        <dd class="col-sm-8">{{ form.data_remocao.value }}</dd>
+        <dt class="col-sm-4">Hora Remoção:</dt>
+        <dd class="col-sm-8">{{ form.hora_remocao.value }}</dd>
+        <dt class="col-sm-4">Observação:</dt>
+        <dd class="col-sm-8">{{ form.observacao.value }}</dd>
+        <dt class="col-sm-4">Nome Condutor:</dt>
+        <dd class="col-sm-8">{{ form.nome_condutor.value }}</dd>
+        <dt class="col-sm-4">Habilitação Condutor:</dt>
+        <dd class="col-sm-8">{{ form.habilitacao_condutor.value }}</dd>
+        <dt class="col-sm-4">UF CNH:</dt>
+        <dd class="col-sm-8">{{ form.uf_cnh.value }}</dd>
+        <dt class="col-sm-4">CPF:</dt>
+        <dd class="col-sm-8">{{ form.cpf.value }}</dd>
+    </dl>
+    <button class="btn btn-custom btn-block" type="button" data-bs-target="#crrCarousel" data-bs-slide="prev">
+        Anterior
+    </button>
+    <button type="submit" class="btn btn-success btn-block">Salvar CRR</button>
+
+    {% if crr_saved %}
+    <div class="alert alert-success mt-3">
+        CRR salvo com sucesso! ID: {{ crr_saved.id }}
+    </div>
+    <button type="button" class="btn btn-custom btn-block" onclick="printContent()">
+        Imprimir
+    </button>
+    <script>
+        function printContent() {
+            var myWindow = window.open('', 'PRINT', 'height=650,width=900');
+            myWindow.document.write('<html><head><title>Impressão do CRR</title>');
+            myWindow.document.write('</head><body>');
+            myWindow.document.write('<h2>Detalhes do CRR</h2>');
+            myWindow.document.write('<p><strong>Número do CRR:</strong> {{ crr_saved.numero_crr }}</p>');
+            myWindow.document.write('<p><strong>Placa/Chassi:</strong> {{ crr_saved.placa_chassi }}</p>');
+            // Adicione mais detalhes ao HTML conforme necessário
+            myWindow.document.write('</body></html>');
+
+            myWindow.document.close();
+            myWindow.focus();
+
+            myWindow.print();
+            myWindow.close();
+        }
+    </script>
+    {% endif %}
+</div>
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var canvas = document.getElementById('signature-pad');
+        var signaturePad = new SignaturePad(canvas);
+
+        // Ajusta o tamanho do canvas quando o modal é mostrado
+        var signatureModal = document.getElementById('signatureModal');
+        signatureModal.addEventListener('shown.bs.modal', function () {
+            signaturePad.clear();
+            window.dispatchEvent(new Event('resize')); // Re-desenha o canvas depois que o modal é aberto
+        });
+
+        // Botão para limpar assinatura
+        document.getElementById('clear-signature').addEventListener('click', function () {
+            signaturePad.clear();
+        });
+
+        // Botão para salvar assinatura
+        document.getElementById('save-signature').addEventListener('click', function () {
+            if (!signaturePad.isEmpty()) {
+                var dataURL = signaturePad.toDataURL('image/png');
+                document.getElementById('signature-output').value = dataURL;
+            } else {
+                alert("Por favor, forneça a assinatura.");
+            }
+        });
+
+        // Controle de exibição dos campos do condutor
+        var unknownDriverCheckbox = document.getElementById('unknown-driver');
+        var driverDetailsSection = document.getElementById('driver-details');
+        
+        unknownDriverCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                driverDetailsSection.style.display = 'none';
+            } else {
+                driverDetailsSection.style.display = 'block';
+            }
+        });
+    });
+</script>
+{% endblock %}
 {% endblock %}

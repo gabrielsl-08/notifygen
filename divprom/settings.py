@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'crr',
     'import_export',
     'mobile',
+    
 ]
 
 MIDDLEWARE = [

@@ -34,7 +34,7 @@ STATUS_CHOICES = [  ('retido', 'Retido'), ('liberado', 'Liberado'),]
 
 
 class Crr(models.Model):
-    numero_crr = models.PositiveIntegerField(unique=True, blank=False, null=False,verbose_name='número do crr')
+    numero_crr = models.CharField(max_length=10, unique=True, blank=False, null=False, verbose_name='número do crr')
     placa_chassi = models.CharField( max_length=17,blank=True, null=False,verbose_name='placa/chassi')
     marca = models.CharField(max_length=7, blank=True, null=False)
     modelo = models.CharField(max_length=7, blank=True, null=False)
@@ -53,6 +53,7 @@ class Crr(models.Model):
     cpf = models.CharField(max_length=14, blank=True, null=False,verbose_name='CPF')
     nome_condutor = models.CharField(max_length=50, blank=True, null=False,verbose_name='Nome do condutor')
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name="crrs", verbose_name="Usuário responsável")
+    signature = models.ImageField(upload_to='signatures/', blank=True, null=True, verbose_name='Assinatura do Condutor')
     not_gerada = models.BooleanField(default=False,verbose_name='Status da Notificação')
     edital_emitido = models.BooleanField(default=False) 
     criado_em = models.DateTimeField(auto_now_add=True)
