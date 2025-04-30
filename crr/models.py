@@ -52,7 +52,7 @@ class Crr(models.Model):
     uf_cnh = models.CharField(max_length=6,choices=ESTADO_CHOICES,default='SP', blank=True, null=False,verbose_name='UF da CNH')
     cpf = models.CharField(max_length=14, blank=True, null=False,verbose_name='CPF')
     nome_condutor = models.CharField(max_length=50, blank=True, null=False,verbose_name='Nome do condutor')
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name="crrs", verbose_name="Usuário responsável")
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name="crrs", verbose_name="Usuário responsável")
     signature = models.ImageField(upload_to='signatures/', blank=True, null=True, verbose_name='Assinatura do Condutor')
     not_gerada = models.BooleanField(default=False,verbose_name='Status da Notificação')
     edital_emitido = models.BooleanField(default=False) 
