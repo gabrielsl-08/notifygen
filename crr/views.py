@@ -1,11 +1,31 @@
-from django.shortcuts import render
-from .models import NumeroEdital
 
-# Recupera ou cria o primeiro número de edital
-numero_edital, created = NumeroEdital.objects.get_or_create(id=1)
+from rest_framework import viewsets
+from .models import Crr,TabelaArrendatario, Arrendatario, Ait, TabelaEnquadramento, Enquadramento
+from .serializers import (CrrSerializer, TabelaArrendatarioSerializer,
+                          ArrendatarioSerializer, AitSerializer,
+                          TabelaEnquadramentoSerializer, EnquadramentoSerializer)
 
-# Usa o número atual
-numero_atual = numero_edital.numero
+class CrrViewSet(viewsets.ModelViewSet):
+    queryset = Crr.objects.all()
+    serializer_class = CrrSerializer
+    
 
-# Incrementa para o próximo uso
-numero_edital.incrementar()
+class TabelaArrendatarioViewSet(viewsets.ModelViewSet):
+    queryset = TabelaArrendatario.objects.all()
+    serializer_class = TabelaArrendatarioSerializer
+
+class ArrendatarioViewSet(viewsets.ModelViewSet):
+    queryset = Arrendatario.objects.all()
+    serializer_class = ArrendatarioSerializer
+
+class AitViewSet(viewsets.ModelViewSet):
+    queryset = Ait.objects.all()
+    serializer_class = AitSerializer
+
+class TabelaEnquadramentoViewSet(viewsets.ModelViewSet):
+    queryset = TabelaEnquadramento.objects.all()
+    serializer_class = TabelaEnquadramentoSerializer
+
+class EnquadramentoViewSet(viewsets.ModelViewSet):
+    queryset = Enquadramento.objects.all()
+    serializer_class = EnquadramentoSerializer

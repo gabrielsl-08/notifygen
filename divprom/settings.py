@@ -32,6 +32,9 @@ INSTALLED_APPS = [
     'crr',
     'import_export',
     'mobile',
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'authentication',
     
 ]
 
@@ -126,6 +129,24 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Alternativa moderna: BASE_DIR / 'media'
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+         'rest_framework_simplejwt.authentication.JWTAuthentication',
+         ],
+    'DEFAULT_PERMISSION_CLASSES':[
+        'rest_framework.permissions.IsAuthenticated',
+
+    ],
+
+     }
+
+
+
+
+
+
 
 JAZZMIN_SETTINGS = {
     "site_title": "DIVPROM",
