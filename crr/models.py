@@ -10,6 +10,20 @@ def upload_path(instance, filename):
     numero_crr = instance.numero_crr if instance.numero_crr else "sem_identificacao"
     return f"notificacoes/{numero_crr}/{filename}"
 
+
+ORGAO_CHOICES = [
+    ('detraf', 'DETRAF'), ('gcm', 'GCM'), ('pm', 'PM'),
+]
+class AgenteAutuador(models.Model):
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='agente_autuador', blank=True, null=True)
+    nome = models.CharField(max_length=100,blank=True,null=True,verbose_name='Nome do Agente')  
+    matricula = models.CharField(max_length=50, unique=True, blank=True, null=True) 
+    orgao =  models.CharField(max_length=6, choices=ORGAO_CHOICES, blank=True, null=True,verbose_name='Órgão')
+
+    def __str__(self):
+        return f"{self.nome} ({self.matricula})"
+
+
 ESPECIE_CHOICES = [
     ('passageiro', 'Passageiro'), ('carga', 'Carga'), ('misto', 'Misto'),
     ('tracao', 'Tração'), ('colecao', 'Coleção'), ('especial', 'Especial'),
@@ -46,13 +60,12 @@ class Crr(models.Model):
     data_remocao = models.DateField(blank=False, null=False,verbose_name='Data da remoção')
     hora_remocao = models.TimeField(blank=False, null=False,verbose_name='Hora da remoção')
     observacao = models.CharField(max_length=100, blank=True, null=False,verbose_name='Observação')
-    agente_autuador = models.CharField(max_length=10, blank=False, null=False,verbose_name='Agente autuador')
+    agente_autuador = models.ForeignKey(AgenteAutuador, on_delete=models.CASCADE, related_name='crrs')
     status = models.CharField(max_length=8, choices=STATUS_CHOICES,default='retido',help_text="Status atual do veículo (Retido/Liberado)")    
     habilitacao_condutor = models.CharField(max_length=11, blank=True, null=False,verbose_name='Habilitação do condutor')
     uf_cnh = models.CharField(max_length=6,choices=ESTADO_CHOICES,default='SP', blank=True, null=False,verbose_name='UF da CNH')
     cpf = models.CharField(max_length=14, blank=True, null=False,verbose_name='CPF')
     nome_condutor = models.CharField(max_length=50, blank=True, null=False,verbose_name='Nome do condutor')
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name="crrs", verbose_name="Usuário responsável")
     signature = models.ImageField(upload_to='signatures/', blank=True, null=True, verbose_name='Assinatura do Condutor')
     not_gerada = models.BooleanField(default=False,verbose_name='Status da Notificação')
     edital_emitido = models.BooleanField(default=False) 
@@ -95,6 +108,9 @@ class Crr(models.Model):
         if self.data_remocao:
             return self.data_remocao + timedelta(days=60)
         return None
+
+
+
     
 class TabelaArrendatario(models.Model):
     nome_arrendatario = models.CharField(max_length=25, unique=True,blank=True,null=False,verbose_name='Nome do arrendatário')

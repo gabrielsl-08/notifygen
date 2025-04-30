@@ -95,6 +95,7 @@ class TabelaArrendatarioAdmin(ImportExportModelAdmin):
     resource_class = TabelaArrendatarioResource
     list_display = ('nome_arrendatario', 'cnpj_arrendatario')
 
+
 # ============== MODELADMINS ============== #
 class FiltroCrrAtrasado(admin.SimpleListFilter):
     title = 'TODOS CRRs'
