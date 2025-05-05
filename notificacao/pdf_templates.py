@@ -19,7 +19,15 @@ def render_notificacao_template(c, notificacao, width, height):
     aits = notificacao.crr.ait.all()
 
     primeiro_ait = aits[0].ait if len(aits) > 0 else ""
-    segundo_ait = aits[1].ait if len(aits) > 1 else ""
+    segundo_ait = aits[1].ait if len(aits) > 1 else ""  
+
+    condutor = list(notificacao.crr.condutores.all())
+    
+    habilitacao_condutor =  condutor[0].condutor.habilitacao_condutor  if len(condutor) > 0 else "—"
+    uf_cnh =  condutor[0].condutor.uf_cnh  if len(condutor) > 0 else "—"
+    cpf =  condutor[0].condutor.cpf  if len(condutor) > 0 else "—"
+    nome_condutor =  condutor[0].condutor.nome_condutor  if len(condutor) > 0 else "—"
+
    
     enquadramentos = list(notificacao.crr.enquadramentos.all())
 
@@ -199,7 +207,7 @@ def render_notificacao_template(c, notificacao, width, height):
     c.rect(12*cm, 12.53*cm, 7.5*cm, 4.41*cm , stroke=1, fill=0)
 
     # Imagem Brasão
-    imagem = notificacao.imagem
+    imagem =  notificacao.crr.imagens.first() if notificacao.crr.imagens.exists() else None
     try:
         imagem = ImageReader(imagem)  # Substitua pelo caminho da sua imagem
         c.drawImage(imagem, 12.1 * cm, altura - 15.4 * cm, width=7.3 * cm, height=4.4 * cm, preserveAspectRatio=True)
@@ -313,7 +321,7 @@ def render_notificacao_template(c, notificacao, width, height):
     c.setFont("Arial", 8)
     c.drawString(6 * cm, altura - 15 * cm, "Identificação da Autoridade/Agente Autuador:") # \\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(6 * cm, altura - 15.4 * cm, crr.agente_autuador) # \\\\\\\\\\\\\\\\\\
+    c.drawString(6 * cm, altura - 15.4 * cm, str(crr.agente_autuador.matricula)) # \\\\\\\\\\\\\\\\\\
     
     
     # Linha horizontal acima da identificação de condutor 
@@ -330,25 +338,26 @@ def render_notificacao_template(c, notificacao, width, height):
     c.line(5.7* cm, altura - 16 * cm, 5.7 * cm, altura - 16.8 * cm)
 
     c.setFont("Arial", 10)
-    c.drawString(2 * cm, altura - 16.7 * cm, crr.habilitacao_condutor) 
+    c.drawString(2 * cm, altura - 16.7 * cm,  habilitacao_condutor) 
+
      #Linha horizontal abaixo da habilitação do condutor
     c.line(2 * cm, altura - 16.8 * cm, largura - 2 * cm, altura - 16.8 * cm)
 
     c.setFont("Arial", 8)
     c.drawString(6 * cm, altura - 16.3 * cm, "UF:") #\\\\\\\\\\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(6 * cm, altura - 16.7 * cm, crr. uf_cnh.upper()) #\\\\\\\\\\\\\
+    c.drawString(6 * cm, altura - 16.7 * cm, str(uf_cnh).upper()) #\\\\\\\\\\\\\
 
     c.setFont("Arial", 8)
     c.drawString(7 * cm, altura - 16.3 * cm, "CPF:") # \\\\\\\\\\\\\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(7 * cm, altura - 16.7 * cm, crr.cpf) #\\\\\\\\\\\\\\\\\\\\\\\\\
+    c.drawString(7 * cm, altura - 16.7 * cm, cpf) #\\\\\\\\\\\\\\\\\\\\\\\\\
     
 
     c.setFont("Arial", 8)
     c.drawString(2 * cm, altura - 17.1 * cm, "Nome:") # \\\\\\\\\\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(2 * cm, altura - 17.5 * cm, crr.nome_condutor.upper()) # \\\\\\\\\\\\\\\\\\\\\\\
+    c.drawString(2 * cm, altura - 17.5 * cm, str(nome_condutor).upper()) # \\\\\\\\\\\\\\\\\\\\\\\
     #Linha horizontal abaixo de NOME
     c.line(2 * cm, altura - 17.6 * cm, largura - 2 * cm, altura - 17.6 * cm)
     

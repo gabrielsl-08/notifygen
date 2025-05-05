@@ -8,7 +8,7 @@ import locale
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.shared import Pt
 from docx.oxml.ns import qn
-from .models import NumeroEdital
+from notificacao.models import NumeroEdital
 
 def obter_proximo_numero_edital():
     obj, _ = NumeroEdital.objects.get_or_create(id=1)
