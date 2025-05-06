@@ -20,6 +20,12 @@ class AgenteAutuadorAdmin(admin.ModelAdmin):
     search_fields = ('nome_agente', 'matricula', 'orgao')
 
 
+class AgenteAutuadorInline(admin.TabularInline):
+    model = AgenteAutuador
+    extra = 0
+    max_num = 1  # Quantas linhas vazias para novos condutores
+    fields = ['matricula']
+
 
 class CondutorInline(admin.TabularInline):
     model = Condutor
