@@ -149,7 +149,7 @@ class Arrendatario(models.Model):
 
 
 class Condutor(models.Model):
-    crr = models.ForeignKey(Crr, on_delete=models.CASCADE, related_name='condutores')
+    crr = models.ForeignKey(Crr, on_delete=models.CASCADE, related_name='condutor')
     habilitacao_condutor = models.CharField(max_length=11, blank=True, null=False, verbose_name='Habilitação do Condutor')
     uf_cnh = models.CharField(max_length=6, choices=ESTADO_CHOICES, blank=True, null=False, verbose_name='UF da CNH')
     cpf = models.CharField(max_length=14, blank=True, null=False, verbose_name='CPF')

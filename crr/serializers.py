@@ -1,11 +1,14 @@
 # serializers.py
 from rest_framework import serializers
-from .models import Crr,TabelaArrendatario, Arrendatario, Ait, TabelaEnquadramento, Enquadramento  # exemplo de modelo
+from .models import (Crr,TabelaArrendatario, Arrendatario, Ait,
+                    TabelaEnquadramento, Enquadramento,AgenteAutuador,Condutor,
+                    ) 
 
-class CrrSerializer(serializers.ModelSerializer):
+
+class AgenteAutuadorSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Crr
-        fields = '__all__'  # Ou liste campos específicos ['campo1', 'campo2']
+        model = AgenteAutuador
+        fields =  fields = '__all__'
 
 class TabelaArrendatarioSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,6 +19,7 @@ class ArrendatarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Arrendatario
         fields = '__all__'
+
 
 class AitSerializer(serializers.ModelSerializer):
     class Meta:
@@ -31,3 +35,17 @@ class EnquadramentoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Enquadramento
         fields = '__all__'
+
+class CondutorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Condutor
+        fields =  '__all__'
+
+class CrrSerializer(serializers.ModelSerializer):
+    agente_autuador = AgenteAutuadorSerializer()
+    condutor = CondutorSerializer(many=True)
+    ait = AitSerializer(many=True)
+    enquadramentos = EnquadramentoSerializer(many=True)
+    class Meta:
+        model = Crr
+        fields = '__all__'  # Ou liste campos específicos ['campo1', 'campo2']
