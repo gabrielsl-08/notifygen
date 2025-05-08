@@ -1,10 +1,8 @@
 
 from rest_framework.permissions import IsAdminUser, DjangoModelPermissions
 from rest_framework import viewsets
-from .models import Crr,TabelaArrendatario, Arrendatario, Ait, TabelaEnquadramento, Enquadramento
-from .serializers import (CrrSerializer, TabelaArrendatarioSerializer,
-                          ArrendatarioSerializer, AitSerializer,
-                          TabelaEnquadramentoSerializer, EnquadramentoSerializer)
+from .models import Crr, Ait, TabelaEnquadramento, Enquadramento,Condutor
+from .serializers import (CrrSerializer, AitSerializer,TabelaEnquadramentoSerializer, EnquadramentoSerializer,CondutorSerializer)
 
 from divprom.divprom.permissions import IsOwnerOfCrr
 
@@ -20,15 +18,6 @@ class CrrViewSet(viewsets.ModelViewSet):
         return Crr.objects.none()
 
 
-class TabelaArrendatarioViewSet(viewsets.ModelViewSet):
-    queryset = TabelaArrendatario.objects.all()
-    serializer_class = TabelaArrendatarioSerializer
-    permission_classes = [DjangoModelPermissions]
-
-class ArrendatarioViewSet(viewsets.ModelViewSet):
-    queryset = Arrendatario.objects.all()
-    serializer_class = ArrendatarioSerializer
-    permission_classes = [DjangoModelPermissions]
 
 class AitViewSet(viewsets.ModelViewSet):
     queryset = Ait.objects.all()
@@ -42,5 +31,10 @@ class TabelaEnquadramentoViewSet(viewsets.ModelViewSet):
 
 class EnquadramentoViewSet(viewsets.ModelViewSet):
     queryset = Enquadramento.objects.all()
+    serializer_class = EnquadramentoSerializer
+    permission_classes = [DjangoModelPermissions]
+
+class CondutorViewSet(viewsets.ModelViewSet):
+    queryset = Condutor.objects.all()
     serializer_class = EnquadramentoSerializer
     permission_classes = [DjangoModelPermissions]
