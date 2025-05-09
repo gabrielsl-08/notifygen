@@ -47,7 +47,7 @@ class AgenteAutuador(models.Model):
 
 
 class Crr(models.Model):
-    numero_crr = models.CharField(max_length=10, unique=True, blank=False, null=False, verbose_name='número do crr')
+    numero_crr = models.CharField(max_length=10, unique=True, blank=True, null=True, verbose_name='número do crr')
     placa_chassi = models.CharField( max_length=17,blank=True, null=False,verbose_name='placa/chassi')
     marca = models.CharField(max_length=7, blank=True, null=False)
     modelo = models.CharField(max_length=7, blank=True, null=False)
@@ -149,7 +149,7 @@ class Arrendatario(models.Model):
 
 
 class Condutor(models.Model):
-    crr = models.ForeignKey(Crr, on_delete=models.CASCADE, related_name='condutor')
+    crr = models.ForeignKey(Crr, on_delete=models.CASCADE, related_name='condutores')
     habilitacao_condutor = models.CharField(max_length=11, blank=True, null=False, verbose_name='Habilitação do Condutor')
     uf_cnh = models.CharField(max_length=6, choices=ESTADO_CHOICES, blank=True, null=False, verbose_name='UF da CNH')
     cpf = models.CharField(max_length=14, blank=True, null=False, verbose_name='CPF')
