@@ -19,10 +19,13 @@ class CondutorSerializer(serializers.ModelSerializer):
 
 
 class EnquadramentoSerializer(serializers.ModelSerializer):
+    enquadramento = serializers.SlugRelatedField(
+        slug_field='codigo',
+        queryset=TabelaEnquadramento.objects.all()
+    )
     class Meta:
         model = Enquadramento
         exclude = ['crr']
-
 
 class AgenteAutuadorSerializer(serializers.ModelSerializer):
     class Meta:

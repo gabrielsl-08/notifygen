@@ -12,9 +12,7 @@ from notificacao.models import NumeroEdital
 
 def obter_proximo_numero_edital():
     obj, _ = NumeroEdital.objects.get_or_create(id=1)
-    numero_atual = obj.numero
-    obj.incrementar()
-    return numero_atual
+    return obj
     
 
 def gerar_edital_docx(crrs):
@@ -26,8 +24,14 @@ def gerar_edital_docx(crrs):
     # Carrega o template existente
     doc = Document('media/modelo_edital.docx')
     # Substitui o placeholder {{DATA_ATUAL}} pela data atual formatada
-    numero_edital = str(obter_proximo_numero_edital())
+    numero_edital_obj = obter_proximo_numero_edital()
+    numero_edital = str(numero_edital_obj.numero)
+    try:
+        locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')  # Linux/Mac
+    except locale.Error:
+        locale.setlocale(locale.LC_TIME, 'pt_BR') 
     data_formatada = now().strftime('%d DE %B DE %Y').upper()
+    
     for paragraph in doc.paragraphs:
         if "{{DATA_ATUAL}}" in paragraph.text or "{{NUMERO_EDITAL}}" in paragraph.text:
             for run in paragraph.runs:
@@ -81,5 +85,8 @@ def gerar_edital_docx(crrs):
         content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     )
     response['Content-Disposition'] = f'attachment; filename="edital_{now().strftime("%Y%m%d_%H%M%S")}.docx"'
+    
+    numero_edital_obj.incrementar()
+
     return response
 

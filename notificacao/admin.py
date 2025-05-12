@@ -62,11 +62,12 @@ class NotificacaoAdmin(admin.ModelAdmin):
             raise ValidationError("Somente veículos com status 'Retido'.")
 
         # ✅ Atualiza o status not_gerada do CRR relacionado
-        obj.crr.not_gerada = True
-        obj.crr.save()
+        
 
         super().save_model(request, obj, form, change)
-
+        
+        obj.crr.not_gerada = True
+        obj.crr.save()
 
     def get_changeform_initial_data(self, request):
         initial = super().get_changeform_initial_data(request)

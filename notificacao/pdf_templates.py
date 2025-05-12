@@ -21,12 +21,12 @@ def render_notificacao_template(c, notificacao, width, height):
     primeiro_ait = aits[0].ait if len(aits) > 0 else ""
     segundo_ait = aits[1].ait if len(aits) > 1 else ""  
 
-    condutor = list(notificacao.crr.condutores.all())
+    condutores = list(notificacao.crr.condutores.all())
     
-    habilitacao_condutor =  condutor[0].condutor.habilitacao_condutor  if len(condutor) > 0 else "—"
-    uf_cnh =  condutor[0].condutor.uf_cnh  if len(condutor) > 0 else "—"
-    cpf =  condutor[0].condutor.cpf  if len(condutor) > 0 else "—"
-    nome_condutor =  condutor[0].condutor.nome_condutor  if len(condutor) > 0 else "—"
+    habilitacao_condutor =  condutores[0].habilitacao_condutor  if len(condutores) > 0 else "—"
+    uf_cnh =  condutores[0].uf_cnh  if len(condutores) > 0 else "—"
+    cpf =  condutores[0].cpf  if len(condutores) > 0 else "—" 
+    nome_condutor =  condutores[0].nome_condutor  if len(condutores) > 0 else "—"
 
    
     enquadramentos = list(notificacao.crr.enquadramentos.all())
