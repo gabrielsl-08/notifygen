@@ -32,7 +32,6 @@ INSTALLED_APPS = [
     'crr',
     'notificacao',
     'import_export',
-    'mobile',
     'rest_framework',
     'rest_framework_simplejwt',
     'authentication',
