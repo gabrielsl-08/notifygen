@@ -30,7 +30,7 @@ class EnquadramentoSerializer(serializers.ModelSerializer):
 class AgenteAutuadorSerializer(serializers.ModelSerializer):
     class Meta:
         model = AgenteAutuador
-        fields = ['id', 'nome_agente', 'matricula', 'orgao']
+        fields = '__all__'
 
 
 class TabelaEnquadramentoSerializer(serializers.ModelSerializer):

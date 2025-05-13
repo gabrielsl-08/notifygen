@@ -81,8 +81,6 @@ class ArrendatarioInline(admin.TabularInline):
     verbose_name_plural = "Arrendatário"
     class Media:
         js = (
-            'js/jquery.mask.min.js',
-            'js/custom-mask.js',
             'js/mascaras.js',
         )
 
@@ -181,8 +179,6 @@ class CrrAdmin(admin.ModelAdmin):
 
     class Media:
         js = (
-            'js/jquery.mask.min.js',
-             
             'js/mascaras.js',
         )
 
