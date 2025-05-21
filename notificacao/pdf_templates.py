@@ -16,18 +16,29 @@ def render_notificacao_template(c, notificacao, width, height):
     largura, altura = LETTER 
 
     crr = notificacao.crr
-    aits = notificacao.crr.ait.all()
+    aits = notificacao.crr.aits.all()
 
     primeiro_ait = aits[0].ait if len(aits) > 0 else ""
     segundo_ait = aits[1].ait if len(aits) > 1 else ""  
 
     condutores = list(notificacao.crr.condutores.all())
     
-    habilitacao_condutor =  condutores[0].habilitacao_condutor  if len(condutores) > 0 else "—"
-    uf_cnh =  condutores[0].uf_cnh  if len(condutores) > 0 else "—"
-    cpf =  condutores[0].cpf  if len(condutores) > 0 else "—" 
-    nome_condutor =  condutores[0].nome_condutor  if len(condutores) > 0 else "—"
+    cnh =  condutores[0].cnh  if len(condutores) > 0 else "—"
+    ufCnh =  condutores[0].ufCnh  if len(condutores) > 0 else "—"
+    cpfCondutor =  condutores[0].cpfCondutor  if len(condutores) > 0 else "—" 
+    nomeCondutor =  condutores[0].nomeCondutor  if len(condutores) > 0 else "—"
 
+    veiculos = list(notificacao.crr.veiculos.all())
+    
+    placa =  veiculos[0].placa  if len(veiculos) > 0 else "—"
+    chassi =  veiculos[0].chassi  if len(veiculos) > 0 else "—"
+    marca =  veiculos[0].marca  if len(veiculos) > 0 else "—" 
+    modelo =  veiculos[0].modelo  if len(veiculos) > 0 else "—"
+    cor =  veiculos[0].cor  if len(veiculos) > 0 else "—"
+    especie =  veiculos[0].especie  if len(veiculos) > 0 else "—"
+    categoria =  veiculos[0].categoria  if len(veiculos) > 0 else "—"
+    ufVeiculo =  veiculos[0].ufVeiculo  if len(veiculos) > 0 else "—"
+    municipioVeiculo =  veiculos[0].municipioVeiculo  if len(veiculos) > 0 else "—"
    
     enquadramentos = list(notificacao.crr.enquadramentos.all())
 
@@ -93,7 +104,7 @@ def render_notificacao_template(c, notificacao, width, height):
     c.setFont("Arial", 8)
     c.drawString(6 * cm, altura - 6.4 * cm, "N° C.R.R.") #\\\\\\\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(6 * cm, altura - 6.9 * cm, str(crr.numero_crr)) #\\\\\\\\\\\\\\\\
+    c.drawString(6 * cm, altura - 6.9 * cm, str(crr.numeroCrr)) #\\\\\\\\\\\\\\\\
     # Barra vertical em frente auto de infração
     c.line(9* cm, altura - 6.1 * cm, 9 * cm, altura - 7 * cm)
 
@@ -130,13 +141,13 @@ def render_notificacao_template(c, notificacao, width, height):
      # Barra vertical
     c.line(6.3* cm, altura - 7.7 * cm, 6.3* cm, altura - 8.6 * cm)
     c.setFont("Arial", 10)
-    c.drawString(2 * cm, altura - 8.5 * cm, crr.placa_chassi.upper()) #\\\\\\\\\\\\\\\\\\\\\\\\\\
+    c.drawString(2 * cm, altura - 8.5 * cm, str(placa.upper())) #\\\\\\\\\\\\\\\\\\\\\\\\\\
 
     
     c.setFont("Arial", 8)
     c.drawString(6.5 * cm, altura - 8 * cm, "Marca / Modelo:") #\\\\\\\\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(6.5 * cm, altura - 8.5 * cm, f"{crr.marca.upper()}/{crr.modelo.upper()}") #\\\\\\\\\\\\\\\
+    c.drawString(6.5 * cm, altura - 8.5 * cm, f"{marca.upper()}/{modelo.upper()}") #\\\\\\\\\\\\\\\
     # Barra vertical
     c.line(9.8* cm, altura - 7.7 * cm, 9.8 * cm, altura - 8.6 * cm)
 
@@ -145,21 +156,21 @@ def render_notificacao_template(c, notificacao, width, height):
     c.drawString(9.9 * cm, altura - 8 * cm, "Espécie:") #\\\\\\\\\\\\\\\\\\\\\\\\\
     # Barra vertical
     c.setFont("Arial", 10)
-    c.drawString(9.9 * cm, altura - 8.5 * cm, crr.especie.upper()) #\\\\\\\\\\\\\\\\\\\\\
+    c.drawString(9.9 * cm, altura - 8.5 * cm, especie.upper()) #\\\\\\\\\\\\\\\\\\\\\
     c.line(12.3* cm, altura - 7.7 * cm, 12.3 * cm, altura - 8.6 * cm)
 
 
     c.setFont("Arial", 8)
     c.drawString(12.4 * cm, altura - 8 * cm, "Categoria:") #\\\\\\\\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(12.4 * cm, altura - 8.5 * cm, crr.categoria.upper()) #\\\\\\\\\\\\\\\
+    c.drawString(12.4 * cm, altura - 8.5 * cm, categoria.upper()) #\\\\\\\\\\\\\\\
      # Barra vertical
     c.line(14.7* cm, altura - 7.7 * cm, 14.7 * cm, altura - 8.6 * cm)
 
     c.setFont("Arial", 8)
     c.drawString(14.8 * cm, altura - 8 * cm, "Município / UF:") #\\\\\\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(14.8 * cm, altura - 8.5 * cm, f"{crr.municipio_veiculo.upper()}/{crr.uf_veiculo.upper()}")
+    c.drawString(14.8 * cm, altura - 8.5 * cm, f"{municipioVeiculo.upper()}/{ufVeiculo.upper()}")
     
    
     
@@ -194,20 +205,20 @@ def render_notificacao_template(c, notificacao, width, height):
     c.line(9.5 * cm, altura - 11 * cm, 9.5 * cm, altura - 11.9 * cm)
 
     c.setFont("Arial", 10)
-    data_remocao = crr.data_remocao.strftime('%d/%m/%Y')
-    c.drawString(7.1 * cm, altura - 11.8 * cm, data_remocao) #\\\\\\\\\\\\\\\\\\\\
+    dataFiscalizacao = crr.dataFiscalizacao.strftime('%d/%m/%Y')
+    c.drawString(7.1 * cm, altura - 11.8 * cm, dataFiscalizacao) #\\\\\\\\\\\\\\\\\\\\
 
     c.setFont("Arial", 8)
     c.drawString(9.7 * cm, altura - 11.3 * cm, "Hora da remoção:") #\\\\\\\\\\\\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(9.7 * cm, altura - 11.8 * cm, str(crr.hora_remocao))  #\\\\\\\\\\\\\\\\\\\\\\\
+    c.drawString(9.7 * cm, altura - 11.8 * cm, str(crr.horaFiscalizacao))  #\\\\\\\\\\\\\\\\\\\\\\\
 
     # retangulo para imagem
         #   (x  , y,   largura, altura, stroke=1, fill=0)
     c.rect(12*cm, 12.53*cm, 7.5*cm, 4.41*cm , stroke=1, fill=0)
 
     # Imagem Brasão
-    imagem =  notificacao.crr.imagens.first() if notificacao.crr.imagens.exists() else None
+    imagem =  notificacao.crr.imagens.first() if notificacao.crr.imagens.exists() else None 
     try:
         imagem = ImageReader(imagem)  # Substitua pelo caminho da sua imagem
         c.drawImage(imagem, 12.1 * cm, altura - 15.4 * cm, width=7.3 * cm, height=4.4 * cm, preserveAspectRatio=True)
@@ -321,7 +332,7 @@ def render_notificacao_template(c, notificacao, width, height):
     c.setFont("Arial", 8)
     c.drawString(6 * cm, altura - 15 * cm, "Identificação da Autoridade/Agente Autuador:") # \\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(6 * cm, altura - 15.4 * cm, str(crr.agente_autuador.matricula)) # \\\\\\\\\\\\\\\\\\
+    c.drawString(6 * cm, altura - 15.4 * cm, str(crr.agenteAutuador.matriculaAgente)) # \\\\\\\\\\\\\\\\\\
     
     
     # Linha horizontal acima da identificação de condutor 
@@ -338,7 +349,7 @@ def render_notificacao_template(c, notificacao, width, height):
     c.line(5.7* cm, altura - 16 * cm, 5.7 * cm, altura - 16.8 * cm)
 
     c.setFont("Arial", 10)
-    c.drawString(2 * cm, altura - 16.7 * cm,  habilitacao_condutor) 
+    c.drawString(2 * cm, altura - 16.7 * cm,  cnh) 
 
      #Linha horizontal abaixo da habilitação do condutor
     c.line(2 * cm, altura - 16.8 * cm, largura - 2 * cm, altura - 16.8 * cm)
@@ -346,18 +357,18 @@ def render_notificacao_template(c, notificacao, width, height):
     c.setFont("Arial", 8)
     c.drawString(6 * cm, altura - 16.3 * cm, "UF:") #\\\\\\\\\\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(6 * cm, altura - 16.7 * cm, str(uf_cnh).upper()) #\\\\\\\\\\\\\
+    c.drawString(6 * cm, altura - 16.7 * cm, str(ufCnh).upper()) #\\\\\\\\\\\\\
 
     c.setFont("Arial", 8)
     c.drawString(7 * cm, altura - 16.3 * cm, "CPF:") # \\\\\\\\\\\\\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(7 * cm, altura - 16.7 * cm, cpf) #\\\\\\\\\\\\\\\\\\\\\\\\\
+    c.drawString(7 * cm, altura - 16.7 * cm, cpfCondutor) #\\\\\\\\\\\\\\\\\\\\\\\\\
     
 
     c.setFont("Arial", 8)
     c.drawString(2 * cm, altura - 17.1 * cm, "Nome:") # \\\\\\\\\\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(2 * cm, altura - 17.5 * cm, str(nome_condutor).upper()) # \\\\\\\\\\\\\\\\\\\\\\\
+    c.drawString(2 * cm, altura - 17.5 * cm, str(nomeCondutor).upper()) # \\\\\\\\\\\\\\\\\\\\\\\
     #Linha horizontal abaixo de NOME
     c.line(2 * cm, altura - 17.6 * cm, largura - 2 * cm, altura - 17.6 * cm)
     

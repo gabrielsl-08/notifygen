@@ -9,6 +9,7 @@ from django.utils import timezone
 from .pdf_templates import render_notificacao_template
 from django.core.exceptions import ValidationError
 from datetime import date, timedelta
+from django.utils.html import format_html
 
 
 def gerar_pdf_notificacoes(modeladmin, request, queryset):   
@@ -31,7 +32,7 @@ gerar_pdf_notificacoes.short_description = "NOTIFICAÇÃO PROPRIETÁRIO"
 # Register your models here.
 @admin.register(Notificacao)
 class NotificacaoAdmin(admin.ModelAdmin):
-    list_display = ('crr__numeroCrr','numero_controle','data_emissao','data_postagem','imagem_preview','prazo_leilao')
+    list_display = ('crr__numeroCrr','numero_controle','data_emissao','data_postagem','prazo_leilao')
     list_display_links = ('crr__numeroCrr',)
     search_fields = ('crr__numeroCrr','numero_controle', 'destinatario')
     list_filter = ('data_emissao', 'crr__numeroCrr')
@@ -56,7 +57,7 @@ class NotificacaoAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if not obj.pk:
-            obj.prazo_leilao = obj.crr.data_remocao + timedelta(days=60)
+            obj.prazo_leilao = obj.crr.dataFiscalizacao + timedelta(days=60)
 
         if obj.crr.status != 'retido':
             raise ValidationError("Somente veículos com status 'Retido'.")

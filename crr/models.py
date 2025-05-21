@@ -7,8 +7,8 @@ from django.contrib.auth.models import User
 
 # ---------------- VEÍCULO ---------------- #
 def upload_path(instance, filename):
-    numero_crr = instance.crr.numero_crr if instance.crr.numero_crr else "sem_identificacao"
-    return f"notificacoes/{numero_crr}/{filename}"
+    numeroCrr = instance.crr.numeroCrr if instance.crr.numeroCrr else "sem_identificacao"
+    return f"notificacoes/{numeroCrr}/{filename}"
 
 ESPECIE_CHOICES = [
     ('passageiro', 'Passageiro'), ('carga', 'Carga'), ('misto', 'Misto'),
@@ -66,7 +66,7 @@ class Crr(models.Model):
     def save(self, *args, **kwargs):
         # Definir os campos que devem ser convertidos para minúsculas
         lower_fields = [
-             'numeroCrr','localFiscalizacao','municipioEstadoFiscalizacao','observacao','agente_autuador',
+             'numeroCrr','localFiscalizacao','municipioEstadoFiscalizacao','observacao','agenteAutuador',
              'medidaAdministrativa','localPatio','placaGuincho','encarregado',
         ]
         
