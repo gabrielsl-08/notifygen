@@ -32,47 +32,42 @@ ESTADO_CHOICES = [
 STATUS_CHOICES = [  ('retido', 'Retido'), ('liberado', 'Liberado'),]
 
 ORGAO_CHOICES = [
-    ('detraf', 'DETRAF'), ('gcm', 'GCM'), ('pm', 'PM'),
-]
+    ('detraf', 'DETRAF'), ('gcm', 'GCM'), ('pm', 'PM'),]
+
 class AgenteAutuador(models.Model):
     usuario = models.OneToOneField(User, on_delete=models.SET_NULL, related_name='agente_autuador', blank=True, null=True)
-    nome_agente = models.CharField(max_length=100, blank=False, null=False, verbose_name='Nome do Agente')
-    matricula = models.CharField(max_length=50, unique=True, blank=False, null=False)
+    nomeAgente = models.CharField(max_length=100, blank=False, null=False, verbose_name='Nome do Agente')
+    matriculaAgente = models.CharField(max_length=50, unique=True, blank=False, null=False)
     orgao = models.CharField(max_length=6, choices=ORGAO_CHOICES, blank=False, null=True, verbose_name='Órgão')
-    assinatura_agente = models.ImageField(upload_to='signatures/', blank=True, null=True, verbose_name='Assinatura do Agente')
 
     def __str__(self):
-        return self.matricula
+        return self.matriculaAgente
 
 
 
 class Crr(models.Model):
-    numero_crr = models.CharField(max_length=10, unique=True, blank=True, null=True, verbose_name='número do crr')
-    placa_chassi = models.CharField( max_length=17,blank=True, null=False,verbose_name='placa/chassi')
-    marca = models.CharField(max_length=7, blank=True, null=False)
-    modelo = models.CharField(max_length=7, blank=True, null=False)
-    especie = models.CharField(max_length=20 ,choices=ESPECIE_CHOICES, blank=True, null=False,verbose_name='espécie')
-    categoria = models.CharField(max_length=20,choices=CATEGORIA_CHOICES, blank=True, null=False)
-    uf_veiculo = models.CharField(max_length=6, choices=ESTADO_CHOICES, blank=True, null=False,verbose_name='UF do veículo')
-    municipio_veiculo = models.CharField(max_length=25, blank=True, null=False,verbose_name='Município do veículo')
-    local_remocao = models.CharField(max_length=100, blank=False, null=False,verbose_name='Local da Remoção')
-    data_remocao = models.DateField(blank=False, null=False,verbose_name='Data da remoção')
-    hora_remocao = models.TimeField(blank=False, null=False,verbose_name='Hora da remoção')
-    observacao = models.CharField(max_length=100, blank=True, null=False,verbose_name='Observação')
-    agente_autuador = models.ForeignKey(AgenteAutuador, on_delete=models.PROTECT, related_name='crrs')
-    matricula_agente  = models.CharField(max_length=10, blank=True, null=True,verbose_name='Agente autuador')
+    numeroCrr = models.CharField(max_length=10, unique=True, blank=True, null=True, verbose_name='número do crr')
+    localFiscalizacao = models.CharField(max_length=100, blank=False, null=False,verbose_name='Local da Fiscalização')
+    municipioEstadoFiscalizacao = models.CharField(max_length=50,default='São Sebastião - SP' ,blank=True, null=True,verbose_name='Município da Fiscalização')
+    dataFiscalizacao = models.DateField(blank=False, null=False,verbose_name='Data da fiscalização')
+    horaFiscalizacao = models.TimeField(blank=False, null=False,verbose_name='Hora da fiscalização')
+    observacao = models.CharField(max_length=200, blank=True, null=False,verbose_name='Observação')
+    agenteAutuador = models.ForeignKey(AgenteAutuador, on_delete=models.PROTECT, related_name='crrs')
+    medidaAdministrativa  = models.CharField(max_length=100, blank=True,default='Remoção do veículo ao Depósito', null=True,verbose_name='Medida Administrativa')
+    localPatio =  models.CharField(max_length=100,default='RUA BOLIVIA, JARAGUA - SÃO SEBASTIÃO/SP - 11600-748', blank=True, null=False,verbose_name='Pátio')
+    placaGuincho = models.CharField(max_length=7, blank=True, null=False,verbose_name='Placa do guicho')
+    encarregado = models.CharField(max_length=50, blank=True, null=False,verbose_name='encarregado do pátio')
     status = models.CharField(max_length=8, choices=STATUS_CHOICES,default='retido',help_text="Status atual do veículo (Retido/Liberado)")    
     not_gerada = models.BooleanField(default=False,verbose_name='Status da Notificação')
     edital_emitido = models.BooleanField(default=False) 
-
     criado_em = models.DateTimeField(auto_now_add=True)
     editado_em = models.DateTimeField(auto_now=True)
     
     def save(self, *args, **kwargs):
         # Definir os campos que devem ser convertidos para minúsculas
         lower_fields = [
-            'placa_chassi','marca', 'modelo', 'municipio_veiculo', 'local_remocao',
-            'observacao',
+             'numeroCrr','localFiscalizacao','municipioEstadoFiscalizacao','observacao','agente_autuador',
+             'medidaAdministrativa','localPatio','placaGuincho','encarregado',
         ]
         
         # Aplicar normalização para minúsculas
@@ -80,33 +75,58 @@ class Crr(models.Model):
             value = getattr(self, field)
             if value and isinstance(value, str):
                 setattr(self, field, value.lower())
-                     
-       
-            
+                                        
         super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "CRR"
         verbose_name_plural = "CRRs"
     def __str__(self):
-         return self.numero_crr 
+         return self.numeroCrr 
     
     def atualizar_status_not_gerada(self):
         """Atualiza automaticamente se a notificação já foi gerada."""
         if hasattr(self, 'notificacao'):  # Verifica se já há uma Notificação vinculada
             self.not_gerada = False
         else:
-            self.not_gerada = self.data_remocao <= (date.today() - timedelta(days=10))
+            self.not_gerada = self.dataFiscalizacao <= (date.today() - timedelta(days=10))
         self.save()
 
     def calcular_prazo_leilao(self):
         """Retorna a data de leilão (60 dias após a remoção)."""
-        if self.data_remocao:
-            return self.data_remocao + timedelta(days=60)
+        if self.dataFiscalizacao:
+            return self.dataFiscalizacao + timedelta(days=60)
         return None
 
 
+class Veiculo(models.Model):
+    crr = models.ForeignKey(Crr, on_delete=models.CASCADE, related_name='veiculos')
+    placa = models.CharField( max_length=7,blank=True,null=False)
+    chassi = models.CharField( max_length=17,blank=True, null=False)
+    marca = models.CharField(max_length=7, blank=True, null=False)
+    modelo = models.CharField(max_length=7, blank=True, null=False)
+    cor = models.CharField( max_length=17,blank=True, null=False)
+    especie = models.CharField(max_length=20 ,choices=ESPECIE_CHOICES, blank=True, null=False,verbose_name='espécie')
+    categoria = models.CharField(max_length=20,choices=CATEGORIA_CHOICES, blank=True, null=False)
+    ufVeiculo = models.CharField(max_length=6, choices=ESTADO_CHOICES, blank=True, null=False,verbose_name='UF do veículo')
+    municipioVeiculo = models.CharField(max_length=25, blank=True, null=False,verbose_name='Município do veículo')
 
+    def __str__(self):
+        return self.placa
+    def save(self, *args, **kwargs):
+        # Definir os campos que devem ser convertidos para minúsculas
+        lower_fields = [ 'placa','chassi','marca', 'modelo','cor' ,
+                        'especie','categoria','ufVeiculo','municipioVeiculo',
+                       ]
+        
+        # Aplicar normalização para minúsculas
+        for field in lower_fields:
+            value = getattr(self, field)
+            if value and isinstance(value, str):
+                setattr(self, field, value.lower())
+                                        
+        super().save(*args, **kwargs)
+    
     
 class TabelaArrendatario(models.Model):
     nome_arrendatario = models.CharField(max_length=25, unique=True,blank=True,null=False,verbose_name='Nome do arrendatário')
@@ -150,19 +170,20 @@ class Arrendatario(models.Model):
 
 class Condutor(models.Model):
     crr = models.ForeignKey(Crr, on_delete=models.CASCADE, related_name='condutores')
-    habilitacao_condutor = models.CharField(max_length=11, blank=True, null=False, verbose_name='Habilitação do Condutor')
-    uf_cnh = models.CharField(max_length=6, choices=ESTADO_CHOICES, blank=True, null=False, verbose_name='UF da CNH')
-    cpf = models.CharField(max_length=14, blank=True, null=False, verbose_name='CPF')
-    nome_condutor = models.CharField(max_length=50, blank=True, null=False, verbose_name='Nome do Condutor')
-    assinatura_condutor = models.ImageField(upload_to='signatures/', blank=True, null=True, verbose_name='Assinatura do Condutor')
+    cnh = models.CharField(max_length=11, blank=True, null=False, verbose_name='cnh')
+    cnhEstrangeira = models.CharField(max_length=11, blank=True, null=False, verbose_name='cnh estrangeira')
+    ufCnh = models.CharField(max_length=6, choices=ESTADO_CHOICES, blank=True, null=False, verbose_name='UF da CNH')
+    cpfCondutor = models.CharField(max_length=14, blank=True, null=False, verbose_name='CPF')
+    nomeCondutor = models.CharField(max_length=50, blank=True, null=False, verbose_name='Nome do Condutor')
+
 
     def __str__(self):
-        return f"{self.nome_condutor} ({self.cpf})"
+        return f"{self.nomeCondutor} ({self.cpfCondutor})"
 
 
 
 class Ait(models.Model):
-    crr = models.ForeignKey(Crr,on_delete=models.CASCADE,related_name='ait')
+    crr = models.ForeignKey(Crr,on_delete=models.CASCADE,related_name='aits')
     ait = models.CharField(max_length=11,verbose_name='Código de AIT', blank=True, null=False)   
     def __str__(self):
         return self.ait
@@ -206,4 +227,4 @@ class ImagemCrr(models.Model):
     imagem = models.ImageField(upload_to=upload_path, blank=True, null=True, verbose_name="Imagem da Remoção")
 
     def __str__(self):
-        return f"Imagem {self.id} para {self.crr.numero_crr}"
+        return f"Imagem {self.id} para {self.crr.numeroCrr}"

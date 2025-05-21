@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.http import HttpResponse, HttpResponseRedirect
-from .models import  (Crr, Ait,Condutor,AgenteAutuador, Enquadramento,Arrendatario,
+from .models import  (Crr, Ait,Condutor,AgenteAutuador, Enquadramento,Arrendatario,Veiculo,
                       TabelaEnquadramento,TabelaArrendatario, ImagemCrr
                     )
 
@@ -16,22 +16,29 @@ from import_export import resources
 # ============== INLINES ============== #
 @admin.register(AgenteAutuador)
 class AgenteAutuadorAdmin(admin.ModelAdmin):
-    list_display = ('nome_agente', 'matricula', 'orgao')
-    search_fields = ('nome_agente', 'matricula', 'orgao')
+    list_display = ('nomeAgente', 'matriculaAgente', 'orgao')
+    search_fields = ('nomeAgente', 'matriculaAgente', 'orgao')
 
 
 class AgenteAutuadorInline(admin.TabularInline):
     model = AgenteAutuador
     extra = 0
     max_num = 1  # Quantas linhas vazias para novos condutores
-    fields = ['matricula']
+    fields = ['matriculaAgente']
 
 
 class CondutorInline(admin.TabularInline):
     model = Condutor
     extra = 0
     max_num = 1  # Quantas linhas vazias para novos condutores
-    fields = ['nome_condutor','habilitacao_condutor', 'uf_cnh', 'cpf','assinatura_condutor']
+    fields = ['nomeCondutor','cnh','cnhEstrangeira', 'ufCnh', 'cpfCondutor']
+
+class VeiculoInline(admin.TabularInline):
+    model = Veiculo
+    extra = 0
+    max_num = 1  # Quantas linhas vazias para novos condutores
+    fields = ['placa','chassi','marca', 'modelo', 'cor','especie','categoria','ufVeiculo','municipioVeiculo']
+
 
 class AitAdmin(admin.ModelAdmin):
     class Media:
@@ -114,7 +121,7 @@ class FiltroCrrAtrasado(admin.SimpleListFilter):
 
         if self.value() == 'edital':
             data_limite = date.today() - timedelta(days=30)
-            return queryset.filter(data_remocao__lte=data_limite, status='retido', edital_emitido=False)
+            return queryset.filter(dataFiscalizacao__lte=data_limite, status='retido', edital_emitido=False)
 
         return queryset
 
@@ -137,25 +144,21 @@ class ImagemCrrInline(admin.StackedInline):  # Use StackedInline para fácil vis
 
 @admin.register(Crr)
 class CrrAdmin(admin.ModelAdmin):
-    list_display = ('numero_crr','criar_notificacao_link', 'data_remocao', 'placa_chassi', 'marca', 'modelo', 'get_enquadramentos','status','edital_emitido','agente_autuador')
-    list_filter = (FiltroCrrAtrasado,'data_remocao', 'status',)
+    list_display = ('numeroCrr','criar_notificacao_link', 'dataFiscalizacao', 'get_enquadramentos','status','edital_emitido')
+    list_filter = (FiltroCrrAtrasado,'dataFiscalizacao', 'status',)
     actions = ['gerar_edital_docx_action']
     list_editable = ('status',)
-    ordering = ('numero_crr',)
-    inlines = [CondutorInline,AitInline,EnquadramentoInline,ArrendatarioInline,ImagemCrrInline]
+    ordering = ('numeroCrr',)
+    inlines = [CondutorInline,VeiculoInline,AitInline,EnquadramentoInline,ArrendatarioInline,ImagemCrrInline]
 
     fieldsets = (
         ("CRR", {
-            'fields': ('numero_crr','status','agente_autuador')
-        }),
-        ("Dados do Veículo", {
-            'fields': ('placa_chassi', 'marca', 'modelo', 'especie', 'categoria', 'uf_veiculo', 'municipio_veiculo')
-        }),
+            'fields': ('numeroCrr','status','agenteAutuador')
+        }),        
         ("Local da Infração", {
-            'fields': ('local_remocao', 'data_remocao','hora_remocao','observacao')
+            'fields': ('localFiscalizacao', 'dataFiscalizacao','horaFiscalizacao','observacao')
         }),
-      
-    )
+        )
 
     def get_readonly_fields(self, request, obj=None):
         # Se o usuário for superuser, pode editar todos os campos

@@ -31,10 +31,10 @@ gerar_pdf_notificacoes.short_description = "NOTIFICAÇÃO PROPRIETÁRIO"
 # Register your models here.
 @admin.register(Notificacao)
 class NotificacaoAdmin(admin.ModelAdmin):
-    list_display = ('crr__numero_crr','numero_controle','data_emissao','data_postagem','imagem_preview','prazo_leilao')
-    list_display_links = ('crr__numero_crr',)
-    search_fields = ('crr__numero_crr','numero_controle', 'destinatario')
-    list_filter = ('data_emissao', 'crr__numero_crr')
+    list_display = ('crr__numeroCrr','numero_controle','data_emissao','data_postagem','imagem_preview','prazo_leilao')
+    list_display_links = ('crr__numeroCrr',)
+    search_fields = ('crr__numeroCrr','numero_controle', 'destinatario')
+    list_filter = ('data_emissao', 'crr__numeroCrr')
     readonly_fields = ('numero_controle','prazo_leilao')
     actions = [gerar_pdf_notificacoes]
 

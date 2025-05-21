@@ -13,8 +13,8 @@ class CrrViewSet(viewsets.ModelViewSet):
     permission_classes = [DjangoModelPermissions,IsOwnerOfCrr]
     
     def get_queryset(self):
-        if hasattr(self.request.user, 'agente_autuador'):
-            return Crr.objects.filter(agente_autuador__usuario=self.request.user)
+        if hasattr(self.request.user, 'agenteAutuador'):
+            return Crr.objects.filter(agenteAutuador__usuario=self.request.user)
         return Crr.objects.none()
 
 

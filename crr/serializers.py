@@ -56,8 +56,8 @@ class CrrSerializer(serializers.ModelSerializer):
         enquadramentos_data = validated_data.pop('enquadramentos', [])
 
         # Gera numero_crr automaticamente
-        if not validated_data.get('numero_crr'):
-            validated_data['numero_crr'] = gerar_numero_crr_mobile()
+        if not validated_data.get('numeroCrr'):
+            validated_data['numeroCrr'] = gerar_numero_crr_mobile()
 
         crr = Crr.objects.create(**validated_data)
 
@@ -104,10 +104,10 @@ class CrrSerializer(serializers.ModelSerializer):
 
 def gerar_numero_crr_mobile():
     prefixo = "E-"
-    ultimo_crr = Crr.objects.filter(numero_crr__startswith=prefixo).order_by('-numero_crr').first()
-    if ultimo_crr and ultimo_crr.numero_crr:
+    ultimo_crr = Crr.objects.filter(numero_crr__startswith=prefixo).order_by('-numeroCrr').first()
+    if ultimo_crr and ultimo_crr.numeroCrr:
         try:
-            ultimo_num = int(ultimo_crr.numero_crr.replace(prefixo, ""))
+            ultimo_num = int(ultimo_crr.numeroCrr.replace(prefixo, ""))
         except ValueError:
             ultimo_num = 0
     else:
