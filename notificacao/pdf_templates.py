@@ -21,6 +21,9 @@ def render_notificacao_template(c, notificacao, width, height):
     primeiro_ait = aits[0].ait if len(aits) > 0 else ""
     segundo_ait = aits[1].ait if len(aits) > 1 else ""  
 
+    imagens = list(notificacao.crr.imagens.all())
+    imagemVeiculo =  imagens[0].imagem  if len(imagens) > 0 else "—"
+
     condutores = list(notificacao.crr.condutores.all())
     
     cnh =  condutores[0].cnh  if len(condutores) > 0 else "—"
@@ -28,17 +31,17 @@ def render_notificacao_template(c, notificacao, width, height):
     cpfCondutor =  condutores[0].cpfCondutor  if len(condutores) > 0 else "—" 
     nomeCondutor =  condutores[0].nomeCondutor  if len(condutores) > 0 else "—"
 
-    veiculos = list(notificacao.crr.veiculos.all())
+    veiculo = list(notificacao.crr.veiculo.all())
     
-    placa =  veiculos[0].placa  if len(veiculos) > 0 else "—"
-    chassi =  veiculos[0].chassi  if len(veiculos) > 0 else "—"
-    marca =  veiculos[0].marca  if len(veiculos) > 0 else "—" 
-    modelo =  veiculos[0].modelo  if len(veiculos) > 0 else "—"
-    cor =  veiculos[0].cor  if len(veiculos) > 0 else "—"
-    especie =  veiculos[0].especie  if len(veiculos) > 0 else "—"
-    categoria =  veiculos[0].categoria  if len(veiculos) > 0 else "—"
-    ufVeiculo =  veiculos[0].ufVeiculo  if len(veiculos) > 0 else "—"
-    municipioVeiculo =  veiculos[0].municipioVeiculo  if len(veiculos) > 0 else "—"
+    placa =  veiculo[0].placa  if len(veiculo) > 0 else "—"
+    chassi =  veiculo[0].chassi  if len(veiculo) > 0 else "—"
+    marca =  veiculo[0].marca  if len(veiculo) > 0 else "—" 
+    modelo =  veiculo[0].modelo  if len(veiculo) > 0 else "—"
+    cor =  veiculo[0].cor  if len(veiculo) > 0 else "—"
+    especie =  veiculo[0].especie  if len(veiculo) > 0 else "—"
+    categoria =  veiculo[0].categoria  if len(veiculo) > 0 else "—"
+    ufVeiculo =  veiculo[0].ufVeiculo  if len(veiculo) > 0 else "—"
+    municipioVeiculo =  veiculo[0].municipioVeiculo  if len(veiculo) > 0 else "—"
    
     enquadramentos = list(notificacao.crr.enquadramentos.all())
 
@@ -218,10 +221,10 @@ def render_notificacao_template(c, notificacao, width, height):
     c.rect(12*cm, 12.53*cm, 7.5*cm, 4.41*cm , stroke=1, fill=0)
 
     # Imagem Brasão
-    imagem =  notificacao.crr.imagens.first() if notificacao.crr.imagens.exists() else None 
+    #imagem =  notificacao.crr.imagens.first() if notificacao.crr.imagens.exists() else None 
     try:
-        imagem = ImageReader(imagem)  # Substitua pelo caminho da sua imagem
-        c.drawImage(imagem, 12.1 * cm, altura - 15.4 * cm, width=7.3 * cm, height=4.4 * cm, preserveAspectRatio=True)
+        imagemVeiculo = ImageReader(imagemVeiculo)  # Substitua pelo caminho da sua imagem
+        c.drawImage(imagemVeiculo, 12.1 * cm, altura - 15.4 * cm, width=7.3 * cm, height=4.4 * cm, preserveAspectRatio=True)
     except Exception as e:
         print(f"Erro ao carregar a imagem: {e}")
 

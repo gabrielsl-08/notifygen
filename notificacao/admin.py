@@ -32,7 +32,7 @@ gerar_pdf_notificacoes.short_description = "NOTIFICAÇÃO PROPRIETÁRIO"
 # Register your models here.
 @admin.register(Notificacao)
 class NotificacaoAdmin(admin.ModelAdmin):
-    list_display = ('crr__numeroCrr','numero_controle','data_emissao','data_postagem','prazo_leilao')
+    list_display = ('crr__numeroCrr','numero_controle','data_emissao','data_postagem','prazo_leilao','imagem_preview')
     list_display_links = ('crr__numeroCrr',)
     search_fields = ('crr__numeroCrr','numero_controle', 'destinatario')
     list_filter = ('data_emissao', 'crr__numeroCrr')
@@ -102,15 +102,19 @@ class NotificacaoAdmin(admin.ModelAdmin):
 
 
     def imagem_preview(self, obj):
-        imagem = obj.crr.imagens.first()
-        if imagem and imagem.imagem:
-            return format_html(
-                '<a href="{}" target="_blank"><img src="{}" style="max-height: 60px; max-width: 60px;" /></a>',
-                imagem.imagem.url
-            )
+        try:
+            imagem = obj.crr.imagens.first()
+            if imagem and imagem.imagem:
+                return format_html(
+                    '<a href="{0}" target="_blank"><img src="{0}" style="max-height: 60px; max-width: 60px;" /></a>',
+                    imagem.imagem.url
+                )
+        except Exception as e:
+            print(f"Erro ao carregar imagem: {e}")
         return "Sem imagem"
 
     imagem_preview.short_description = "Pré-visualização"
+
 
     class Media:
         js = (

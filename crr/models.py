@@ -100,7 +100,7 @@ class Crr(models.Model):
 
 
 class Veiculo(models.Model):
-    crr = models.ForeignKey(Crr, on_delete=models.CASCADE, related_name='veiculos')
+    crr = models.ForeignKey(Crr, on_delete=models.CASCADE, related_name='veiculo')
     placa = models.CharField( max_length=7,blank=True,null=False)
     chassi = models.CharField( max_length=17,blank=True, null=False)
     marca = models.CharField(max_length=7, blank=True, null=False)

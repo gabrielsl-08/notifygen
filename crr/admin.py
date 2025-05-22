@@ -144,7 +144,7 @@ class ImagemCrrInline(admin.StackedInline):  # Use StackedInline para fácil vis
 
 @admin.register(Crr)
 class CrrAdmin(admin.ModelAdmin):
-    list_display = ('numeroCrr','criar_notificacao_link', 'dataFiscalizacao', 'get_enquadramentos','status','edital_emitido')
+    list_display = ('numeroCrr','criar_notificacao_link','dataFiscalizacao', 'get_enquadramentos','status','edital_emitido')
     list_filter = (FiltroCrrAtrasado,'dataFiscalizacao', 'status',)
     actions = ['gerar_edital_docx_action']
     list_editable = ('status',)
