@@ -35,7 +35,7 @@ ORGAO_CHOICES = [
     ('detraf', 'DETRAF'), ('gcm', 'GCM'), ('pm', 'PM'),]
 
 class AgenteAutuador(models.Model):
-    usuario = models.OneToOneField(User, on_delete=models.SET_NULL, related_name='agente_autuador', blank=True, null=True)
+    usuario = models.OneToOneField(User, on_delete=models.SET_NULL, related_name='agenteAutuador', blank=True, null=True)
     nomeAgente = models.CharField(max_length=100, blank=False, null=False, verbose_name='Nome do Agente')
     matriculaAgente = models.CharField(max_length=50, unique=True, blank=False, null=False)
     orgao = models.CharField(max_length=6, choices=ORGAO_CHOICES, blank=False, null=True, verbose_name='Órgão')

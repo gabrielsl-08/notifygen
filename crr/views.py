@@ -26,7 +26,7 @@ class CrrViewSet(viewsets.ModelViewSet):
 class AitViewSet(viewsets.ModelViewSet):
     queryset = Ait.objects.all()
     serializer_class = AitSerializer
-    permission_classes = [DjangoModelPermissions,IsAdminUser]
+    permission_classes = [DjangoModelPermissions]
 
 class VeiculoViewSet(viewsets.ModelViewSet):
     queryset = Veiculo.objects.all()

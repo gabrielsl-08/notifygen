@@ -44,7 +44,7 @@ class TabelaEnquadramentoSerializer(serializers.ModelSerializer):
 
 
 class CrrSerializer(serializers.ModelSerializer):
-    veiculo = VeiculoSerializer()
+    veiculo = VeiculoSerializer(many=True)
     condutores = CondutorSerializer(many=True)
     aits = AitSerializer(many=True)
     enquadramentos = EnquadramentoSerializer(many=True)

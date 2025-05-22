@@ -46,8 +46,7 @@ class AitAdmin(admin.ModelAdmin):
 
 class AitInline(admin.TabularInline):
 
-    def has_add_permission(self, request, obj=None):
-        return request.user.is_superuser
+   
     model = Ait
     extra = 1
     fields = ['ait']
@@ -56,8 +55,7 @@ class AitInline(admin.TabularInline):
 
 class EnquadramentoInlineForm(forms.ModelForm): # ajusta o tamanho do campo Enquadramento
 
-    def has_add_permission(self, request, obj=None):
-        return request.user.is_superuser
+    
     class Meta:
         model = Enquadramento
         fields = ['enquadramento']
@@ -67,8 +65,7 @@ class EnquadramentoInlineForm(forms.ModelForm): # ajusta o tamanho do campo Enqu
 
 class EnquadramentoInline(admin.TabularInline):
 
-    def has_add_permission(self, request, obj=None):
-        return request.user.is_superuser
+    
     model = Enquadramento
     form = EnquadramentoInlineForm
     extra = 1
@@ -160,6 +157,7 @@ class CrrAdmin(admin.ModelAdmin):
         }),
         )
 
+    '''''
     def get_readonly_fields(self, request, obj=None):
         # Se o usuário for superuser, pode editar todos os campos
         if request.user.is_superuser:
@@ -172,6 +170,7 @@ class CrrAdmin(admin.ModelAdmin):
         # Permite edição apenas do campo 'status'
         return True
 
+    '''
 
     def get_enquadramentos(self, obj):
         enquads = obj.enquadramentos.all()
