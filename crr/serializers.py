@@ -65,16 +65,6 @@ class CrrSerializer(serializers.ModelSerializer):
         if not validated_data.get('numeroCrr'):
             validated_data['numeroCrr'] = gerar_numero_crr_mobile()
 
-        # Cria veículo (primeira entrada da lista)
-        if veiculo_data:
-            # Pega o primeiro veículo da lista
-            primeiro_veiculo = veiculo_data[0]
-            veiculo = Veiculo.objects.create(**primeiro_veiculo)
-            validated_data['veiculo'] = veiculo
-        else:
-            # Se nenhum veículo for fornecido
-            raise serializers.ValidationError("Pelo menos um veículo é obrigatório")
-
         # Cria CRR
         crr = Crr.objects.create(**validated_data)
 
