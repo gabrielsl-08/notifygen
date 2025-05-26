@@ -73,7 +73,7 @@ class CrrSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        # Extrai dados relacionados
+    # Extrai dados relacionados
         veiculo_data = {
             'placa': validated_data.pop('placa'),
             'chassi': validated_data.pop('chassi'),
@@ -92,17 +92,12 @@ class CrrSerializer(serializers.ModelSerializer):
         enquadramentos_list = validated_data.pop('enquadramentos', [])
 
         try:
-            # Cria o CRR primeiro (sem veiculo e condutor ainda)
+            # Cria o CRR primeiro
             crr = Crr.objects.create(**validated_data)
 
-            # Agora sim, cria veiculo e condutor com crr associado
-            veiculo = Veiculo.objects.create(crr=crr, **veiculo_data)
-            condutor = Condutor.objects.create(crr=crr, **condutor_data)
-
-            # Atualiza CRR com os relacionamentos
-            crr.veiculo = veiculo
-            crr.condutor = condutor
-            crr.save()
+            # Cria e vincula Veiculo e Condutor ao CRR
+            Veiculo.objects.create(crr=crr, **veiculo_data)
+            Condutor.objects.create(crr=crr, **condutor_data)
 
             # Cria AITs associados
             for numero_ait in aits_list:

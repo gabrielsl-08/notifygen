@@ -3,8 +3,8 @@ from django.core.validators import RegexValidator
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from datetime import timedelta
-from django.contrib.auth.models import User
-from django.contrib.postgres.fields import ArrayField
+
+
 # ---------------- VEÍCULO ---------------- #
 def upload_path(instance, filename):
     numeroCrr = instance.crr.numeroCrr if instance.crr.numeroCrr else "sem_identificacao"
@@ -113,7 +113,7 @@ class Veiculo(models.Model):
     municipioVeiculo = models.CharField(max_length=30, blank=True, null=False,verbose_name='Município do veículo')
 
     def __str__(self):
-        return self.placa
+        return self.placa or "Veículo sem placa"
     def save(self, *args, **kwargs):
         # Definir os campos que devem ser convertidos para minúsculas
         lower_fields = [ 'placa','chassi','marca', 'modelo','cor' ,
