@@ -4,7 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from datetime import timedelta
 from django.contrib.auth.models import User
-
+from django.contrib.postgres.fields import ArrayField
 # ---------------- VEÍCULO ---------------- #
 def upload_path(instance, filename):
     numeroCrr = instance.crr.numeroCrr if instance.crr.numeroCrr else "sem_identificacao"
@@ -34,6 +34,7 @@ STATUS_CHOICES = [  ('retido', 'Retido'), ('liberado', 'Liberado'),]
 ORGAO_CHOICES = [
     ('detraf', 'DETRAF'), ('gcm', 'GCM'), ('pm', 'PM'),]
 
+'''
 class AgenteAutuador(models.Model):
     usuario = models.OneToOneField(User, on_delete=models.SET_NULL, related_name='agenteAutuador', blank=True, null=True)
     nomeAgente = models.CharField(max_length=100, blank=False, null=False, verbose_name='Nome do Agente')
@@ -42,7 +43,7 @@ class AgenteAutuador(models.Model):
 
     def __str__(self):
         return self.matriculaAgente
-
+'''
 
 
 class Crr(models.Model):
@@ -52,7 +53,7 @@ class Crr(models.Model):
     dataFiscalizacao = models.DateField(blank=False, null=False,verbose_name='Data da fiscalização')
     horaFiscalizacao = models.TimeField(blank=False, null=False,verbose_name='Hora da fiscalização')
     observacao = models.CharField(max_length=200, blank=True, null=False,verbose_name='Observação')
-    agenteAutuador = models.ForeignKey(AgenteAutuador, on_delete=models.PROTECT, related_name='crrs')
+    matriculaAgente = models.CharField(max_length=10, blank=False, null=False)
     medidaAdministrativa  = models.CharField(max_length=100, blank=True,default='Remoção do veículo ao Depósito', null=True,verbose_name='Medida Administrativa')
     localPatio =  models.CharField(max_length=100,default='RUA BOLIVIA, JARAGUA - SÃO SEBASTIÃO/SP - 11600-748', blank=True, null=False,verbose_name='Pátio')
     placaGuincho = models.CharField(max_length=7, blank=True, null=False,verbose_name='Placa do guicho')
@@ -66,7 +67,7 @@ class Crr(models.Model):
     def save(self, *args, **kwargs):
         # Definir os campos que devem ser convertidos para minúsculas
         lower_fields = [
-             'numeroCrr','localFiscalizacao','municipioEstadoFiscalizacao','observacao','agenteAutuador',
+             'numeroCrr','localFiscalizacao','municipioEstadoFiscalizacao','observacao',
              'medidaAdministrativa','localPatio','placaGuincho','encarregado',
         ]
         
@@ -102,14 +103,14 @@ class Crr(models.Model):
 class Veiculo(models.Model):
     crr = models.ForeignKey(Crr, on_delete=models.CASCADE, related_name='veiculo')
     placa = models.CharField( max_length=7,blank=True,null=False)
-    chassi = models.CharField( max_length=17,blank=True, null=False)
+    chassi = models.CharField( max_length=20,blank=True, null=False)
     marca = models.CharField(max_length=7, blank=True, null=False)
     modelo = models.CharField(max_length=7, blank=True, null=False)
     cor = models.CharField( max_length=17,blank=True, null=False)
     especie = models.CharField(max_length=20 ,choices=ESPECIE_CHOICES, blank=True, null=False,verbose_name='espécie')
     categoria = models.CharField(max_length=20,choices=CATEGORIA_CHOICES, blank=True, null=False)
     ufVeiculo = models.CharField(max_length=6, choices=ESTADO_CHOICES, blank=True, null=False,verbose_name='UF do veículo')
-    municipioVeiculo = models.CharField(max_length=25, blank=True, null=False,verbose_name='Município do veículo')
+    municipioVeiculo = models.CharField(max_length=30, blank=True, null=False,verbose_name='Município do veículo')
 
     def __str__(self):
         return self.placa
@@ -216,7 +217,7 @@ class TabelaEnquadramento(models.Model):
 
 class Enquadramento(models.Model):
     crr = models.ForeignKey(Crr, on_delete=models.CASCADE, related_name='enquadramentos')
-    enquadramento = models.ForeignKey(TabelaEnquadramento, on_delete=models.PROTECT, verbose_name="Enquadramento")
+    enquadramento = models.ForeignKey(TabelaEnquadramento, on_delete=models.PROTECT, verbose_name="Enquadramento",null=True)
 
     def __str__(self):
         return f"{self.enquadramento.codigo} - {self.enquadramento.descricao_infracao[:30]}"

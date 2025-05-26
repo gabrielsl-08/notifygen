@@ -1,8 +1,8 @@
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import (CrrViewSet,VeiculoViewSet,CondutorViewSet, AitViewSet,
-                    TabelaEnquadramentoViewSet, EnquadramentoViewSet)
+from .views import (CrrViewSet,VeiculoViewSet,AitViewSet,CondutorViewSet,
+                    TabelaEnquadramentoViewSet, EnquadramentoViewSet) 
 
 router = DefaultRouter()
 router.register(r'crr', CrrViewSet)

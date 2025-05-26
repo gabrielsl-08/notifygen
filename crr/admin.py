@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.http import HttpResponse, HttpResponseRedirect
-from .models import  (Crr, Ait,Condutor,AgenteAutuador, Enquadramento,Arrendatario,Veiculo,
+from .models import  (Crr,Ait,Condutor, Enquadramento,Arrendatario,Veiculo,
                       TabelaEnquadramento,TabelaArrendatario, ImagemCrr
                     )
 
@@ -11,9 +11,11 @@ from datetime import date, timedelta
 from crr.utils import gerar_edital_docx
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources
+from django.contrib.postgres.forms import SplitArrayWidget
 
 
 # ============== INLINES ============== #
+'''
 @admin.register(AgenteAutuador)
 class AgenteAutuadorAdmin(admin.ModelAdmin):
     list_display = ('nomeAgente', 'matriculaAgente', 'orgao')
@@ -25,7 +27,7 @@ class AgenteAutuadorInline(admin.TabularInline):
     extra = 0
     max_num = 1  # Quantas linhas vazias para novos condutores
     fields = ['matriculaAgente']
-
+'''
 
 class CondutorInline(admin.TabularInline):
     model = Condutor
@@ -39,16 +41,13 @@ class VeiculoInline(admin.TabularInline):
     max_num = 1  # Quantas linhas vazias para novos condutores
     fields = ['placa','chassi','marca', 'modelo', 'cor','especie','categoria','ufVeiculo','municipioVeiculo']
 
-
 class AitAdmin(admin.ModelAdmin):
     class Media:
         js = ('js/mascaras.js',)
-
 class AitInline(admin.TabularInline):
-
-   
     model = Ait
     extra = 1
+    max_num = 4 
     fields = ['ait']
     class Media:
         js = ('js/mascaras.js',)
@@ -87,6 +86,7 @@ class ArrendatarioInline(admin.TabularInline):
         js = (
             'js/mascaras.js',
         )
+
 
 class TabelaArrendatarioResource(resources.ModelResource):
     class Meta:
@@ -139,18 +139,21 @@ class ImagemCrrInline(admin.StackedInline):  # Use StackedInline para fácil vis
     max_num = 4
 
 
+    
 @admin.register(Crr)
 class CrrAdmin(admin.ModelAdmin):
+  
     list_display = ('numeroCrr','criar_notificacao_link','dataFiscalizacao', 'get_enquadramentos','status','edital_emitido')
     list_filter = (FiltroCrrAtrasado,'dataFiscalizacao', 'status',)
     actions = ['gerar_edital_docx_action']
     list_editable = ('status',)
     ordering = ('numeroCrr',)
-    inlines = [CondutorInline,VeiculoInline,AitInline,EnquadramentoInline,ArrendatarioInline,ImagemCrrInline]
-
+    inlines = [CondutorInline, VeiculoInline,AitInline,EnquadramentoInline,ArrendatarioInline,ImagemCrrInline]
+   
+    
     fieldsets = (
         ("CRR", {
-            'fields': ('numeroCrr','status','agenteAutuador')
+            'fields': ('numeroCrr','matriculaAgente')
         }),        
         ("Local da Infração", {
             'fields': ('localFiscalizacao', 'dataFiscalizacao','horaFiscalizacao','observacao')
