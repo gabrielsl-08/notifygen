@@ -34,17 +34,6 @@ STATUS_CHOICES = [  ('retido', 'Retido'), ('liberado', 'Liberado'),]
 ORGAO_CHOICES = [
     ('detraf', 'DETRAF'), ('gcm', 'GCM'), ('pm', 'PM'),]
 
-'''
-class AgenteAutuador(models.Model):
-    usuario = models.OneToOneField(User, on_delete=models.SET_NULL, related_name='agenteAutuador', blank=True, null=True)
-    nomeAgente = models.CharField(max_length=100, blank=False, null=False, verbose_name='Nome do Agente')
-    matriculaAgente = models.CharField(max_length=50, unique=True, blank=False, null=False)
-    orgao = models.CharField(max_length=6, choices=ORGAO_CHOICES, blank=False, null=True, verbose_name='Órgão')
-
-    def __str__(self):
-        return self.matriculaAgente
-'''
-
 
 class Crr(models.Model):
     numeroCrr = models.CharField(max_length=10, unique=True, blank=True, null=True, verbose_name='número do crr')
@@ -225,7 +214,18 @@ class Enquadramento(models.Model):
 
 class ImagemCrr(models.Model):
     crr = models.ForeignKey('Crr', on_delete=models.CASCADE, related_name='imagens')
-    imagem = models.ImageField(upload_to=upload_path, blank=True, null=True, verbose_name="Imagem da Remoção")
+    imagem = models.ImageField(upload_to='crr/', blank=True, null=True, verbose_name="Imagem (upload via Admin)")
+    nomeArquivo = models.CharField(max_length=255, blank=True, null=True)
+    url = models.URLField(max_length=1000, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        # Atualiza os campos com base na imagem enviada
+        if self.imagem and (not self.url or not self.nomeArquivo):
+            self.nomeArquivo = self.imagem.name
+            self.url = self.imagem.url
+            super().save(update_fields=['nomeArquivo', 'url'])
 
     def __str__(self):
-        return f"Imagem {self.id} para {self.crr.numeroCrr}"
+        return self.nomeArquivo or f"Imagem {self.id} para {self.crr.numeroCrr}"

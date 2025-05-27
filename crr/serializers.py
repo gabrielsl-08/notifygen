@@ -1,6 +1,6 @@
 # serializers.py
 from rest_framework import serializers
-from .models import (Crr,Veiculo ,Condutor,Ait, Enquadramento,TabelaEnquadramento)
+from .models import (Crr,Veiculo ,Condutor,Ait, Enquadramento,TabelaEnquadramento,ImagemCrr)
 
 
 
@@ -28,18 +28,17 @@ class EnquadramentoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Enquadramento
         exclude = ['crr']
-'''
-class AgenteAutuadorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AgenteAutuador
-        fields = '__all__'
-'''
+
 
 class TabelaEnquadramentoSerializer(serializers.ModelSerializer):
     class Meta:
         model = TabelaEnquadramento
         fields = '__all__'
 
+class ImagemCrrSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImagemCrr
+        fields = ['nomeArquivo', 'url']
 
 class CrrSerializer(serializers.ModelSerializer):
     # Captura os campos relacionados de forma achatada (flat)
@@ -48,32 +47,29 @@ class CrrSerializer(serializers.ModelSerializer):
     marca = serializers.CharField(write_only=True)
     modelo = serializers.CharField(write_only=True)
     cor = serializers.CharField(write_only=True)
-    
-
     nomeCondutor = serializers.CharField(write_only=True)
     cpfCondutor = serializers.CharField(write_only=True)
     cnh = serializers.CharField(write_only=True)
     cnhEstrangeira = serializers.CharField(write_only=True)
-    
-
     aits = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
     enquadramentos = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
+    imagens = ImagemCrrSerializer(many=True, write_only=True, required=False)
 
     class Meta:
         model = Crr
         fields = [
             # Campos do modelo Crr
-            'localFiscalizacao', 'municipioEstadoFiscalizacao', 'dataFiscalizacao',
+            'numeroCrr','localFiscalizacao', 'municipioEstadoFiscalizacao', 'dataFiscalizacao',
             'horaFiscalizacao', 'medidaAdministrativa', 'localPatio', 'placaGuincho',
             'encarregado', 'observacao', 'matriculaAgente',
             # Campos virtuais relacionados
             'placa', 'chassi', 'marca', 'modelo', 'cor', 
             'nomeCondutor', 'cpfCondutor', 'cnh', 'cnhEstrangeira', 
-            'aits', 'enquadramentos'
+            'aits', 'enquadramentos','imagens'
         ]
 
     def create(self, validated_data):
-    # Extrai dados relacionados
+        # Extrai dados relacionados
         veiculo_data = {
             'placa': validated_data.pop('placa'),
             'chassi': validated_data.pop('chassi'),
@@ -90,20 +86,23 @@ class CrrSerializer(serializers.ModelSerializer):
 
         aits_list = validated_data.pop('aits', [])
         enquadramentos_list = validated_data.pop('enquadramentos', [])
-
+        imagens_data = validated_data.pop('imagens', [])
         try:
-            # Cria o CRR primeiro
+            # Cria o CRR
             crr = Crr.objects.create(**validated_data)
 
-            # Cria e vincula Veiculo e Condutor ao CRR
+            # Cria Veículo e Condutor relacionados
             Veiculo.objects.create(crr=crr, **veiculo_data)
             Condutor.objects.create(crr=crr, **condutor_data)
 
-            # Cria AITs associados
+            # Cria AITs
             for numero_ait in aits_list:
                 Ait.objects.create(crr=crr, ait=numero_ait)
 
-            # Cria Enquadramentos associados
+            for imagem in imagens_data[:4]:  # limita a até 4 imagens
+                ImagemCrr.objects.create(crr=crr, **imagem)    
+
+            # Cria Enquadramentos
             for codigo in enquadramentos_list:
                 codigo_str = str(codigo).zfill(5)
                 if not codigo_str.isdigit() or len(codigo_str) != 5:

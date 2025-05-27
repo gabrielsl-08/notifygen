@@ -92,12 +92,15 @@ class TabelaArrendatarioResource(resources.ModelResource):
     class Meta:
         model = TabelaArrendatario
         import_id_fields = ['nome_arrendatario']
-        fields = ('nome_arrendatario', 'cnpj_arrendatario', 'endereco_arrendatario','numero_arrendatario','complemento_arrendatario','bairro_arrendatario','cidade_arrendatario','uf_arrendatario','cep_arrendatario')
+        fields = ('nome_arrendatario', 'cnpj_arrendatario','endereco_arrendatario','numero_arrendatario','complemento_arrendatario','bairro_arrendatario','cidade_arrendatario','uf_arrendatario','cep_arrendatario')
 
 @admin.register(TabelaArrendatario)
 class TabelaArrendatarioAdmin(ImportExportModelAdmin):
     resource_class = TabelaArrendatarioResource
     list_display = ('nome_arrendatario', 'cnpj_arrendatario')
+
+
+
 
 
 # ============== MODELADMINS ============== #
@@ -133,10 +136,11 @@ class TabelaEnquadramentoAdmin(ImportExportModelAdmin):
     resource_class = TabelaEnquadramentoResource
     list_display = ('codigo', 'amparo_legal', 'descricao_infracao')
 
-class ImagemCrrInline(admin.StackedInline):  # Use StackedInline para fácil visualização
+class ImagemCrrInline(admin.StackedInline):
     model = ImagemCrr
-    extra = 1  # Permite 4 imagens por padrão, ajustar conforme necessário
+    extra = 1
     max_num = 4
+    fields = ['imagem', 'nomeArquivo', 'url']
 
 
     
