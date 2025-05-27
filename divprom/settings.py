@@ -35,19 +35,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'authentication',
-    'storages',
     
 ]
 
-# Configuração Amazon S3
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
-AWS_ACCESS_KEY_ID = 'SUA_AWS_ACCESS_KEY'
-AWS_SECRET_ACCESS_KEY = 'SUA_AWS_SECRET_KEY'
-AWS_STORAGE_BUCKET_NAME = 'nome-do-seu-bucket'
-AWS_S3_REGION_NAME = 'us-east-1'  # Ex: 'us-east-1'
-AWS_S3_ADDRESSING_STYLE = "path"
-AWS_QUERYSTRING_AUTH = False  # para gerar URLs públicas
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

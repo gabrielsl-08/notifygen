@@ -100,20 +100,29 @@ class NotificacaoAdmin(admin.ModelAdmin):
         }),
     )
 
-
+    
     def imagem_preview(self, obj):
         try:
             imagem = obj.crr.imagens.first()
-            if imagem and imagem.imagem:
+            if imagem:
+                # Tenta usar o campo imagem (upload local)
+                if imagem.imagem:
+                    url = imagem.imagem.url
+                # Caso contrário, usa a URL vinda da API
+                elif imagem.url:
+                    url = imagem.url
+                else:
+                    return "Sem imagem"
+
                 return format_html(
                     '<a href="{0}" target="_blank"><img src="{0}" style="max-height: 60px; max-width: 60px;" /></a>',
-                    imagem.imagem.url
+                    url
                 )
         except Exception as e:
             print(f"Erro ao carregar imagem: {e}")
         return "Sem imagem"
 
-    imagem_preview.short_description = "Pré-visualização"
+        imagem_preview.short_description = "Pré-visualização"
 
 
     class Media:

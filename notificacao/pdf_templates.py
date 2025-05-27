@@ -22,7 +22,21 @@ def render_notificacao_template(c, notificacao, width, height):
     segundo_ait = aits[1].ait if len(aits) > 1 else ""  
 
     imagens = list(notificacao.crr.imagens.all())
-    imagemVeiculo =  imagens[0].imagem  if len(imagens) > 0 else "—"
+    imagemVeiculo = None
+
+    if imagens:
+        imagem_obj = imagens[0]
+
+        try:
+            if imagem_obj.imagem:  # upload local
+                imagemVeiculo = ImageReader(imagem_obj.imagem.path)
+            elif imagem_obj.url:  # imagem via URL externa (S3)
+                response = requests.get(imagem_obj.url)
+                if response.status_code == 200:
+                    imagem_bytes = BytesIO(response.content)
+                    imagemVeiculo = ImageReader(imagem_bytes)
+        except Exception as e:
+            print(f"Erro ao processar imagem: {e}")
 
     condutores = list(notificacao.crr.condutores.all())
     
@@ -335,7 +349,7 @@ def render_notificacao_template(c, notificacao, width, height):
     c.setFont("Arial", 8)
     c.drawString(6 * cm, altura - 15 * cm, "Identificação da Autoridade/Agente Autuador:") # \\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(6 * cm, altura - 15.4 * cm, str(crr.agenteAutuador.matriculaAgente)) # \\\\\\\\\\\\\\\\\\
+    c.drawString(6 * cm, altura - 15.4 * cm, str(crr.matriculaAgente)) # \\\\\\\\\\\\\\\\\\
     
     
     # Linha horizontal acima da identificação de condutor 

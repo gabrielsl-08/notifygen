@@ -214,7 +214,7 @@ class Enquadramento(models.Model):
 
 class ImagemCrr(models.Model):
     crr = models.ForeignKey('Crr', on_delete=models.CASCADE, related_name='imagens')
-    imagem = models.ImageField(upload_to='crr/', blank=True, null=True, verbose_name="Imagem (upload via Admin)")
+    imagem = models.ImageField(upload_to=upload_path, blank=True, null=True, verbose_name="Imagem (upload via Admin)")
     nomeArquivo = models.CharField(max_length=255, blank=True, null=True)
     url = models.URLField(max_length=1000, blank=True, null=True)
 
@@ -228,4 +228,4 @@ class ImagemCrr(models.Model):
             super().save(update_fields=['nomeArquivo', 'url'])
 
     def __str__(self):
-        return self.nomeArquivo or f"Imagem {self.id} para {self.crr.numeroCrr}"
+        return self.url or f"Imagem {self.id} para {self.crr.numeroCrr}"
