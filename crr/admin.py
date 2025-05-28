@@ -15,25 +15,14 @@ from django.contrib.postgres.forms import SplitArrayWidget
 
 
 # ============== INLINES ============== #
-'''
-@admin.register(AgenteAutuador)
-class AgenteAutuadorAdmin(admin.ModelAdmin):
-    list_display = ('nomeAgente', 'matriculaAgente', 'orgao')
-    search_fields = ('nomeAgente', 'matriculaAgente', 'orgao')
-
-
-class AgenteAutuadorInline(admin.TabularInline):
-    model = AgenteAutuador
-    extra = 0
-    max_num = 1  # Quantas linhas vazias para novos condutores
-    fields = ['matriculaAgente']
-'''
 
 class CondutorInline(admin.TabularInline):
     model = Condutor
     extra = 0
     max_num = 1  # Quantas linhas vazias para novos condutores
     fields = ['nomeCondutor','cnh','cnhEstrangeira', 'ufCnh', 'cpfCondutor']
+    class Media:
+        js = ('js/mascaras.js',)
 
 class VeiculoInline(admin.TabularInline):
     model = Veiculo
@@ -155,9 +144,10 @@ class CrrAdmin(admin.ModelAdmin):
     inlines = [CondutorInline, VeiculoInline,AitInline,EnquadramentoInline,ArrendatarioInline,ImagemCrrInline]
    
     
+
     fieldsets = (
         ("CRR", {
-            'fields': ('numeroCrr','matriculaAgente')
+            'fields': ('numeroCrr','matriculaAgente','placaGuincho', 'encarregado')
         }),        
         ("Local da Infração", {
             'fields': ('localFiscalizacao', 'dataFiscalizacao','horaFiscalizacao','observacao')
@@ -186,11 +176,7 @@ class CrrAdmin(admin.ModelAdmin):
 
     
 
-    class Media:
-        js = (
-            'js/mascaras.js',
-        )
-
+    
     @admin.action(description="Gerar Edital em DOCX")
     def gerar_edital_docx_action(self, request, queryset):
         response = gerar_edital_docx(queryset)
@@ -208,7 +194,10 @@ class CrrAdmin(admin.ModelAdmin):
 
     criar_notificacao_link.short_description = "Nova Notificação"
 
-    
+    class Media:
+        js = (
+            'js/mascaras.js',
+        )
 
 
 

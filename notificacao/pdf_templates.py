@@ -7,7 +7,9 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.lib.utils import ImageReader
 from reportlab.lib.styles import ParagraphStyle,getSampleStyleSheet
 from reportlab.platypus import Paragraph, Frame
-
+import requests
+from io import BytesIO
+from reportlab.lib.utils import ImageReader
 
 
 

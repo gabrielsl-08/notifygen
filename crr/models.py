@@ -3,50 +3,28 @@ from django.core.validators import RegexValidator
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from datetime import timedelta
-
+from .choices import STATUS_CHOICES,CATEGORIA_CHOICES,ESTADO_CHOICES,STATUS_CHOICES,ESPECIE_CHOICES
 
 # ---------------- VEÍCULO ---------------- #
 def upload_path(instance, filename):
     numeroCrr = instance.crr.numeroCrr if instance.crr.numeroCrr else "sem_identificacao"
     return f"notificacoes/{numeroCrr}/{filename}"
 
-ESPECIE_CHOICES = [
-    ('passageiro', 'Passageiro'), ('carga', 'Carga'), ('misto', 'Misto'),
-    ('tracao', 'Tração'), ('colecao', 'Coleção'), ('especial', 'Especial'),
-]
-
-CATEGORIA_CHOICES = [
-    ('oficial', 'Oficial'), ('particular', 'Particular'), ('aluguel', 'Aluguel'),
-]
-
-ESTADO_CHOICES = [
-    ('AC', 'Acre'),   ('AL', 'Alagoas'),('AP', 'Amapá'),('AM', 'Amazonas'),
-    ('BA', 'Bahia'),('CE', 'Ceará'),('DF', 'Distrito Federal'), ('ES', 'Espírito Santo'),
-    ('GO', 'Goiás'), ('MA', 'Maranhão'),('MT', 'Mato Grosso'),('MS', 'Mato Grosso do Sul'),
-    ('MG', 'Minas Gerais'),('PA', 'Pará'),('PB', 'Paraíba'),('PR', 'Paraná'),('PE', 'Pernambuco'),
-    ('PI', 'Piauí'), ('RJ', 'Rio de Janeiro'),('RN', 'Rio Grande do Norte'),('RS', 'Rio Grande do Sul'),
-    ('RO', 'Rondônia'),('RR', 'Roraima'), ('SC', 'Santa Catarina'), ('SP', 'São Paulo'),
-      ('SE', 'Sergipe'),('TO', 'Tocantins'),('OUTROS', 'Outros'),
-]
-
-STATUS_CHOICES = [  ('retido', 'Retido'), ('liberado', 'Liberado'),]
-
-ORGAO_CHOICES = [
-    ('detraf', 'DETRAF'), ('gcm', 'GCM'), ('pm', 'PM'),]
 
 
-class Crr(models.Model):
-    numeroCrr = models.CharField(max_length=10, unique=True, blank=True, null=True, verbose_name='número do crr')
+
+class Crr(models.Model):  
+    numeroCrr = models.CharField(max_length=10, unique=True, blank=False, null=True, verbose_name='número do crr')
     localFiscalizacao = models.CharField(max_length=100, blank=False, null=False,verbose_name='Local da Fiscalização')
     municipioEstadoFiscalizacao = models.CharField(max_length=50,default='São Sebastião - SP' ,blank=True, null=True,verbose_name='Município da Fiscalização')
     dataFiscalizacao = models.DateField(blank=False, null=False,verbose_name='Data da fiscalização')
     horaFiscalizacao = models.TimeField(blank=False, null=False,verbose_name='Hora da fiscalização')
-    observacao = models.CharField(max_length=200, blank=True, null=False,verbose_name='Observação')
+    observacao = models.CharField(max_length=300, blank=True, null=False,verbose_name='Observação')
     matriculaAgente = models.CharField(max_length=10, blank=False, null=False)
     medidaAdministrativa  = models.CharField(max_length=100, blank=True,default='Remoção do veículo ao Depósito', null=True,verbose_name='Medida Administrativa')
     localPatio =  models.CharField(max_length=100,default='RUA BOLIVIA, JARAGUA - SÃO SEBASTIÃO/SP - 11600-748', blank=True, null=False,verbose_name='Pátio')
     placaGuincho = models.CharField(max_length=7, blank=True, null=False,verbose_name='Placa do guicho')
-    encarregado = models.CharField(max_length=50, blank=True, null=False,verbose_name='encarregado do pátio')
+    encarregado = models.CharField(max_length=50, blank=True, null=False,verbose_name='encarregado do guincho')
     status = models.CharField(max_length=8, choices=STATUS_CHOICES,default='retido',help_text="Status atual do veículo (Retido/Liberado)")    
     not_gerada = models.BooleanField(default=False,verbose_name='Status da Notificação')
     edital_emitido = models.BooleanField(default=False) 
@@ -93,9 +71,9 @@ class Veiculo(models.Model):
     crr = models.ForeignKey(Crr, on_delete=models.CASCADE, related_name='veiculo')
     placa = models.CharField( max_length=7,blank=True,null=False)
     chassi = models.CharField( max_length=20,blank=True, null=False)
-    marca = models.CharField(max_length=7, blank=True, null=False)
-    modelo = models.CharField(max_length=7, blank=True, null=False)
-    cor = models.CharField( max_length=17,blank=True, null=False)
+    marca = models.CharField(max_length=20, blank=True, null=False)
+    modelo = models.CharField(max_length=20, blank=True, null=False)
+    cor = models.CharField( max_length=20,blank=True, null=False)
     especie = models.CharField(max_length=20 ,choices=ESPECIE_CHOICES, blank=True, null=False,verbose_name='espécie')
     categoria = models.CharField(max_length=20,choices=CATEGORIA_CHOICES, blank=True, null=False)
     ufVeiculo = models.CharField(max_length=6, choices=ESTADO_CHOICES, blank=True, null=False,verbose_name='UF do veículo')
@@ -175,9 +153,23 @@ class Condutor(models.Model):
 class Ait(models.Model):
     crr = models.ForeignKey(Crr,on_delete=models.CASCADE,related_name='aits')
     ait = models.CharField(max_length=11,verbose_name='Código de AIT', blank=True, null=False)   
+    
     def __str__(self):
         return self.ait
     
+    def save(self, *args, **kwargs): # normaliza banco de dados
+        lower_fields = [
+            'ait',
+        ]
+        
+        # Aplicar normalização para minúsculas
+        for field in lower_fields:
+            value = getattr(self, field)
+            if value and isinstance(value, str):
+                setattr(self, field, value.lower())
+                                 
+        super().save(*args, **kwargs)
+
 
 class TabelaEnquadramento(models.Model):
     codigo = models.CharField(max_length=6, unique=True,verbose_name='Código')
