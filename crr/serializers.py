@@ -113,7 +113,7 @@ class CrrSerializer(serializers.ModelSerializer):
                     codigo=codigo_str,
                     defaults={
                         "amparo_legal": "NÃO INFORMADO",
-                        "descricao_infracao": "ENQUADRAMENTO CADASTRADO AUTOMATICAMENTE"
+                        "descricao_infracao": ""
                     }
                 )
                 Enquadramento.objects.create(crr=crr, enquadramento=enquad_obj)

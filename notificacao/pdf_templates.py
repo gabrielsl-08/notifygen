@@ -14,8 +14,12 @@ from reportlab.lib.utils import ImageReader
 
 
 def render_notificacao_template(c, notificacao, width, height):
+
+    def limitar_texto(texto, limite):
+        return texto if len(texto) <= limite else texto[:limite]
     
     largura, altura = LETTER 
+
 
     crr = notificacao.crr
     aits = notificacao.crr.aits.all()
@@ -166,7 +170,9 @@ def render_notificacao_template(c, notificacao, width, height):
     c.setFont("Arial", 8)
     c.drawString(6.5 * cm, altura - 8 * cm, "Marca / Modelo:") #\\\\\\\\\\\\\\\
     c.setFont("Arial", 10)
-    c.drawString(6.5 * cm, altura - 8.5 * cm, f"{marca.upper()}/{modelo.upper()}") #\\\\\\\\\\\\\\\
+    marca_limite = limitar_texto(marca.upper(), 7) 
+    modelo_limite = limitar_texto(modelo.upper(), 7) 
+    c.drawString(6.5 * cm, altura - 8.5 * cm, f"{marca_limite}/{modelo_limite}") #\\\\\\\\\\\\\\\
     # Barra vertical
     c.line(9.8* cm, altura - 7.7 * cm, 9.8 * cm, altura - 8.6 * cm)
 

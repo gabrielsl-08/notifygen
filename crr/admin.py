@@ -26,20 +26,20 @@ class CondutorInline(admin.TabularInline):
 
 class VeiculoInline(admin.TabularInline):
     model = Veiculo
-    extra = 0
+    extra = 1
     max_num = 1  # Quantas linhas vazias para novos condutores
     fields = ['placa','chassi','marca', 'modelo', 'cor','especie','categoria','ufVeiculo','municipioVeiculo']
-
-class AitAdmin(admin.ModelAdmin):
     class Media:
         js = ('js/mascaras.js',)
+
+
+
 class AitInline(admin.TabularInline):
     model = Ait
     extra = 1
     max_num = 4 
     fields = ['ait']
-    class Media:
-        js = ('js/mascaras.js',)
+   
 
 class EnquadramentoInlineForm(forms.ModelForm): # ajusta o tamanho do campo Enquadramento
 
@@ -129,7 +129,7 @@ class ImagemCrrInline(admin.StackedInline):
     model = ImagemCrr
     extra = 1
     max_num = 4
-    fields = ['imagem', 'nomeArquivo', 'url']
+    fields = ['imagem',]
 
 
     
