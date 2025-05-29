@@ -62,14 +62,23 @@ def gerar_edital_docx(crrs):
 
     # Exemplo de adição de linha — você pode depois popular com seu queryset
     for crr in crrs:
-        row_cells = table.add_row().cells 
-        
-        row_cells[0].text = str(crr.placa_chassi).upper()
-        row_cells[1].text = str(f"{crr.marca}/{crr.modelo}").upper() 
+        row_cells = table.add_row().cells
+
+        # Acessa diretamente o objeto Veiculo relacionado ao CRR
+        veiculo_obj = crr.veiculo.first()  # related_name='veiculo' é usado com .first()
+
+        placa = getattr(veiculo_obj, 'placa', '') if veiculo_obj else ''
+        marca = getattr(veiculo_obj, 'marca', '') if veiculo_obj else ''
+        modelo = getattr(veiculo_obj, 'modelo', '') if veiculo_obj else ''
+
+        row_cells[0].text = placa.upper()
+        row_cells[1].text = f"{marca}/{modelo}".upper()
+
         destinatario = getattr(crr.notificacao, 'destinatario', '') if hasattr(crr, 'notificacao') else ''
         row_cells[2].text = destinatario.upper()
+
         arrendatario_obj = crr.arrendatarios.first()
-        nome_arrendatario = getattr(arrendatario_obj.arrendatario, 'nome_arrendatario', '') if arrendatario_obj and hasattr(arrendatario_obj, 'arrendatario') else ''
+        nome_arrendatario = getattr(arrendatario_obj.arrendatario, 'nome_arrendatario', '') if arrendatario_obj else ''
         row_cells[3].text = nome_arrendatario.upper()
 
         

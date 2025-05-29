@@ -22,7 +22,7 @@ class Crr(models.Model):
     observacao = models.CharField(max_length=300, blank=True, null=False,verbose_name='Observação')
     matriculaAgente = models.CharField(max_length=10, blank=False, null=False)
     medidaAdministrativa  = models.CharField(max_length=100, blank=True,default='Remoção do veículo ao Depósito', null=True,verbose_name='Medida Administrativa')
-    localPatio =  models.CharField(max_length=100,default='RUA BOLIVIA, JARAGUA - SÃO SEBASTIÃO/SP - 11600-748', blank=True, null=False,verbose_name='Pátio')
+    localPatio =  models.CharField(max_length=100,default='RUA BOLIVIA, Nº202, JARAGUA - SÃO SEBASTIÃO/SP - 11600-748', blank=True, null=False,verbose_name='Pátio')
     placaGuincho = models.CharField(max_length=7, blank=True, null=False,verbose_name='Placa do guicho')
     encarregado = models.CharField(max_length=50, blank=True, null=False,verbose_name='encarregado do guincho')
     status = models.CharField(max_length=8, choices=STATUS_CHOICES,default='retido',help_text="Status atual do veículo (Retido/Liberado)")    
@@ -147,7 +147,19 @@ class Condutor(models.Model):
 
     def __str__(self):
         return f"{self.nomeCondutor} ({self.cpfCondutor})"
-
+    
+    def save(self, *args, **kwargs): # normaliza banco de dados
+        lower_fields = [
+            'cnhEstrangeira','ufCnh','nomeCondutor',
+        ]
+        
+        # Aplicar normalização para minúsculas
+        for field in lower_fields:
+            value = getattr(self, field)
+            if value and isinstance(value, str):
+                setattr(self, field, value.lower())
+                                 
+        super().save(*args, **kwargs)
 
 
 class Ait(models.Model):

@@ -18,19 +18,18 @@ from django.contrib.postgres.forms import SplitArrayWidget
 
 class CondutorInline(admin.TabularInline):
     model = Condutor
-    extra = 0
+    extra = 1
     max_num = 1  # Quantas linhas vazias para novos condutores
     fields = ['nomeCondutor','cnh','cnhEstrangeira', 'ufCnh', 'cpfCondutor']
-    class Media:
-        js = ('js/mascaras.js',)
+
+      
 
 class VeiculoInline(admin.TabularInline):
     model = Veiculo
     extra = 1
     max_num = 1  # Quantas linhas vazias para novos condutores
     fields = ['placa','chassi','marca', 'modelo', 'cor','especie','categoria','ufVeiculo','municipioVeiculo']
-    class Media:
-        js = ('js/mascaras.js',)
+   
 
 
 
@@ -61,9 +60,6 @@ class EnquadramentoInline(admin.TabularInline):
     fields = ['enquadramento']
     verbose_name_plural = "Enquadramentos"
 
-class ArrendatárioAdmin(admin.ModelAdmin):
-    class Media:
-        js = ('js/mascaras.js',)
 
 class ArrendatarioInline(admin.TabularInline):
     model = Arrendatario
@@ -71,10 +67,6 @@ class ArrendatarioInline(admin.TabularInline):
     max_num = 1
     fields = ['arrendatario']
     verbose_name_plural = "Arrendatário"
-    class Media:
-        js = (
-            'js/mascaras.js',
-        )
 
 
 class TabelaArrendatarioResource(resources.ModelResource):

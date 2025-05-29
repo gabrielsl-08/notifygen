@@ -1,16 +1,10 @@
-from reportlab.pdfgen import canvas
 from reportlab.lib.units import cm
-from reportlab.lib.pagesizes import LETTER,A4
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.lib import colors
-from reportlab.pdfbase import pdfmetrics
+from reportlab.lib.pagesizes import LETTER
 from reportlab.lib.utils import ImageReader
-from reportlab.lib.styles import ParagraphStyle,getSampleStyleSheet
-from reportlab.platypus import Paragraph, Frame
+from reportlab.lib.styles import getSampleStyleSheet
 import requests
 from io import BytesIO
 from reportlab.lib.utils import ImageReader
-
 
 
 def render_notificacao_template(c, notificacao, width, height):
@@ -82,9 +76,6 @@ def render_notificacao_template(c, notificacao, width, height):
     largura, altura = LETTER  # Dimensões: 8.5 x 11 polegadas
    
     
-    # Registrar fonte personalizada
-    pdfmetrics.registerFont(TTFont('Arial', 'Arial.ttf'))
-    c.setFont("Arial", 10)
 
      # Inserir uma imagem (exemplo: logo da prefeitura)
     try:
@@ -97,7 +88,7 @@ def render_notificacao_template(c, notificacao, width, height):
     c.setFont("Helvetica-Bold", 14)
     c.drawString(6 * cm, altura - 3 * cm, "PREFEITURA MUNICIPAL DE SÃO SEBASTIÃO")
 
-    c.setFont("Arial", 12)
+    c.setFont("Helvetica", 12)
     c.drawString(7 * cm, altura - 4 * cm, "SECRETARIA DE SEGURANÇA URBANA")
 
      # Linha horizontal acima de notificação de remoção de veículos ao pátio
@@ -117,39 +108,39 @@ def render_notificacao_template(c, notificacao, width, height):
     # 2ª Linha horizontal abaixo de identificação da autuação
     c.line(2 * cm, altura - 7 * cm, largura - 2 * cm, altura - 7 * cm)
 
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(2 * cm, altura - 6.4 * cm, "Código órgão Autuador")
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     c.drawString(2 * cm, altura - 6.9 * cm,  "271150")
      # Barra vertical
     c.line(5.8* cm, altura - 6.1 * cm, 5.8 * cm, altura - 7 * cm)
 
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(6 * cm, altura - 6.4 * cm, "N° C.R.R.") #\\\\\\\\\\\\\\
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     c.drawString(6 * cm, altura - 6.9 * cm, str(crr.numeroCrr)) #\\\\\\\\\\\\\\\\
     # Barra vertical em frente auto de infração
     c.line(9* cm, altura - 6.1 * cm, 9 * cm, altura - 7 * cm)
 
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(9.5 * cm, altura - 6.4 * cm, "Data da Postagem:") #\\\\\\\\\\\\\\
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     data_postagem = notificacao.data_postagem.strftime('%d/%m/%Y')
     c.drawString(9.5 * cm, altura - 6.9 * cm, data_postagem) #\\\\\\\\\\\\\\\
     # Barra vertical em frente data de postagem 
     c.line(12.7* cm, altura - 6.1 * cm, 12.7 * cm, altura - 7 * cm)
 
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(13 * cm, altura - 6.4 * cm, "Data Emissão:") #\\\\\\\\\\\\\\\
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     data_emissao = notificacao.data_emissao.strftime('%d/%m/%Y')
     c.drawString(13 * cm, altura - 6.9 * cm, f"{data_emissao}")
     # Barra vertical em frente data emissão
     c.line(15.7* cm, altura - 6.1 * cm, 15.7 * cm, altura - 7 * cm)
 
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(16.5 * cm, altura - 6.4 * cm, "Numero Controle:")
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     c.drawString(16.5 * cm, altura - 6.9 * cm, str(notificacao.numero_controle))
     
     
@@ -159,17 +150,19 @@ def render_notificacao_template(c, notificacao, width, height):
     c.setFont("Helvetica-Bold", 10)
     c.drawString(8 * cm, altura - 7.5 * cm, "Identificação do Veículo")
     
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(2 * cm, altura - 8 * cm, "Placa / Chassi:") #\\\\\\\\\\\\\\\\\\\\\\\
      # Barra vertical
     c.line(6.3* cm, altura - 7.7 * cm, 6.3* cm, altura - 8.6 * cm)
-    c.setFont("Arial", 10)
-    c.drawString(2 * cm, altura - 8.5 * cm, str(placa.upper())) #\\\\\\\\\\\\\\\\\\\\\\\\\\
+    c.setFont("Helvetica", 10)
+    sem_identificado = "SEM IDENTIFICAÇÃO"
+    placa_chassi = (placa or chassi or sem_identificado).upper()
+    c.drawString(2 * cm, altura - 8.5 * cm, str(placa_chassi)) #\\\\\\\\\\\\\\\\\\\\\\\\\\
 
     
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(6.5 * cm, altura - 8 * cm, "Marca / Modelo:") #\\\\\\\\\\\\\\\
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     marca_limite = limitar_texto(marca.upper(), 7) 
     modelo_limite = limitar_texto(modelo.upper(), 7) 
     c.drawString(6.5 * cm, altura - 8.5 * cm, f"{marca_limite}/{modelo_limite}") #\\\\\\\\\\\\\\\
@@ -177,24 +170,24 @@ def render_notificacao_template(c, notificacao, width, height):
     c.line(9.8* cm, altura - 7.7 * cm, 9.8 * cm, altura - 8.6 * cm)
 
    
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(9.9 * cm, altura - 8 * cm, "Espécie:") #\\\\\\\\\\\\\\\\\\\\\\\\\
     # Barra vertical
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     c.drawString(9.9 * cm, altura - 8.5 * cm, especie.upper()) #\\\\\\\\\\\\\\\\\\\\\
     c.line(12.3* cm, altura - 7.7 * cm, 12.3 * cm, altura - 8.6 * cm)
 
 
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(12.4 * cm, altura - 8 * cm, "Categoria:") #\\\\\\\\\\\\\\\
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     c.drawString(12.4 * cm, altura - 8.5 * cm, categoria.upper()) #\\\\\\\\\\\\\\\
      # Barra vertical
     c.line(14.7* cm, altura - 7.7 * cm, 14.7 * cm, altura - 8.6 * cm)
 
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(14.8 * cm, altura - 8 * cm, "Município / UF:") #\\\\\\\\\\\\\
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     c.drawString(14.8 * cm, altura - 8.5 * cm, f"{municipioVeiculo.upper()}/{ufVeiculo.upper()}")
     
    
@@ -207,35 +200,35 @@ def render_notificacao_template(c, notificacao, width, height):
         # Linha horizontal abaixo de identificação do local da infração
     c.line(2 * cm, altura - 9.1 * cm, largura - 2 * cm, altura - 9.1 * cm)
 
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(2 * cm, altura - 9.4 * cm, "Local da remoção") #\\\\\\\\\\\\\\\\\\\
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     c.drawString(2 * cm, altura - 9.9 * cm, '') # \\\\\\\\\\\\\\\\\\\\\\\\
         # Linha horizontal acima de local da infração
     c.line(2 * cm, altura - 10 * cm, largura - 2 * cm, altura - 10 * cm)
 
  # Linha horizontal acima de "Município / UF / Código:"
     c.line(2 * cm, altura - 11 * cm, largura - 9.6 * cm, altura - 11 * cm)
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(2 * cm, altura - 11.3* cm, "Município / UF / Código:")
     # Barra vertical
     c.line(6.9* cm, altura - 11 * cm, 6.9 * cm, altura - 11.8 * cm)
 
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     c.drawString(2 * cm, altura - 11.8 * cm, "SÃO SEBASTIÃO / SP / 7115")
 
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(7.1 * cm, altura - 11.3 * cm, "Data da remoção:") #\\\\\\\\\\\\\\
     # Barra vertical
     c.line(9.5 * cm, altura - 11 * cm, 9.5 * cm, altura - 11.9 * cm)
 
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     dataFiscalizacao = crr.dataFiscalizacao.strftime('%d/%m/%Y')
     c.drawString(7.1 * cm, altura - 11.8 * cm, dataFiscalizacao) #\\\\\\\\\\\\\\\\\\\\
 
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(9.7 * cm, altura - 11.3 * cm, "Hora da remoção:") #\\\\\\\\\\\\\\\\\\\
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     c.drawString(9.7 * cm, altura - 11.8 * cm, str(crr.horaFiscalizacao))  #\\\\\\\\\\\\\\\\\\\\\\\
 
     # retangulo para imagem
@@ -250,9 +243,10 @@ def render_notificacao_template(c, notificacao, width, height):
     except Exception as e:
         print(f"Erro ao carregar a imagem: {e}")
 
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(2 * cm, altura - 10.3 * cm, "Observação:") #\\\\\\\\\\\\\\\\\\\\\\\\
-    c.drawString(2 * cm, altura - 10.8 * cm, str(crr.observacao.upper()))
+    observacao_limite = limitar_texto(crr.observacao.upper(), 98) +'...'
+    c.drawString(2 * cm, altura - 10.8 * cm, str(observacao_limite))
     
     # Definir estilos de texto
     styles = getSampleStyleSheet()
@@ -268,7 +262,7 @@ def render_notificacao_template(c, notificacao, width, height):
     # Linha horizontal abaixo da tipificação da infração
     c.line(2 * cm, altura - 12.5 * cm, largura - 9.6 * cm, altura - 12.5 * cm)
 
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(2 * cm, altura - 12.8 * cm, "Descrição da Infração:")
     # Barra vertical
     c.line(6.8* cm, altura - 12.5 * cm, 6.8 * cm, altura - 14.7 * cm)
@@ -325,20 +319,20 @@ def render_notificacao_template(c, notificacao, width, height):
     )
 
     
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(7 * cm, altura - 12.8 * cm, "Enquadramento:")
     # Barra vertical
     c.line(9.3* cm, altura - 12.5 * cm, 9.3 * cm, altura - 14.7 * cm)
 
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     c.drawString(7 * cm, altura - 13.3 * cm,str(primeiro_enquadramento))
     c.drawString(7 * cm, altura - 13.8 * cm, str(segundo_enquadramento))
     c.drawString(7 * cm, altura - 13.8 * cm, str(terceiro_enquadramento))
     c.drawString(7 * cm, altura - 13.8 * cm, str(quarto_enquadramento))
 
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(9.5* cm, altura - 12.8 * cm, "Auto de infração:") #\\\\\\\\\\\\\\
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     c.drawString(9.5* cm, altura - 13.3 * cm, f"{primeiro_ait}") # \\\\\\\\\\\\\\\\\\\\\
     c.drawString(9.5* cm, altura - 13.8 * cm, f"{segundo_ait}") # \\\\\\\\\\\\\\\\\\\\\
     
@@ -346,17 +340,17 @@ def render_notificacao_template(c, notificacao, width, height):
 
      # Linha horizontal acima de Amparo Legal
     c.line(2 * cm, altura - 14.7 * cm, largura - 9.6 * cm, altura - 14.7 * cm)
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(2 * cm, altura - 15 * cm, "Amparo Legal:") # \\\\\\\\\\\\\\\\\\
     # Barra vertical
     c.line(5* cm, altura - 14.7 * cm, 5 * cm, altura - 15.5* cm)
 
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     c.drawString(2 * cm, altura - 15.4* cm, str(primeiro_amparo_legal)) #Art. 279-A C.T.B. \\\\\\\\
 
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(6 * cm, altura - 15 * cm, "Identificação da Autoridade/Agente Autuador:") # \\\\\\\\\
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     c.drawString(6 * cm, altura - 15.4 * cm, str(crr.matriculaAgente)) # \\\\\\\\\\\\\\\\\\
     
     
@@ -368,31 +362,31 @@ def render_notificacao_template(c, notificacao, width, height):
     # Linha horizontal abaixo de indentificação de condutor
     c.line(2 * cm, altura - 16 * cm, largura - 2 * cm, altura - 16 * cm)
 
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(2 * cm, altura - 16.3 * cm, "Nº Habilitação do Condutor:") 
     # Barra vertical
     c.line(5.7* cm, altura - 16 * cm, 5.7 * cm, altura - 16.8 * cm)
 
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     c.drawString(2 * cm, altura - 16.7 * cm,  cnh) 
 
      #Linha horizontal abaixo da habilitação do condutor
     c.line(2 * cm, altura - 16.8 * cm, largura - 2 * cm, altura - 16.8 * cm)
 
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(6 * cm, altura - 16.3 * cm, "UF:") #\\\\\\\\\\\\\\\\\
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     c.drawString(6 * cm, altura - 16.7 * cm, str(ufCnh).upper()) #\\\\\\\\\\\\\
 
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(7 * cm, altura - 16.3 * cm, "CPF:") # \\\\\\\\\\\\\\\\\\\\
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     c.drawString(7 * cm, altura - 16.7 * cm, cpfCondutor) #\\\\\\\\\\\\\\\\\\\\\\\\\
     
 
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(2 * cm, altura - 17.1 * cm, "Nome:") # \\\\\\\\\\\\\\\\\
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     c.drawString(2 * cm, altura - 17.5 * cm, str(nomeCondutor).upper()) # \\\\\\\\\\\\\\\\\\\\\\\
     #Linha horizontal abaixo de NOME
     c.line(2 * cm, altura - 17.6 * cm, largura - 2 * cm, altura - 17.6 * cm)
@@ -402,14 +396,14 @@ def render_notificacao_template(c, notificacao, width, height):
     # Informações Importantes
     c.setFont("Helvetica-Bold", 10)
     c.drawString(8 * cm, altura - 18 * cm, "Informações Importantes")
-    c.setFont("Arial", 10) 
+    c.setFont("Helvetica", 10) 
     c.drawString(2 * cm, altura - 18.4 * cm, "Veículo não reclamado (solicitado) em até 60 dias após a remoção poderá ser leiloado. (Art. 328 C.T.B.)")
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     data_prazo_leilao = notificacao.prazo_leilao.strftime('%d/%m/%Y')
     c.drawString(2 * cm, altura - 18.9 * cm, f'Apto para leilão a partir de: {data_prazo_leilao}') #\\\\\\\\\\\\
     c.drawString(2 * cm, altura - 19.4 * cm, "Nome do pátio: Patio E Guincho Universal LTDA")
-    c.drawString(2 * cm, altura - 19.9 * cm, "Local do pátio: Rua Bolivia, Jaraguá - São Sebastião/SP - CEP: 11600-748")
-    
+    c.drawString(2 * cm, altura - 19.9 * cm, f'Local do pátio: {crr.localPatio.upper()}')
+    #"Local do pátio: Rua Bolivia, Nº202, Jaraguá - São Sebastião/SP - CEP: 11600-748"
     # Linha horizontal abaixo da Informações Importantes da Notificação de Autuação
     c.line(2 * cm, altura - 20.4 * cm, largura - 2 * cm, altura - 20.4* cm)
     
@@ -438,9 +432,9 @@ def render_notificacao_template(c, notificacao, width, height):
     # retangulo destinatário
         #   (x  , y,   largura, altura, stroke=1, fill=0)
     c.rect(2*cm, 25*cm, 17*cm, 3.5*cm , stroke=1, fill=0)
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(2.2 * cm, 28.2 * cm, "DESTINATÁRIO")
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     c.drawString(2.2 * cm, 27.7 * cm, notificacao.destinatario.upper())
     
     c.drawString(2.2 * cm, 26.6 * cm, f"{notificacao.endereco.upper()}, {notificacao.numero.upper()}    {notificacao.complemento.upper()}  -   {notificacao.bairro.upper()}")
@@ -489,9 +483,9 @@ def render_notificacao_template(c, notificacao, width, height):
         #   (x  , y,   largura, altura, stroke=1, fill=1)
     c.rect(3*cm, 3*cm, 15*cm, 3*cm , stroke=1, fill=0)
     # Destinatário 2ª pagina
-    c.setFont("Arial", 8)
+    c.setFont("Helvetica", 8)
     c.drawString(3.2 * cm, 5.6 * cm, "DESTINATÁRIO")
-    c.setFont("Arial", 10)
+    c.setFont("Helvetica", 10)
     c.drawString(3.2 * cm, 5 * cm, notificacao.destinatario.upper())
     
     c.drawString(3.2 * cm, 4 * cm,f"{notificacao.endereco.upper()}, {notificacao.numero.upper()} - {notificacao.complemento.upper()} - {notificacao.bairro.upper()}")

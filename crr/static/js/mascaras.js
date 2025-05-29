@@ -25,18 +25,19 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     Object.entries(placeholderMap).forEach(([key, value]) => {
-        document.querySelectorAll(`input[id*="${key}"]`).forEach(input => {
-            input.setAttribute('placeholder', value);
-        });
+        const field = document.getElementById(`id_${key}`);
+        if (field) {
+            field.setAttribute('placeholder', value);
+        }
     });
 
     // === FUNÇÕES DE MÁSCARA ===
     const masks = {
         cpf: v => v.replace(/\D/g, '').replace(/(\d{3})(\d)/, '$1.$2')
-                  .replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2'),
+            .replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2'),
         cnpj: v => v.replace(/\D/g, '').replace(/(\d{2})(\d)/, "$1.$2")
-                   .replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1/$2")
-                   .replace(/(\d{4})(\d{1,2})$/, "$1-$2"),
+            .replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1/$2")
+            .replace(/(\d{4})(\d{1,2})$/, "$1-$2"),
         cep: v => v.replace(/\D/g, '').replace(/(\d{5})(\d)/, "$1-$2"),
         date: v => v.replace(/\D/g, '').replace(/(\d{2})(\d)/, "$1/$2").replace(/(\d{2})(\d)/, "$1/$2"),
         time: v => v.replace(/\D/g, '').replace(/(\d{2})(\d)/, "$1:$2"),
@@ -47,7 +48,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const maskMap = {
         placa: masks.placa,
-        chassi: masks.onlyNumbers,
         matriculaAgente: masks.onlyNumbers,
         dataFiscalizacao: masks.date,
         horaFiscalizacao: masks.time,
@@ -63,23 +63,24 @@ document.addEventListener('DOMContentLoaded', function () {
         data_postagem: masks.date,
         prazo_leilao: masks.date,
         numero_controle: masks.onlyNumbers,
-        cnh: masks.onlyNumbers,
+        cnh: masks.onlyNumbers,  // será aplicado apenas se id="id_cnh"
         cpfCondutor: masks.cpf
     };
 
     function aplicarMascaras(contexto) {
         Object.entries(maskMap).forEach(([key, maskFn]) => {
-            contexto.querySelectorAll(`input[id*="${key}"]`).forEach(input => {
+            const input = contexto.querySelector(`#id_${key}`);
+            if (input) {
                 input.addEventListener('input', e => {
                     e.target.value = maskFn(e.target.value);
                 });
-            });
+            }
         });
     }
 
     aplicarMascaras(document);
 
-    // Aplica quando adiciona nova linha Inline
+    // Reaplica após adicionar Inline
     document.body.addEventListener('click', function (e) {
         if (e.target && e.target.classList.contains('add-row')) {
             setTimeout(() => aplicarMascaras(document), 150);
@@ -99,13 +100,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const errors = [];
 
-            Object.entries(requiredLengths).forEach(([idFragment, length]) => {
-                document.querySelectorAll(`input[id*="${idFragment}"]`).forEach(field => {
+            Object.entries(requiredLengths).forEach(([id, length]) => {
+                const field = document.getElementById(`id_${id}`);
+                if (field) {
                     const value = field.value.replace(/\D/g, '');
                     if (value.length !== length) {
-                        errors.push(`${field.name || idFragment} deve conter ${length} dígitos.`);
+                        errors.push(`${field.name || id} deve conter ${length} dígitos.`);
                     }
-                });
+                }
             });
 
             if (errors.length) {
@@ -114,10 +116,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 return false;
             }
 
-            // Normalização
+            // Normalização de campos ao salvar
             document.querySelectorAll('input').forEach(field => {
-                const id = field.id;
-                if (!id) return;
+                const id = field.id || '';
                 const isNumberField = ['cpfCondutor', 'cnpj', 'cep', 'numero', 'enquadramento', 'matriculaAgente', 'cnh'].some(k => id.includes(k));
                 field.value = isNumberField ? field.value.replace(/\D/g, '') : field.value.toLowerCase();
             });
