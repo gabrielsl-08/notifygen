@@ -25,7 +25,7 @@ class Crr(models.Model):
     localPatio =  models.CharField(max_length=100,default='RUA BOLIVIA, Nº202, JARAGUA - SÃO SEBASTIÃO/SP - 11600-748', blank=True, null=False,verbose_name='Pátio')
     placaGuincho = models.CharField(max_length=7, blank=True, null=False,verbose_name='Placa do guicho')
     encarregado = models.CharField(max_length=50, blank=True, null=False,verbose_name='encarregado do guincho')
-    status = models.CharField(max_length=8, choices=STATUS_CHOICES,default='retido',help_text="Status atual do veículo (Retido/Liberado)")    
+    status = models.CharField(max_length=8, choices=STATUS_CHOICES,default='pendente',help_text="Status atual do veículo (Retido/Liberado)")    
     not_gerada = models.BooleanField(default=False,verbose_name='Status da Notificação')
     edital_emitido = models.BooleanField(default=False) 
     criado_em = models.DateTimeField(auto_now_add=True)

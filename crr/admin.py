@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from django.http import HttpResponse, HttpResponseRedirect
 from .models import  (Crr,Ait,Condutor, Enquadramento,Arrendatario,Veiculo,
                       TabelaEnquadramento,TabelaArrendatario, ImagemCrr
                     )
@@ -11,8 +10,8 @@ from datetime import date, timedelta
 from crr.utils import gerar_edital_docx
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources
-from django.contrib.postgres.forms import SplitArrayWidget
-
+from django.urls import path
+from django.template.response import TemplateResponse
 
 # ============== INLINES ============== #
 
@@ -98,7 +97,7 @@ class FiltroCrrAtrasado(admin.SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value() == 'atrasado':
             data_limite = date.today() - timedelta(days=10)
-            return queryset.filter(data_remocao__lte=data_limite, not_gerada=False, status='retido')
+            return queryset.filter(dataFiscalizacao__lte=data_limite, not_gerada=False, status='retido')
 
         if self.value() == 'edital':
             data_limite = date.today() - timedelta(days=30)
@@ -131,6 +130,7 @@ class CrrAdmin(admin.ModelAdmin):
     list_display = ('numeroCrr','criar_notificacao_link','dataFiscalizacao', 'get_enquadramentos','status','edital_emitido')
     list_filter = (FiltroCrrAtrasado,'dataFiscalizacao', 'status',)
     actions = ['gerar_edital_docx_action']
+    search_fields = ['numeroCrr', 'veiculo__placa'] 
     list_editable = ('status',)
     ordering = ('numeroCrr',)
     inlines = [CondutorInline, VeiculoInline,AitInline,EnquadramentoInline,ArrendatarioInline,ImagemCrrInline]
@@ -161,6 +161,7 @@ class CrrAdmin(admin.ModelAdmin):
 
     '''
 
+    
     def get_enquadramentos(self, obj):
         enquads = obj.enquadramentos.all()
         return ", ".join([str(enq.enquadramento.codigo) for enq in enquads]) if enquads else "—"
@@ -193,5 +194,4 @@ class CrrAdmin(admin.ModelAdmin):
 
 
 
-    
 

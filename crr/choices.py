@@ -17,5 +17,5 @@ ESTADO_CHOICES = [
     ('SP', 'SP'), ('SE', 'SE'), ('TO', 'TO'), ('OUTROS', 'OUTROS'),
 ]
 
-STATUS_CHOICES = [  ('retido', 'Retido'), ('liberado', 'Liberado'),]
+STATUS_CHOICES = [  ('retido', 'Retido'), ('liberado', 'Liberado'), ('pendente', 'Pendente'),]
 

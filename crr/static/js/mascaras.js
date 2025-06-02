@@ -21,7 +21,8 @@ document.addEventListener('DOMContentLoaded', function () {
         numero: "Somente números",
         cep: "00000-000",
         cnh: "Somente números",
-        cpfCondutor: "000.000.000-00"
+        cpfCondutor: "000.000.000-00",
+        searchbar:"Digite a placa / CRR"
     };
 
     Object.entries(placeholderMap).forEach(([key, value]) => {
@@ -47,6 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     const maskMap = {
+        numeroCrr:masks.onlyNumbers,
         placa: masks.placa,
         matriculaAgente: masks.onlyNumbers,
         dataFiscalizacao: masks.date,
@@ -66,17 +68,17 @@ document.addEventListener('DOMContentLoaded', function () {
         cnh: masks.onlyNumbers,  // será aplicado apenas se id="id_cnh"
         cpfCondutor: masks.cpf
     };
+    
 
     function aplicarMascaras(contexto) {
-        Object.entries(maskMap).forEach(([key, maskFn]) => {
-            const input = contexto.querySelector(`#id_${key}`);
-            if (input) {
-                input.addEventListener('input', e => {
-                    e.target.value = maskFn(e.target.value);
-                });
-            }
+    Object.entries(maskMap).forEach(([key, maskFn]) => {
+        contexto.querySelectorAll(`input[id$="${key}"]`).forEach(input => {
+            input.addEventListener('input', e => {
+                e.target.value = maskFn(e.target.value);
+            });
         });
-    }
+    });
+}
 
     aplicarMascaras(document);
 
@@ -125,3 +127,4 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
