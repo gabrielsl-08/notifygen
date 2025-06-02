@@ -142,6 +142,7 @@ class CrrAdmin(admin.ModelAdmin):
             'fields': ('numeroCrr','matriculaAgente','placaGuincho', 'encarregado')
         }),        
         ("Local da Infração", {
+            "classes": ["collapse"],
             'fields': ('localFiscalizacao', 'dataFiscalizacao','horaFiscalizacao','observacao')
         }),
         )
@@ -160,6 +161,21 @@ class CrrAdmin(admin.ModelAdmin):
         return True
 
     '''
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('triagem/', self.admin_site.admin_view(self.view_triagem_pendentes), name='triagem-crrs-pendentes'),
+        ]
+        return custom_urls + urls
+
+    def view_triagem_pendentes(self, request):
+        crrs_pendentes = Crr.objects.filter(status='pendente').order_by('-dataFiscalizacao')
+        context = dict(
+            self.admin_site.each_context(request),
+            crr_list=crrs_pendentes,
+            title='Triagem de CRRs Pendentes'
+        )
+        return TemplateResponse(request, "admin/triagem_crr.html", context)
 
     
     def get_enquadramentos(self, obj):
