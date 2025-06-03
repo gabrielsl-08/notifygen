@@ -161,6 +161,10 @@ class CrrAdmin(admin.ModelAdmin):
         return True
 
     '''
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.exclude(status="pendente")
+
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [

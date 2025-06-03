@@ -165,7 +165,20 @@ JAZZMIN_SETTINGS = {
         "auth.Group": "fas fa-users",
         "crr.Notificacao": "fa-solid fa-envelope",
         "crr.Crr": "fa-solid fa-car",
+        "triagem": "fas fa-exclamation-triangle", 
     },
+
+    "custom_links": {
+        "crr": [  # Refere-se à app label
+            {
+                "name": "Triagem de CRRs",
+                "url": "admin:triagem-crrs-pendentes",  # Nome da URL, deve coincidir com path da url
+                "icon": "fas fa-exclamation-triangle",  # Adiciona um ícone
+                "permissions": ["crr.view_crr"]
+            },
+        ],
+    },
+
 
     "changeform_format": "single",             # Mostra tudo em uma página (sem abas)
     "show_save_buttons_on_top": False,
