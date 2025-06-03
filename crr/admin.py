@@ -139,7 +139,7 @@ class CrrAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ("CRR", {
-            'fields': ('numeroCrr','matriculaAgente','placaGuincho', 'encarregado')
+            'fields': ('status','numeroCrr','matriculaAgente','placaGuincho', 'encarregado')
         }),        
         ("Local da Infração", {
             "classes": ["collapse"],
@@ -147,23 +147,35 @@ class CrrAdmin(admin.ModelAdmin):
         }),
         )
 
-    '''''
+    
     def get_readonly_fields(self, request, obj=None):
-        # Se o usuário for superuser, pode editar todos os campos
         if request.user.is_superuser:
             return []
-        
-        # Para usuários normais, todos os campos são somente leitura, exceto 'status'
+
+        url_name = getattr(request.resolver_match, 'url_name', '')
+
+        # Tela de triagem → pode editar tudo
+        if url_name and url_name.startswith('triagem_'):
+            return []
+
+        # Tela normal de CRR → só edita 'status'
         return [f.name for f in self.model._meta.fields if f.name != 'status']
 
     def has_change_permission(self, request, obj=None):
-        # Permite edição apenas do campo 'status'
         return True
 
-    '''
+    
     def get_queryset(self, request):
+        # Essa função controla a LISTAGEM
         qs = super().get_queryset(request)
-        return qs.exclude(status="pendente")
+
+        # Verifica se estamos na lista ou em outra view
+        if hasattr(request, 'resolver_match') and request.resolver_match:
+            url_name = request.resolver_match.url_name
+            if url_name == 'crr_crr_changelist':
+                return qs.exclude(status='pendente')
+
+        return qs  # Permite acesso aos CRRs pendentes em URLs diretas
 
     def get_urls(self):
         urls = super().get_urls()
