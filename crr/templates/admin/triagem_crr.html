@@ -49,7 +49,7 @@
                             <td>{{ crr.get_status_display }}</td>
                             <td>{{ crr.dataFiscalizacao }}</td>
                             <td>
-                                <a href="{% url 'admin:crr_crr_change' crr.pk %}" class="btn btn-sm btn-primary">
+                                <a href="{% url 'admin:crr_crr_change' crr.pk %}?from_triagem=1" class="btn btn-sm btn-primary">
                                     🔍 Revisar
                                 </a>
                             </td>

@@ -12,10 +12,12 @@ from import_export.admin import ImportExportModelAdmin
 from import_export import resources
 from django.urls import path
 from django.template.response import TemplateResponse
+from .permission_change import InlineRestricaoAlteracao
+
 
 # ============== INLINES ============== #
 
-class CondutorInline(admin.TabularInline):
+class CondutorInline(InlineRestricaoAlteracao):
     model = Condutor
     extra = 1
     max_num = 1  # Quantas linhas vazias para novos condutores
@@ -23,7 +25,7 @@ class CondutorInline(admin.TabularInline):
 
       
 
-class VeiculoInline(admin.TabularInline):
+class VeiculoInline(InlineRestricaoAlteracao):
     model = Veiculo
     extra = 1
     max_num = 1  # Quantas linhas vazias para novos condutores
@@ -32,7 +34,7 @@ class VeiculoInline(admin.TabularInline):
 
 
 
-class AitInline(admin.TabularInline):
+class AitInline(InlineRestricaoAlteracao):
     model = Ait
     extra = 1
     max_num = 4 
@@ -49,7 +51,7 @@ class EnquadramentoInlineForm(forms.ModelForm): # ajusta o tamanho do campo Enqu
             'enquadramento': forms.Select(attrs={'style': 'width: 500px;'}),
         }        
 
-class EnquadramentoInline(admin.TabularInline):
+class EnquadramentoInline(InlineRestricaoAlteracao):
 
     
     model = Enquadramento
@@ -60,7 +62,7 @@ class EnquadramentoInline(admin.TabularInline):
     verbose_name_plural = "Enquadramentos"
 
 
-class ArrendatarioInline(admin.TabularInline):
+class ArrendatarioInline(InlineRestricaoAlteracao):
     model = Arrendatario
     extra = 1
     max_num = 1
@@ -149,33 +151,30 @@ class CrrAdmin(admin.ModelAdmin):
 
     
     def get_readonly_fields(self, request, obj=None):
+        """Determine readonly fields based on context."""
+        # Se o usuário for superuser, pode editar todos os campos
         if request.user.is_superuser:
             return []
-
-        url_name = getattr(request.resolver_match, 'url_name', '')
-
-        # Tela de triagem → pode editar tudo
-        if url_name and url_name.startswith('triagem_'):
+        
+        # Verifica se veio da página de triagem através do HTTP_REFERER
+        referer = request.META.get('HTTP_REFERER', '')
+        
+        # Se veio da triagem, permite editar todos os campos
+        if 'triagem' in referer:
             return []
-
-        # Tela normal de CRR → só edita 'status'
+        
+        # Verifica se há um parâmetro na URL indicando que veio da triagem
+        if request.GET.get('from_triagem'):
+            return []
+        
+        # Para usuários normais na view padrão, todos os campos são readonly exceto 'status'
         return [f.name for f in self.model._meta.fields if f.name != 'status']
 
     def has_change_permission(self, request, obj=None):
         return True
 
-    
-    def get_queryset(self, request):
-        # Essa função controla a LISTAGEM
-        qs = super().get_queryset(request)
 
-        # Verifica se estamos na lista ou em outra view
-        if hasattr(request, 'resolver_match') and request.resolver_match:
-            url_name = request.resolver_match.url_name
-            if url_name == 'crr_crr_changelist':
-                return qs.exclude(status='pendente')
-
-        return qs  # Permite acesso aos CRRs pendentes em URLs diretas
+       
 
     def get_urls(self):
         urls = super().get_urls()
@@ -193,14 +192,14 @@ class CrrAdmin(admin.ModelAdmin):
         )
         return TemplateResponse(request, "admin/triagem_crr.html", context)
 
+
     
     def get_enquadramentos(self, obj):
         enquads = obj.enquadramentos.all()
         return ", ".join([str(enq.enquadramento.codigo) for enq in enquads]) if enquads else "—"
     get_enquadramentos.short_description = "Enquadramento"
 
-    
-
+   
     
     @admin.action(description="Gerar Edital em DOCX")
     def gerar_edital_docx_action(self, request, queryset):
@@ -223,7 +222,5 @@ class CrrAdmin(admin.ModelAdmin):
         js = (
             'js/mascaras.js',
         )
-
-
 
 
