@@ -26,7 +26,6 @@
         border-bottom: 2px solid #dee2e6;
     }
 </style>
-{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -64,4 +63,7 @@
         </div>
     </div>
 </div>
+{% endblock %}
+{% block usertools %}
+    {{ block.super }}
 {% endblock %}

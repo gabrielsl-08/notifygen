@@ -38,7 +38,9 @@ INSTALLED_APPS = [
     
 ]
 
-
+# settings.py (NÃO RECOMENDADO para produção)
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000']  # ajuste se necessário
+CSRF_COOKIE_HTTPONLY = False
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

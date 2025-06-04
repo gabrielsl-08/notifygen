@@ -17,15 +17,15 @@ from .permission_change import InlineRestricaoAlteracao
 
 # ============== INLINES ============== #
 
-class CondutorInline(InlineRestricaoAlteracao):
+class CondutorInline(admin.TabularInline):
     model = Condutor
     extra = 1
     max_num = 1  # Quantas linhas vazias para novos condutores
     fields = ['nomeCondutor','cnh','cnhEstrangeira', 'ufCnh', 'cpfCondutor']
 
-      
+ 
 
-class VeiculoInline(InlineRestricaoAlteracao):
+class VeiculoInline(admin.TabularInline):
     model = Veiculo
     extra = 1
     max_num = 1  # Quantas linhas vazias para novos condutores
@@ -34,7 +34,7 @@ class VeiculoInline(InlineRestricaoAlteracao):
 
 
 
-class AitInline(InlineRestricaoAlteracao):
+class AitInline(admin.TabularInline):
     model = Ait
     extra = 1
     max_num = 4 
@@ -51,7 +51,7 @@ class EnquadramentoInlineForm(forms.ModelForm): # ajusta o tamanho do campo Enqu
             'enquadramento': forms.Select(attrs={'style': 'width: 500px;'}),
         }        
 
-class EnquadramentoInline(InlineRestricaoAlteracao):
+class EnquadramentoInline(admin.TabularInline):
 
     
     model = Enquadramento
@@ -62,7 +62,7 @@ class EnquadramentoInline(InlineRestricaoAlteracao):
     verbose_name_plural = "Enquadramentos"
 
 
-class ArrendatarioInline(InlineRestricaoAlteracao):
+class ArrendatarioInline(admin.TabularInline):
     model = Arrendatario
     extra = 1
     max_num = 1
@@ -144,12 +144,12 @@ class CrrAdmin(admin.ModelAdmin):
             'fields': ('status','numeroCrr','matriculaAgente','placaGuincho', 'encarregado')
         }),        
         ("Local da Infração", {
-            "classes": ["collapse"],
+           
             'fields': ('localFiscalizacao', 'dataFiscalizacao','horaFiscalizacao','observacao')
         }),
         )
 
-    
+    '''
     def get_readonly_fields(self, request, obj=None):
         """Determine readonly fields based on context."""
         # Se o usuário for superuser, pode editar todos os campos
@@ -173,7 +173,7 @@ class CrrAdmin(admin.ModelAdmin):
     def has_change_permission(self, request, obj=None):
         return True
 
-
+    
        
 
     def get_urls(self):
@@ -192,14 +192,14 @@ class CrrAdmin(admin.ModelAdmin):
         )
         return TemplateResponse(request, "admin/triagem_crr.html", context)
 
-
+    '''
     
     def get_enquadramentos(self, obj):
         enquads = obj.enquadramentos.all()
         return ", ".join([str(enq.enquadramento.codigo) for enq in enquads]) if enquads else "—"
     get_enquadramentos.short_description = "Enquadramento"
 
-   
+
     
     @admin.action(description="Gerar Edital em DOCX")
     def gerar_edital_docx_action(self, request, queryset):
