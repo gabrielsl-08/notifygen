@@ -1,0 +1,67 @@
+<h2>Cadastrar CRR</h2>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <fieldset>
+        <legend>Dados da CRR</legend>
+        {{ crr_form.as_p }}
+    </fieldset>
+
+    <fieldset>
+        <legend>Dados do Veículo</legend>
+        {{ veiculo_formset.management_form }}
+        {% for form in veiculo_formset %}
+            <div class="veiculo-form">
+                {{ form.as_p }}
+            </div>
+        {% endfor %}
+    </fieldset>
+
+    <fieldset>
+        <legend>Dados do Condutor</legend>
+        {{ condutor_formset.management_form }}
+        {% for form in condutor_formset %}
+            <div class="condutor-form">
+                {{ form.as_p }}
+            </div>
+        {% endfor %}
+    </fieldset>
+
+    <fieldset>
+    <legend>AITs vinculados</legend>
+
+    <div id="ait-formset">
+        {{ ait_formset.management_form }}
+        {% for form in ait_formset %}
+            <div class="ait-form">
+                {{ form.as_p }}
+                <button type="button" class="remove-form">Remover</button>
+            </div>
+        {% endfor %}
+    </div>
+
+    <button type="button" id="add-ait">Adicionar AIT</button>
+</fieldset>
+    <fieldset>
+        <legend>Enquadramentos</legend>
+        {{ enquadramento_formset.management_form }}
+        {% for form in enquadramento_formset %}
+            <div class="enquadramento-form">
+                {{ form.as_p }}
+            </div>
+        {% endfor %}
+    </fieldset>
+
+    <fieldset>
+        <legend>Imagens</legend>
+        {{ imagem_formset.management_form }}
+        {% for form in imagem_formset %}
+            <div class="imagem-form">
+                {{ form.as_p }}
+            </div>
+        {% endfor %}
+    </fieldset>
+
+    <button type="submit">Salvar</button>
+</form>
