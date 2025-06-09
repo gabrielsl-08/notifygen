@@ -1,7 +1,8 @@
 from django.db import models,transaction
 from crr.models import Crr
 from crr.models import ESTADO_CHOICES
-
+from django.contrib.auth.models import User
+from django.utils import timezone
 # Create your models here.
 class Notificacao(models.Model):  
     
@@ -62,3 +63,12 @@ class NumeroEdital(models.Model):
 
     def __str__(self):
         return f"Edital número {self.numero}" 
+    
+class LogGeracaoEdital(models.Model):
+    numero_edital = models.CharField(max_length=20)
+    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    data_hora = models.DateTimeField(auto_now_add=True)
+    crrs_gerados = models.TextField(help_text="Lista de números dos CRRs incluídos no edital")
+
+    def __str__(self):
+        return f"Edital {self.numero_edital} por {self.usuario} em {self.data_hora.strftime('%d/%m/%Y %H:%M')}"

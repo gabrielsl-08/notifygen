@@ -1,0 +1,79 @@
+
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Detalhes do CRR: {{ crr.numeroCrr }}</h2>
+
+    <div class="mb-3 text-end">
+       
+        <a href="{% url 'listar_crr' %}" class="btn btn-secondary">⬅ Voltar</a>
+    </div>
+
+    <hr>
+    <h4>CRR</h4>
+    <ul>
+        <li><strong>Data Remoção:</strong> {{ crr.dataFiscalizacao|date:"d/m/Y" }}</li>
+        <li><strong>Hora Remoção:</strong> {{ crr.horaFiscalizacao }}</li>
+        <li><strong>Agente Autuador:</strong> {{ crr.matriculaAgente }}</li>
+    </ul>
+
+    <h4>Veículo</h4>
+    {% if crr.veiculo %}
+    <ul>
+        <li><strong>Placa/Chassi:</strong> {{ crr.veiculo.placa }}</li>
+        <li><strong>Marca:</strong> {{ crr.veiculo.marca }}</li>
+        <li><strong>Modelo:</strong> {{ crr.veiculo.modelo }}</li>
+        <li><strong>Espécie:</strong> {{ crr.veiculo.especie }}</li>
+        <li><strong>Categoria:</strong> {{ crr.veiculo.categoria }}</li>
+    </ul>
+    {% else %}
+    <p>Veículo não informado.</p>
+    {% endif %}
+
+    <h4>Condutor</h4>
+    {% if crr.condutor %}
+    <ul>
+        <li><strong>Nome:</strong> {{ crr.condutor.nomeCondutor }}</li>
+        <li><strong>CPF:</strong> {{ crr.condutor.cpfCondutor }}</li>
+        <li><strong>Habilitação:</strong> {{ crr.condutor.cnh }}</li>
+    </ul>
+    {% else %}
+    <p>Condutor não identificado.</p>
+    {% endif %}
+
+    <h4>AITs</h4>
+    {% if crr.ait_set.exists %}
+    <ul>
+        {% for ait in crr.ait_set.all %}
+        <li><strong>Número AIT:</strong> {{ ait.ait }} | <strong>Data:</strong> {{ ait.data|date:"d/m/Y" }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>Nenhuma AIT vinculada.</p>
+    {% endif %}
+
+    <h4>Enquadramentos</h4>
+    {% if crr.enquadramento_set.exists %}
+    <ul>
+        {% for enquadramento in crr.enquadramento_set.all %}
+        <li><strong>Código:</strong> {{ enquadramento.codigo }} - {{ enquadramento.descricao }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>Nenhum enquadramento informado.</p>
+    {% endif %}
+
+    <h4>Imagens</h4>
+    {% if crr.imagemcrr_set.exists %}
+    <div class="row">
+        {% for imagem in crr.imagemcrr_set.all %}
+        <div class="col-md-3">
+            <img src="{{ imagem.foto.url }}" alt="Imagem CRR" class="img-thumbnail mb-2">
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>Nenhuma imagem enviada.</p>
+    {% endif %}
+</div>
+{% endblock %}

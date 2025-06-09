@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'authentication',
+    "bootstrap5",
     
 ]
 
@@ -154,6 +155,7 @@ REST_FRAMEWORK = {
 
 
 JAZZMIN_SETTINGS = {
+    "show_sidebar": True,
     "site_title": "DIVPROM",
     "site_header": "DIVPROM",
     "site_brand": "DIVPROM",
@@ -173,8 +175,20 @@ JAZZMIN_SETTINGS = {
     "custom_links": {
         "crr": [  # Refere-se à app label
             {
+                "name": "Cadastro de CRRs",
+                "url": "criar_crr",  # Nome da URL, deve coincidir com path da url
+                "icon": "fas fa-exclamation-triangle",  # Adiciona um ícone
+                "permissions": ["crr.view_crr"]
+            },
+            {
+                "name": "Listagem de CRRs",
+                "url": "listar_crr",  # Nome da URL, deve coincidir com path da url
+                "icon": "fas fa-exclamation-triangle",  # Adiciona um ícone
+                "permissions": ["crr.view_crr"]
+            },
+            {
                 "name": "Triagem de CRRs",
-                "url": "admin:triagem-crrs-pendentes",  # Nome da URL, deve coincidir com path da url
+                "url": "triagem_crr",  # Nome da URL, deve coincidir com path da url
                 "icon": "fas fa-exclamation-triangle",  # Adiciona um ícone
                 "permissions": ["crr.view_crr"]
             },

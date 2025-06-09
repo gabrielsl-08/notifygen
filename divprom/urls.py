@@ -4,13 +4,14 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path,include
 
+
 urlpatterns = [
+    
     path('', include('crr.urls')),
-    path('api/v1/', include('authentication.urls')),
-    path('api/v1/', include('crr.urls')),
     path('admin/', admin.site.urls),  # Recomendado usar 'admin/' como prefixo
-    
-    
+    path('api/v1/', include('crr.api_urls')),
+    path('api/v1/', include('authentication.urls')),
+           
 ]
 
 if settings.DEBUG:
