@@ -129,10 +129,10 @@ class ImagemCrrInline(admin.StackedInline):
 @admin.register(Crr)
 class CrrAdmin(admin.ModelAdmin):
   
-    list_display = ('numeroCrr','criar_notificacao_link','dataFiscalizacao', 'get_enquadramentos','status','edital_emitido')
+    list_display = ('numeroCrr','get_placa','get_chassi','get_marca','criar_notificacao_link','dataFiscalizacao', 'get_enquadramentos','status','edital_emitido')
     list_filter = (FiltroCrrAtrasado,'dataFiscalizacao', 'status',)
     actions = ['gerar_edital_docx_action']
-    search_fields = ['numeroCrr', 'veiculo__placa'] 
+    search_fields = ['numeroCrr', 'veiculo__placa','veiculo__chassi','veiculo__marca'] 
     list_editable = ('status',)
     ordering = ('numeroCrr',)
     inlines = [CondutorInline, VeiculoInline,AitInline,EnquadramentoInline,ArrendatarioInline,ImagemCrrInline]
@@ -193,7 +193,18 @@ class CrrAdmin(admin.ModelAdmin):
         return TemplateResponse(request, "admin/triagem_crr.html", context)
 
     '''
-    
+    def get_placa(self, obj):
+        return ", ".join([v.placa for v in obj.veiculo.all()]) if obj.veiculo.exists() else "-"
+    get_placa.short_description = 'Placa'
+
+    def get_chassi(self, obj):
+        return ", ".join([v.chassi for v in obj.veiculo.all()]) if obj.veiculo.exists() else "-"
+    get_chassi.short_description = 'Chassi'
+
+    def get_marca(self, obj):
+        return ", ".join([v.marca for v in obj.veiculo.all()]) if obj.veiculo.exists() else "-"
+    get_marca.short_description = 'Marca'
+
     def get_enquadramentos(self, obj):
         enquads = obj.enquadramentos.all()
         return ", ".join([str(enq.enquadramento.codigo) for enq in enquads]) if enquads else "—"
