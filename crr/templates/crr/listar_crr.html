@@ -3,132 +3,167 @@
 
 {% block title %}Listagem de CRRs{% endblock %}
 
+{% block extrahead %}
+<!-- Bootstrap 5.3.3 CDN -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<style>
+  .content-wrapper {
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 4px 8px rgba(69, 90, 225, 0.2);
+  }
+  .table-wrapper {
+      background-color: white;
+      border-radius: 15px;
+      overflow: hidden;
+      margin-top: 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  }
+  thead th {
+      background-color: #ffffff !important;
+      color: #0d6efd !important;
+      font-weight: bold !important;
+      border-bottom: 2px solid #dee2e6;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<h1>Listagem de CRRs</h1>
+<div class="container-fluid py-4">
+  <div class="content-wrapper mx-auto col-md-11">
+    <h1 class="text-center mb-4">Listagem de CRRs</h1>
 
-<!-- Formulário de Filtros (GET) -->
-<form method="get" action="{% url 'listar_crr' %}" class="row g-3 align-items-end mb-3">
-  <div class="col-md-4">
-    <label for="id_crr_filtro" class="form-label">Filtrar por Status Especial:</label>
-    <select name="crr_filtro" id="id_crr_filtro" class="form-select">
-      <option value="">-- Todos --</option>
-      <option value="atrasado" {% if filtro_aplicado == 'atrasado' %}selected{% endif %}>Atrasados (&gt; 10 dias)</option>
-      <option value="edital" {% if filtro_aplicado == 'edital' %}selected{% endif %}>Para Edital (&gt; 30 dias, Edital Não Emitido)</option>
-    </select>
-  </div>
+    <!-- Filtros -->
+     
+    <form method="get" action="{% url 'listar_crr' %}" class="row g-3 align-items-end mb-4">
+      <div class="col-md-4">
+        <label for="id_crr_filtro" class="form-label">Filtros de CRRs:</label>
+        <select name="crr_filtro" id="id_crr_filtro" class="form-select">
+          <option value="">-- Todos --</option>
+          <option value="atrasado" {% if filtro_aplicado == 'atrasado' %}selected{% endif %}>NOTIFICAÇÃO DISPONÍVEL</option>
+          <option value="edital" {% if filtro_aplicado == 'edital' %}selected{% endif %}>EDITAL DISPONÍVEL</option>
+        </select>
+      </div>
 
-  <div class="col-md-4">
-    <label for="id_q" class="form-label">Buscar (Número CRR ou Placa):</label>
-    <input type="text" name="q" id="id_q" class="form-control" value="{{ termo_busca|default:'' }}">
-  </div>
+      <div class="col-md-4">
+        <label for="id_q" class="form-label">Buscar (CRR / PLACA):</label>
+        <input type="text" name="q" id="id_q" class="form-control" value="{{ termo_busca|default:'' }}">
+      </div>
 
-  <div class="col-md-auto">
-    <button type="submit" class="btn btn-primary">Aplicar Filtros</button>
-    {% if filtro_aplicado or termo_busca %}
-      <a href="{% url 'listar_crr' %}" class="btn btn-secondary">Limpar Filtros</a>
-    {% endif %}
-  </div>
-</form>
-
-<!-- Exibir mensagens do Django -->
-{% if messages %}
-  <ul class="messages">
-    {% for message in messages %}
-      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-    {% endfor %}
-  </ul>
-{% endif %}
-
-<!-- Formulário para Gerar Edital (POST) -->
-<form id="form-gerar-edital" method="post" action="{% url 'gerar_edital' %}">
-  {% csrf_token %}
-
-  <table class="table table-bordered table-striped">
-    <thead>
-      <tr>
-        <th><input type="checkbox" id="selecionar_todos"></th>
-        <th>Número CRR</th>
-        <th>Notificação</th>
-        <th>Data Fiscalização</th>
-        <th>Agente Autuador</th>
-        <th>Status</th>
-        <th>Edital Emitido</th>
-        <th>Ações</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for crr in crrs %}
-        <tr>
-          <td><input type="checkbox" name="crr_ids" value="{{ crr.id }}"></td>
-          <td>{{ crr.numeroCrr }}</td>
-          <td>
-        {% if crr.status != 'retido' %}
-        {% elif crr.notificacao %}
-            ✅ Notificação emitida
-        {% else %}
-            <a class="btn btn-sm btn-warning" href="{% url 'admin:notificacao_notificacao_add' %}?crr={{ crr.id }}">
-                ➕ Notificar
-            </a>
+      <div class="col-md-auto d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Aplicar Filtros</button>
+        {% if filtro_aplicado or termo_busca %}
+          <a href="{% url 'listar_crr' %}" class="btn btn-secondary">Limpar</a>
         {% endif %}
-    </td>
-          <td>{{ crr.dataFiscalizacao|date:"d/m/Y" }}</td>
-          <td>{{ crr.matriculaAgente }}</td>
-          <td>
-                            <form method="post" style="margin: 0;" class="form-status">
-                                {% csrf_token %}
-                                <input type="hidden" name="crr_id" value="{{ crr.id }}">
-                                <select name="novo_status"
-                                        class="form-select form-select-sm"
-                                        data-original="{{ crr.status }}"
-                                        onchange="confirmarAlteracao(this)">
-                                    {% for key, label in status_choices %}
-                                        {% if request.user.is_superuser or key == crr.status or key == 'liberado' %}
-                                            <option value="{{ key }}" {% if crr.status == key %}selected{% endif %}>
-                                                {{ label }}
-                                            </option>
-                                        {% endif %}
-                                    {% endfor %}
-                                </select>
-                            </form>
-                        </td>
-          <td class="field-edital_emitido">
-            {% if crr.edital_emitido %}
-              <img src="{% static 'admin/img/icon-yes.svg' %}" alt="True">
-            {% else %}
-              <img src="{% static 'admin/img/icon-no.svg' %}" alt="False"> 
-            {% endif %}
-          </td>
-          <td>
-            <a href="{% url 'detalhar_crr' crr.id %}" class="btn btn-sm btn-info">🔍 Detalhes</a>
-          </td>
-        </tr>
-      {% empty %}
-        <tr>
-          <td colspan="7">Nenhum CRR encontrado com os filtros aplicados.</td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </div>
+      
+    </form>
 
-  <div class="text-end">
-    <button type="submit" class="btn btn-success">📄 Gerar Edital (Selecionados)</button>
+    <div class="d-flex justify-content mb-2">
+      <button type="button" class="btn btn-success" onclick="document.getElementById('form-gerar-edital').submit();">
+      📄 Gerar Edital (Selecionados)
+      </button>
+    </div>
+
+    <!-- Mensagens -->
+    {% if messages %}
+      <div class="alert alert-info">
+        {% for message in messages %}
+          <div{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Tabela -->
+    <div class="table-wrapper"> 
+      <form id="form-gerar-edital" method="post" action="{% url 'gerar_edital' %}">
+        {% csrf_token %}
+        
+        <table class="table table-striped table-bordered table-hover w-100 align-middle">
+          <thead>
+            <tr class="text-center">
+              <th><input type="checkbox" id="selecionar_todos"></th>
+              <th>Número CRR</th>
+              <th>Notificação</th>
+              <th>Data Fiscalização</th>
+              <th>Agente Autuador</th>
+              <th>Status</th>
+              <th>Edital Emitido</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for crr in crrs %}
+              <tr class="text-center">
+                <td><input type="checkbox" name="crr_ids" value="{{ crr.id }}"></td>
+                <td>{{ crr.numeroCrr }}</td>
+                <td>
+                  {% if crr.status != 'retido' %}
+                  {% elif crr.notificacao %}
+                      ✅ Notificação emitida
+                  {% else %}
+                      <a  href="{% url 'admin:notificacao_notificacao_add' %}?crr={{ crr.id }}" style="text-decoration: none; color: purple; font-size: 1rem;">
+                          ➕ Notificar
+                      </a>
+                  {% endif %}
+                </td>
+                <td>{{ crr.dataFiscalizacao|date:"d/m/Y" }}</td>
+                <td>{{ crr.matriculaAgente }}</td>
+                <td>
+                  <form method="post" style="margin: 0;" class="form-status">
+                    {% csrf_token %}
+                    <input type="hidden" name="crr_id" value="{{ crr.id }}">
+                    <select name="novo_status"
+                            class="form-select form-select-sm"
+                            data-original="{{ crr.status }}"
+                            onchange="confirmarAlteracao(this)">
+                      {% for key, label in status_choices %}
+                        {% if request.user.is_superuser or key == crr.status or key == 'liberado' %}
+                          <option value="{{ key }}" {% if crr.status == key %}selected{% endif %}>
+                            {{ label }}
+                          </option>
+                        {% endif %}
+                      {% endfor %}
+                    </select>
+                  </form>
+                </td>
+                <td>
+                  {% if crr.edital_emitido %}
+                    <img src="{% static 'admin/img/icon-yes.svg' %}" alt="Sim">
+                  {% else %}
+                    <img src="{% static 'admin/img/icon-no.svg' %}" alt="Não">
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{% url 'detalhar_crr' crr.id %}" style="text-decoration: none; font-size: 1rem;">
+                    🔍 Detalhes</a>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="8" class="text-center">Nenhum CRR encontrado com os filtros aplicados.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>        
+      </form>
+    </div>
   </div>
-</form>
+</div>
 
-<!-- Script para selecionar todos e recarregar após submit -->
+<!-- Script -->
 <script>
-    function confirmarAlteracao(selectElement) {
-        const statusNovo = selectElement.options[selectElement.selectedIndex].text;
-        const statusAntigo = selectElement.dataset.original;
+  function confirmarAlteracao(selectElement) {
+    const statusNovo = selectElement.options[selectElement.selectedIndex].text;
+    const statusAntigo = selectElement.dataset.original;
 
-        const confirmar = window.confirm(`Tem certeza que deseja alterar o status para "${statusNovo}"?`);
-
-        if (confirmar) {
-            selectElement.closest('form').submit();
-        } else {
-            selectElement.value = statusAntigo;
-        }
+    if (window.confirm(`Tem certeza que deseja alterar o status para "${statusNovo}"?`)) {
+      selectElement.closest('form').submit();
+    } else {
+      selectElement.value = statusAntigo;
     }
+  }
 
   document.getElementById("selecionar_todos").addEventListener("change", function () {
     const checkboxes = document.querySelectorAll("input[name='crr_ids']");
@@ -136,9 +171,7 @@
   });
 
   document.getElementById("form-gerar-edital").addEventListener("submit", function () {
-    setTimeout(function () {
-      window.location.reload();
-    }, 1500);
+    setTimeout(() => window.location.reload(), 1500);
   });
 </script>
 {% endblock %}

@@ -97,7 +97,7 @@ class Veiculo(models.Model):
     
     
 class TabelaArrendatario(models.Model):
-    nome_arrendatario = models.CharField(max_length=25, unique=True,blank=True,null=False,verbose_name='Nome do arrendatário')
+    nome_arrendatario = models.CharField(max_length=50, unique=True,blank=True,null=False,verbose_name='Nome do arrendatário')
     cnpj_arrendatario = models.CharField(max_length=20,blank=True,null=False,verbose_name='CNPJ')
     endereco_arrendatario = models.CharField(max_length=25,blank=True,null=False,verbose_name='Endereço')
     numero_arrendatario = models.CharField(max_length=6,blank=True,null=False,verbose_name='número')
