@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.http import HttpResponse
-from .models import Notificacao,LogGeracaoEdital
+from .models import Notificacao
+from crr.models import Crr, ImagemCrr, Condutor
 from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
@@ -28,27 +29,19 @@ def gerar_pdf_notificacoes(modeladmin, request, queryset):
 
 gerar_pdf_notificacoes.short_description = "NOTIFICAÇÃO PROPRIETÁRIO"
 
-
-@admin.register(LogGeracaoEdital)
-class LogGeracaoEditalAdmin(admin.ModelAdmin):
-    list_display = ('numero_edital', 'usuario', 'data_hora')
-    readonly_fields = ('numero_edital', 'usuario', 'data_hora', 'crrs_gerados')
-    search_fields = ('numero_edital', 'usuario__username')
-
 # Register your models here.
 @admin.register(Notificacao)
 class NotificacaoAdmin(admin.ModelAdmin):
     list_display = ('get_numero_crr','numero_controle','data_emissao','data_postagem','prazo_leilao','imagem_preview')
     list_display_links = ('get_numero_crr',)
-    search_fields = ('get_numero_crr','numero_controle', 'destinatario')
-    list_filter = ('data_emissao', 'crr',)
+    search_fields = ('crr__numeroCrr','numero_controle', 'destinatario')
+    list_filter = ('data_emissao', 'crr__numeroCrr')
     readonly_fields = ('numero_controle','prazo_leilao')
     actions = [gerar_pdf_notificacoes]
 
     def get_numero_crr(self, obj):
         return obj.crr.numeroCrr if obj.crr else '-'
     get_numero_crr.short_description = 'Número CRR'
-
 
     def get_ait(self, obj):
         aits = obj.crr.ait.all()

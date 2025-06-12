@@ -188,7 +188,8 @@ def render_notificacao_template(c, notificacao, width, height):
     c.setFont("Helvetica", 8)
     c.drawString(14.8 * cm, altura - 8 * cm, "Município / UF:") #\\\\\\\\\\\\\
     c.setFont("Helvetica", 10)
-    c.drawString(14.8 * cm, altura - 8.5 * cm, f"{municipioVeiculo.upper()}/{ufVeiculo.upper()}")
+    municipio_limite = limitar_texto(municipioVeiculo.upper(), 20)
+    c.drawString(14.8 * cm, altura - 8.5 * cm, f"{municipio_limite}/{ufVeiculo.upper()}")
     
    
     
@@ -203,7 +204,8 @@ def render_notificacao_template(c, notificacao, width, height):
     c.setFont("Helvetica", 8)
     c.drawString(2 * cm, altura - 9.4 * cm, "Local da remoção") #\\\\\\\\\\\\\\\\\\\
     c.setFont("Helvetica", 10)
-    c.drawString(2 * cm, altura - 9.9 * cm, '') # \\\\\\\\\\\\\\\\\\\\\\\\
+    local_limite = limitar_texto(crr.localFiscalizacao.upper(), 100)
+    c.drawString(2 * cm, altura - 9.9 * cm, local_limite) # \\\\\\\\\\\\\\\\\\\\\\\\
         # Linha horizontal acima de local da infração
     c.line(2 * cm, altura - 10 * cm, largura - 2 * cm, altura - 10 * cm)
 
