@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.forms import modelformset_factory
 from .models import Crr, Veiculo, Condutor, Ait, Enquadramento, ImagemCrr,Arrendatario
 from .forms import (   CrrForm, VeiculoForm, CondutorForm, AitForm, EnquadramentoForm, ImagemCrrForm)
+from .forms import VeiculoFormSet, CondutorFormSet, AitFormSet,EnquadramentoFormSet,ImagemCrrFormSet
 from notificacao.admin import gerar_pdf_notificacoes
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin import site
@@ -121,8 +122,40 @@ def listar_crr(request):
     }
     return render(request, 'crr/listar_crr.html', context)
 
+@login_required
+def detalhar_crr(request, pk):
+    crr = get_object_or_404(Crr, pk=pk)
 
+    # Instancia os formulários e formsets normalmente
+    crr_form = CrrForm(instance=crr)
+    veiculo_formset = VeiculoFormSet(instance=crr)
+    condutor_formset = CondutorFormSet(instance=crr)
+    ait_formset = AitFormSet(instance=crr)
+    enquadramento_formset = EnquadramentoFormSet(instance=crr)
+    imagem_formset = ImagemCrrFormSet(instance=crr)
 
+    # Torna todos os campos do formulário principal desabilitados
+    for field in crr_form.fields.values():
+        field.disabled = True
+
+    # Torna todos os campos dos formsets desabilitados
+    for formset in [veiculo_formset, condutor_formset, ait_formset, enquadramento_formset, imagem_formset]:
+        for form in formset:
+            for field in form.fields.values():
+                field.disabled = True
+
+    context = {
+        'crr': crr,
+        'crr_form': crr_form,
+        'veiculo_formset': veiculo_formset,
+        'condutor_formset': condutor_formset,
+        'ait_formset': ait_formset,
+        'enquadramento_formset': enquadramento_formset,
+        'imagem_formset': imagem_formset,
+    }
+
+    return render(request, 'crr/detalhar_crr.html', context)
+'''
 @login_required
 def detalhar_crr(request, pk):
     """Exibe detalhes de um CRR específico"""
@@ -150,7 +183,7 @@ def detalhar_crr(request, pk):
     }
     
     return render(request, 'crr/detalhar_crr.html', context)
-
+'''
 @login_required  # ou @login_required se todos usuários logados puderem acessar
 def triagem_crr(request):
     crrs_pendentes = Crr.objects.filter(status='pendente').order_by('-dataFiscalizacao')
