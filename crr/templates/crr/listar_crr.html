@@ -115,19 +115,19 @@
                     {% csrf_token %}
                     <input type="hidden" name="crr_id" value="{{ crr.id }}">
                     <select name="novo_status"
-                            class="form-select form-select-sm"
-                            data-original="{{ crr.status }}"
-                            onchange="confirmarAlteracao(this)">
-                      {% for key, label in status_choices %}
-                        {% if request.user.is_superuser or key == crr.status or key == 'liberado' %}
-                          <option value="{{ key }}" {% if crr.status == key %}selected{% endif %}>
-                            {{ label }}
-                          </option>
-                        {% endif %}
-                      {% endfor %}
-                    </select>
-                  </form>
-                </td>
+          class="form-select form-select-sm"
+          data-original="{{ crr.status }}"
+          data-crr-id="{{ crr.id }}"
+          onchange="confirmarAlteracao(this)">
+    {% for key, label in status_choices %}
+      {% if request.user.is_superuser or key == crr.status or key == 'liberado' %}
+        <option value="{{ key }}" {% if crr.status == key %}selected{% endif %}>
+          {{ label }}
+        </option>
+      {% endif %}
+    {% endfor %}
+  </select>
+</td>
                 <td>
                   {% if crr.edital_emitido %}
                     <img src="{% static 'admin/img/icon-yes.svg' %}" alt="Sim">
@@ -154,16 +154,32 @@
 
 <!-- Script -->
 <script>
-  function confirmarAlteracao(selectElement) {
-    const statusNovo = selectElement.options[selectElement.selectedIndex].text;
-    const statusAntigo = selectElement.dataset.original;
+function confirmarAlteracao(selectElement) {
+  const statusNovo = selectElement.value;
+  const statusAntigo = selectElement.dataset.original;
+  const crrId = selectElement.dataset.crrId;
 
-    if (window.confirm(`Tem certeza que deseja alterar o status para "${statusNovo}"?`)) {
-      selectElement.closest('form').submit();
-    } else {
-      selectElement.value = statusAntigo;
-    }
+  if (window.confirm(`Tem certeza que deseja alterar o status para "${statusNovo}"?`)) {
+    fetch("", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": "{{ csrf_token }}",
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: `crr_id=${crrId}&novo_status=${statusNovo}`
+    }).then(response => {
+      if (!response.ok) {
+        alert("Erro ao alterar status.");
+        selectElement.value = statusAntigo;
+      } else {
+        window.location.reload(); // opcional
+      }
+    });
+  } else {
+    selectElement.value = statusAntigo;
   }
+}
+
 
   document.getElementById("selecionar_todos").addEventListener("change", function () {
     const checkboxes = document.querySelectorAll("input[name='crr_ids']");

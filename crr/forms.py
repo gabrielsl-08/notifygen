@@ -1,6 +1,6 @@
 # crr/forms.py
 from django import forms
-from .models import Crr,Veiculo,Condutor,Ait, Enquadramento,ImagemCrr 
+from .models import Crr,Veiculo,Condutor,Ait, Enquadramento,ImagemCrr, Arrendatario 
 from django.forms import ModelForm
 from django.forms.models import inlineformset_factory
 
@@ -38,6 +38,11 @@ class ImagemCrrForm(forms.ModelForm):
         model = ImagemCrr
         fields = ['imagem']
 
+class ArrendatarioForm(forms.ModelForm):
+    class Meta:
+        model = Arrendatario
+        fields = '__all__'     
+
 class CrrForm(ModelForm):
     class Meta:
         model = Crr
@@ -48,3 +53,4 @@ CondutorFormSet = inlineformset_factory(Crr, Condutor, fields='__all__', extra=0
 AitFormSet = inlineformset_factory(Crr, Ait, fields='__all__', extra=0, can_delete=False)
 EnquadramentoFormSet = inlineformset_factory(Crr, Enquadramento, fields='__all__', extra=0, can_delete=False)
 ImagemCrrFormSet = inlineformset_factory(Crr, ImagemCrr, fields='__all__', extra=0, can_delete=False)
+ArrendatarioFormSet = inlineformset_factory(Crr, Arrendatario, fields='__all__', extra=0, can_delete=False)

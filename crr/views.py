@@ -1,13 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.forms import modelformset_factory
 from .models import Crr, Veiculo, Condutor, Ait, Enquadramento, ImagemCrr,Arrendatario
-from .forms import (   CrrForm, VeiculoForm, CondutorForm, AitForm, EnquadramentoForm, ImagemCrrForm)
-from .forms import VeiculoFormSet, CondutorFormSet, AitFormSet,EnquadramentoFormSet,ImagemCrrFormSet
+from notificacao.models import LogGeracaoEdital
+from .forms import (   CrrForm, VeiculoForm, CondutorForm, AitForm, EnquadramentoForm, ImagemCrrForm,ArrendatarioForm)
+from .forms import VeiculoFormSet, CondutorFormSet, AitFormSet,EnquadramentoFormSet,ImagemCrrFormSet, ArrendatarioFormSet
 from notificacao.admin import gerar_pdf_notificacoes
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin import site
 from django.contrib.admin.views.decorators import staff_member_required
 from datetime import date, timedelta
+from django.utils import timezone
 from django.db.models import Q
 from django.contrib import messages
 from .utils import gerar_edital_docx
@@ -15,6 +17,27 @@ from django.db.models import Prefetch # Importe Prefetch
 import logging
 logger = logging.getLogger(__name__)
 from django.http import HttpResponse, HttpResponseBadRequest
+from django.views.decorators.http import require_POST
+from .choices import STATUS_CHOICES
+
+@require_POST
+def alterar_status_crr(request):
+    if request.method == "POST":
+        crr_id = request.POST.get("crr_id")
+        novo_status = request.POST.get("novo_status")
+
+        if novo_status in dict(STATUS_CHOICES).keys():  # usa o importado
+            try:
+                crr = Crr.objects.get(id=crr_id)
+                crr.status = novo_status
+                crr.save()
+                messages.success(request, "Status atualizado com sucesso.")
+            except Crr.DoesNotExist:
+                messages.error(request, "CRR não encontrado.")
+        else:
+            messages.error(request, "Status inválido.")
+
+    return redirect('listar_crr')
 
 @login_required
 def gerar_edital_view(request):
@@ -197,32 +220,71 @@ def triagem_crr(request):
     }
     return render(request, 'crr/triagem_crr.html', context)
 
+from django.forms import modelformset_factory
+from .forms import AitForm
+
 @staff_member_required
 def revisar_crr(request, pk):
     crr = get_object_or_404(Crr, pk=pk)
 
+    AitFormSet = modelformset_factory(Ait, form=AitForm, extra=0, can_delete=False)
+    EnquadramentoFormSet = modelformset_factory(Enquadramento, form=EnquadramentoForm, extra=0, can_delete=False)
+    ImagemCrrFormSet = modelformset_factory(ImagemCrr, form=ImagemCrrForm, extra=0, can_delete=False)
+
     if request.method == 'POST':
         form = CrrForm(request.POST, request.FILES, instance=crr)
-        if form.is_valid():
+        veiculo_form = VeiculoForm(request.POST, request.FILES, instance=crr.veiculo.first())
+        arrendatario_form = ArrendatarioForm(request.POST, instance=crr.arrendatario)
+
+        ait_formset = AitFormSet(request.POST, queryset=Ait.objects.filter(crr=crr), prefix='ait')
+        enquadramento_formset = EnquadramentoFormSet(request.POST, queryset=Enquadramento.objects.filter(crr=crr), prefix='enq')
+        imagem_formset = ImagemCrrFormSet(request.POST, request.FILES, queryset=ImagemCrr.objects.filter(crr=crr), prefix='img')
+
+        if (
+            form.is_valid() and veiculo_form.is_valid() and arrendatario_form.is_valid()
+            and ait_formset.is_valid() and enquadramento_formset.is_valid() and imagem_formset.is_valid()
+        ):
             crr = form.save(commit=False)
             crr.status = 'retido'
             crr.save()
-            form.save_m2m()
+
+            veiculo = veiculo_form.save(commit=False)
+            veiculo.crr = crr
+            veiculo.save()
+
+            arrendatario = arrendatario_form.save(commit=False)
+            arrendatario.crr = crr
+            arrendatario.save()
+            
+
+            ait_formset.save()
+            enquadramento_formset.save()
+            imagem_formset.save()
+
             return redirect('triagem_crr')
     else:
         form = CrrForm(instance=crr)
-
-    # Inclui o contexto do admin (menu lateral e cabeçalho)
-    admin_context = site.each_context(request)
+        veiculo_form = VeiculoForm(instance=crr.veiculo.first())
+        arrendatario = Arrendatario.objects.filter(crr=crr).first()
+        arrendatario_form = ArrendatarioForm(instance=arrendatario)
+        ait_formset = AitFormSet(queryset=Ait.objects.filter(crr=crr), prefix='ait')
+        enquadramento_formset = EnquadramentoFormSet(queryset=Enquadramento.objects.filter(crr=crr), prefix='enq')
+        imagem_formset = ImagemCrrFormSet(queryset=ImagemCrr.objects.filter(crr=crr), prefix='img')
 
     context = {
         'form': form,
-        'crr': crr,
+        'veiculo_form': veiculo_form,
+        'arrendatario_form': arrendatario_form,
+        'ait_formset': ait_formset,
+        'enquadramento_formset': enquadramento_formset,
+        'imagem_formset': imagem_formset,
         'title': f'Revisar CRR #{crr.numeroCrr}',
-        **admin_context,  # adiciona o contexto do admin (essencial para o menu lateral)
+        **site.each_context(request),
     }
 
     return render(request, 'crr/revisar_crr.html', context)
+
+
 
 @login_required
 def criar_crr(request):
