@@ -1,0 +1,158 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrahead %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-12">
+      <h2>📋 Painel de Controle</h2>
+
+      <!-- Linha com 3 cartões de contadores -->
+      <div class="row mt-3 mb-4">
+        <!-- CRRs Pendentes -->
+        <div class="col-md-4">
+          <div class="card border-danger h-100">
+            <div class="card-body">
+              <h5 class="card-title" >🔴 CRRs Pendentes</h5>
+              <p class="card-text">
+                <strong><span class="counter" data-count="{{ total_crr_pendentes }}">0</span></strong>
+                CRRs com status <code>pendente</code>.
+              </p>
+              <a href="{% url 'admin:crr_crr_changelist' %}?status=pendente" class="btn btn-outline-danger btn-sm">Visualizar</a>
+            </div>
+          </div>
+        </div>
+        <!-- Notificação Pendente -->
+        <div class="col-md-4">
+          <div class="card border-warning h-100">
+            <div class="card-body">
+              <h5 class="card-title">🟠 Notificação Pendente</h5>
+              <p class="card-text">
+                <strong><span class="counter" data-count="{{ total_notificacao_pendente }}">0</span></strong>
+                CRRs sem notificação após 10 dias.
+              </p>
+              <a  href="{% url 'admin:crr_crr_changelist' %}?crr_filtro=atrasado" class="btn btn-outline-warning btn-sm">Visualizar</a>
+            </div>
+          </div>
+        </div>
+        <!-- Edital Pendente -->
+        <div class="col-md-4">
+          <div class="card border-info h-100">
+            <div class="card-body">
+              <h5 class="card-title">🔵 Edital Pendente</h5>
+              <p class="card-text">
+                <strong><span class="counter" data-count="{{ total_edital_pendente }}">0</span></strong>
+                CRRs sem edital após 30 dias.
+              </p>
+              <a href="{% url 'admin:crr_crr_changelist' %}?status__exact=retido&edital_emitido__exact=0&dataFiscalizacao__lte={{ trinta_dias_atras_str|urlencode }}" class="btn btn-outline-info btn-sm">Visualizar</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Linha com 2 cartões de gráficos -->
+      <div class="row mt-3 mb-4">
+        <!-- Gráfico Retido vs Liberado -->
+        <div class="col-md-6">
+          <div class="card h-100">
+            <div class="card-body">
+              <h5 class="card-title">📊 Veículos Retidos vs Liberados</h5>
+              <canvas id="chartRetidoLiberado"></canvas>
+            </div>
+          </div>
+        </div>
+        <!-- Gráfico por Enquadramento -->
+        <div class="col-md-6">
+          <div class="card h-100">
+            <div class="card-body">
+              <h5 class="card-title">📊 Veículos por Enquadramento</h5>
+              <canvas id="chartEnquadramento"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {{ block.super }}
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Contadores animados
+  const counters = document.querySelectorAll('.counter');
+  counters.forEach(counter => {
+    const target = parseInt(counter.getAttribute('data-count')) || 0;
+    let count = 0;
+    const step = Math.max(1, Math.ceil(target / 40));
+    const update = () => {
+      count += step;
+      if (count >= target) {
+        counter.innerText = target;
+      } else {
+        counter.innerText = count;
+        requestAnimationFrame(update);
+      }
+    };
+    update();
+  });
+
+  // Gráfico 1: Retido vs Liberado
+  const ctx1 = document.getElementById('chartRetidoLiberado');
+  if (ctx1) {
+    new Chart(ctx1.getContext('2d'), {
+      type: 'pie',
+      data: {
+        labels: {{ chart_retido_liberado_labels|safe }},
+        datasets: [{
+          data: {{ chart_retido_liberado_data|safe }},
+          backgroundColor: ['#f44336', '#2196f3'],
+          borderColor: ['#c62828', '#1565c0'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'top' }
+        }
+      }
+    });
+  }
+
+  // Gráfico 2: Enquadramento
+  const ctx2 = document.getElementById('chartEnquadramento');
+  if (ctx2) {
+    new Chart(ctx2.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: {{ chart_enquadramento_labels|safe }},
+        datasets: [{
+          label: 'Quantidade',
+          data: {{ chart_enquadramento_data|safe }},
+          backgroundColor: ['#ff9800', '#4caf50'],
+          borderColor: ['#ef6c00', '#2e7d32'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { stepSize: 1 }
+          }
+        }
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

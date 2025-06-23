@@ -7,34 +7,54 @@ from .models import  (Crr,Ait,Condutor, Enquadramento,Arrendatario,Veiculo,
 from django import forms
 from django.urls import reverse
 from datetime import date, timedelta
+from django.utils.timezone import now
 from crr.utils import gerar_edital_docx
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources
-from django.urls import path
-from django.template.response import TemplateResponse
-from .permission_change import InlineRestricaoAlteracao
+from django.contrib import messages
+import json
+# Classe base para aplicar regras de leitura
+class BaseReadOnlyInline(admin.StackedInline):  # ou admin.StackedInline
+    extra = 0
 
+    def get_readonly_fields(self, request, obj=None):
+        if obj is None or request.user.is_superuser:
+            return []
 
+        if obj.status == 'pendente':
+            return []
+
+        return [field.name for field in self.model._meta.fields]
+    
+    def has_change_permission(self, request, obj=None):
+        return True
+
+    def has_add_permission(self, request, obj=None):
+        return request.user.is_superuser or (obj and obj.status == 'pendente')
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+   
 # ============== INLINES ============== #
 
-class CondutorInline(admin.TabularInline):
+class CondutorInline(BaseReadOnlyInline):
     model = Condutor
-    extra = 1
+    extra = 0
     max_num = 1  # Quantas linhas vazias para novos condutores
     fields = ['nomeCondutor','cnh','cnhEstrangeira', 'ufCnh', 'cpfCondutor']
 
- 
+   
 
-class VeiculoInline(admin.TabularInline):
+class VeiculoInline(BaseReadOnlyInline):
     model = Veiculo
-    extra = 1
+    extra = 0
     max_num = 1  # Quantas linhas vazias para novos condutores
     fields = ['placa','chassi','marca', 'modelo', 'cor','especie','categoria','ufVeiculo','municipioVeiculo']
    
 
 
 
-class AitInline(admin.TabularInline):
+class AitInline(BaseReadOnlyInline):
     model = Ait
     extra = 1
     max_num = 4 
@@ -51,7 +71,7 @@ class EnquadramentoInlineForm(forms.ModelForm): # ajusta o tamanho do campo Enqu
             'enquadramento': forms.Select(attrs={'style': 'width: 500px;'}),
         }        
 
-class EnquadramentoInline(admin.TabularInline):
+class EnquadramentoInline(BaseReadOnlyInline):
 
     
     model = Enquadramento
@@ -62,7 +82,7 @@ class EnquadramentoInline(admin.TabularInline):
     verbose_name_plural = "Enquadramentos"
 
 
-class ArrendatarioInline(admin.TabularInline):
+class ArrendatarioInline(BaseReadOnlyInline):
     model = Arrendatario
     extra = 1
     max_num = 1
@@ -128,7 +148,7 @@ class ImagemCrrInline(admin.StackedInline):
     
 @admin.register(Crr)
 class CrrAdmin(admin.ModelAdmin):
-  
+    
     list_display = ('numeroCrr','get_placa','get_chassi','get_marca','criar_notificacao_link','dataFiscalizacao', 'get_enquadramentos','status','edital_emitido')
     list_filter = (FiltroCrrAtrasado,'dataFiscalizacao', 'status',)
     actions = ['gerar_edital_docx_action']
@@ -141,58 +161,38 @@ class CrrAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ("CRR", {
-            'fields': ('status','numeroCrr','matriculaAgente','placaGuincho', 'encarregado')
+            'fields': ('numeroCrr','matriculaAgente')
         }),        
         ("Local da Infração", {
            
             'fields': ('localFiscalizacao', 'dataFiscalizacao','horaFiscalizacao','observacao')
         }),
+         ("Dados do Guincho", {
+           
+            'fields': ('placaGuincho', 'encarregado')
+        }),
+        
         )
 
-    '''
-    def get_readonly_fields(self, request, obj=None):
-        """Determine readonly fields based on context."""
-        # Se o usuário for superuser, pode editar todos os campos
-        if request.user.is_superuser:
-            return []
-        
-        # Verifica se veio da página de triagem através do HTTP_REFERER
-        referer = request.META.get('HTTP_REFERER', '')
-        
-        # Se veio da triagem, permite editar todos os campos
-        if 'triagem' in referer:
-            return []
-        
-        # Verifica se há um parâmetro na URL indicando que veio da triagem
-        if request.GET.get('from_triagem'):
-            return []
-        
-        # Para usuários normais na view padrão, todos os campos são readonly exceto 'status'
-        return [f.name for f in self.model._meta.fields if f.name != 'status']
+    # Lista vazia na listagem de CRR
+    def get_queryset(self, request):
+        """
+        Retorna um queryset vazio por padrão, exceto se houver filtro aplicado.
+        """
+        qs = super().get_queryset(request)
 
-    def has_change_permission(self, request, obj=None):
-        return True
-
+        # Só retorna resultados se houver parâmetros de filtro na URL
+        if request.GET:
+            return qs
+        self.message_user(
+                request,
+                "Selecione algum fitro.",
+                level=messages.WARNING
+            )
+        # Nenhum filtro → retorna queryset vazio
+        return qs.none()
+        
     
-       
-
-    def get_urls(self):
-        urls = super().get_urls()
-        custom_urls = [
-            path('triagem/', self.admin_site.admin_view(self.view_triagem_pendentes), name='triagem-crrs-pendentes'),
-        ]
-        return custom_urls + urls
-
-    def view_triagem_pendentes(self, request):
-        crrs_pendentes = Crr.objects.filter(status='pendente').order_by('-dataFiscalizacao')
-        context = dict(
-            self.admin_site.each_context(request),
-            crr_list=crrs_pendentes,
-            title='Triagem de CRRs Pendentes'
-        )
-        return TemplateResponse(request, "admin/triagem_crr.html", context)
-
-    '''
     def get_placa(self, obj):
         return ", ".join([v.placa for v in obj.veiculo.all()]) if obj.veiculo.exists() else "-"
     get_placa.short_description = 'Placa'
@@ -210,6 +210,62 @@ class CrrAdmin(admin.ModelAdmin):
         return ", ".join([str(enq.enquadramento.codigo) for enq in enquads]) if enquads else "—"
     get_enquadramentos.short_description = "Enquadramento"
 
+    # transforma em os campos readyonly
+    def get_readonly_fields(self, request, obj=None):
+        if request.user.is_superuser:
+            return []
+
+        if obj is None:  # Página de criação (add), sempre editável
+            return []
+
+        if obj.status == 'pendente':
+            return []
+
+        # Caso contrário, todos os campos são somente leitura, exceto 'status'
+        return [f.name for f in self.model._meta.fields if f.name != 'status']
+
+    def has_change_permission(self, request, obj=None):
+        return True
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return True
+
+    def has_add_permission(self, request):
+        return True
+
+    # restrição das opções do status
+    def get_changelist_formset(self, request, **kwargs):
+        FormSet = super().get_changelist_formset(request, **kwargs)
+
+        class CustomFormSet(FormSet):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                if not request.user.is_superuser:
+                    for form in self.forms:
+                        if 'status' in form.fields:
+                            current_value = form.initial.get('status')
+                            choices = form.fields['status'].choices
+
+                            # Permitir mudar para 'retido' e 'liberado' se atual for 'pendente'
+                            if current_value == 'pendente':
+                                allowed_choices = [
+                                    choice for choice in choices
+                                    if choice[0] in ['pendente', 'retido', 'liberado']
+                                ]
+                            else:
+                                # Permite só manter atual + 'liberado'
+                                allowed_choices = [
+                                    choice for choice in choices
+                                    if choice[0] in [current_value, 'liberado']
+                                ]
+                            form.fields['status'].choices = allowed_choices
+
+        return CustomFormSet
+    
+    
 
     
     @admin.action(description="Gerar Edital em DOCX")
@@ -229,9 +285,75 @@ class CrrAdmin(admin.ModelAdmin):
 
     criar_notificacao_link.short_description = "Nova Notificação"
 
+    
+
+    def save_model(self, request, obj, form, change):
+        # Só aplica essa lógica se estiver editando (change = True)
+        if change :
+            if obj.status == 'pendente':
+                obj.status = 'retido'
+                self.message_user(
+                request,
+                "O status do CRR mudou para retido.",
+                level=messages.WARNING
+            )
+        super().save_model(request, obj, form, change)
+        
+        
     class Media:
         js = (
             'js/mascaras.js',
         )
 
+# --- Configurações Globais do Admin Site ---
+admin.site.site_header = "Administração CRR"
+admin.site.site_title = "Painel CRR"
 
+# --- Customização do Contexto do Dashboard ---
+original_each_context = admin.site.each_context
+
+def custom_admin_each_context(request):
+    context = original_each_context(request)
+
+    hoje = now().date()
+    trinta_dias_atras = hoje - timedelta(days=30)
+    dez_dias_atras = hoje - timedelta(days=10)
+
+    context['hoje_str'] = hoje.strftime('%Y-%m-%d')
+    context['trinta_dias_atras_str'] = trinta_dias_atras.strftime('%Y-%m-%d')
+
+
+    # Contadores
+    context['total_crr_pendentes'] = Crr.objects.filter(status='pendente').count()
+    context['total_notificacao_pendente'] = Crr.objects.filter(
+        status='retido',
+        not_gerada=False,
+        dataFiscalizacao__lte=dez_dias_atras
+    ).count()
+    context['total_edital_pendente'] = Crr.objects.filter(
+        status='retido',
+        edital_emitido=False,
+        dataFiscalizacao__lte=trinta_dias_atras
+    ).count()
+
+    # Gráfico 1: Retido vs Liberado
+    total_retido = Crr.objects.filter(status='retido').count()
+    total_liberado = Crr.objects.filter(status='liberado').count()
+    context['chart_retido_liberado_data'] = json.dumps([total_retido, total_liberado])
+    context['chart_retido_liberado_labels'] = json.dumps(['Retidos', 'Liberados'])
+
+    # Gráfico 2: Abandonado vs Abordado
+    abandonado_ids = Enquadramento.objects.filter(
+        enquadramento__codigo='00000'
+    ).values_list('crr_id', flat=True).distinct()
+
+    total_abandonado = Crr.objects.filter(id__in=abandonado_ids).count()
+    total_abordado = Crr.objects.exclude(id__in=abandonado_ids).count()
+
+    context['chart_enquadramento_data'] = json.dumps([total_abandonado, total_abordado])
+    context['chart_enquadramento_labels'] = json.dumps(['Veículo Abandonado', 'Veículo Abordado'])
+
+    return context
+
+# Atribuindo o contexto ao admin padrão
+admin.site.each_context = custom_admin_each_context

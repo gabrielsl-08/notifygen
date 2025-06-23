@@ -8,13 +8,13 @@ CATEGORIA_CHOICES = [
 ]
 
 ESTADO_CHOICES = [
-    ('AC', 'AC'), ('AL', 'AL'), ('AP', 'AP'), ('AM', 'AM'),
-    ('BA', 'BA'), ('CE', 'CE'), ('DF', 'DF'), ('ES', 'ES'),
-    ('GO', 'GO'), ('MA', 'MA'), ('MT', 'MT'), ('MS', 'MS'),
-    ('MG', 'MG'), ('PA', 'PA'), ('PB', 'PB'), ('PR', 'PR'),
-    ('PE', 'PE'), ('PI', 'PI'), ('RJ', 'RJ'), ('RN', 'RN'),
-    ('RS', 'RS'), ('RO', 'RO'), ('RR', 'RR'), ('SC', 'SC'),
-    ('SP', 'SP'), ('SE', 'SE'), ('TO', 'TO'), ('OUTROS', 'OUTROS'),
+    ('ac', 'AC'), ('al', 'AL'), ('ap', 'AP'), ('am', 'AM'),
+    ('ba', 'BA'), ('ce', 'CE'), ('df', 'DF'), ('es', 'ES'),
+    ('go', 'GO'), ('ma', 'MA'), ('mt', 'MT'), ('ms', 'MS'),
+    ('mg', 'MG'), ('pa', 'PA'), ('pb', 'PB'), ('pr', 'PR'),
+    ('pe', 'PE'), ('pi', 'PI'), ('rj', 'RJ'), ('rn', 'RN'),
+    ('rs', 'RS'), ('ro', 'RO'), ('rr', 'RR'), ('sc', 'SC'),
+    ('sp', 'SP'), ('se', 'SE'), ('to', 'TO'), ('outros', 'OUTROS'),
 ]
 
 STATUS_CHOICES = [  ('retido', 'Retido'), ('liberado', 'Liberado'), ('pendente', 'Pendente'),]

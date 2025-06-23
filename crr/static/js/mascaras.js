@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
+
     // === PLACEHOLDERS DINÂMICOS ===
     const placeholderMap = {
         placa: "Placa",
@@ -22,14 +23,13 @@ document.addEventListener('DOMContentLoaded', function () {
         cep: "00000-000",
         cnh: "Somente números",
         cpfCondutor: "000.000.000-00",
-        searchbar:"Digite a placa / CRR"
+        searchbar: "Digite a placa / CRR"
     };
 
     Object.entries(placeholderMap).forEach(([key, value]) => {
-        const field = document.getElementById(`id_${key}`);
-        if (field) {
+        document.querySelectorAll(`input[id$="${key}"]`).forEach(field => {
             field.setAttribute('placeholder', value);
-        }
+        });
     });
 
     // === FUNÇÕES DE MÁSCARA ===
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
         cpfCondutor: masks.cpf
     };
 
-    function aplicarMascaras(contexto) {
+    function aplicarMascaras(contexto = document) {
         Object.entries(maskMap).forEach(([key, maskFn]) => {
             contexto.querySelectorAll(`input[id$="${key}"]`).forEach(input => {
                 input.addEventListener('input', e => {
@@ -79,18 +79,30 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    aplicarMascaras(document);
+    aplicarMascaras();
 
-    // Reaplica após adicionar Inline
+    // Reaplica após adicionar um novo formulário inline
     document.body.addEventListener('click', function (e) {
-        if (e.target && e.target.classList.contains('add-row')) {
-            setTimeout(() => aplicarMascaras(document), 150);
+        if (e.target.closest('.add-row')) {
+            setTimeout(() => aplicarMascaras(document), 200);
         }
     });
 
+    // Também escuta eventos de inserção de node dinâmico (Django >= 4 usa isso)
+    const observer = new MutationObserver(mutations => {
+        mutations.forEach(m => {
+            m.addedNodes.forEach(n => {
+                if (n.nodeType === 1 && n.querySelectorAll) {
+                    aplicarMascaras(n);
+                }
+            });
+        });
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
     // === VALIDAÇÃO FINAL E NORMALIZAÇÃO AO ENVIAR ===
     document.querySelectorAll('form').forEach(form => {
-        // Só aplicar se for um formulário com campos esperados
         if (
             form.querySelector('#id_placa') ||
             form.querySelector('#id_numero_controle') ||
@@ -107,13 +119,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 const errors = [];
 
                 Object.entries(requiredLengths).forEach(([id, length]) => {
-                    const field = document.getElementById(`id_${id}`);
-                    if (field) {
+                    form.querySelectorAll(`input[id$="${id}"]`).forEach(field => {
                         const value = field.value.replace(/\D/g, '');
                         if (value.length !== length) {
                             errors.push(`${field.name || id} deve conter ${length} dígitos.`);
                         }
-                    }
+                    });
                 });
 
                 if (errors.length) {
@@ -122,8 +133,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     return false;
                 }
 
-                // Normalização dos campos
-                document.querySelectorAll('input').forEach(field => {
+                // Normalização
+                form.querySelectorAll('input').forEach(field => {
                     const id = field.id || '';
                     const isNumberField = ['cpfCondutor', 'cnpj', 'cep', 'numero', 'enquadramento', 'matriculaAgente', 'cnh'].some(k => id.includes(k));
                     field.value = isNumberField ? field.value.replace(/\D/g, '') : field.value.toLowerCase();
@@ -131,4 +142,5 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     });
+
 });

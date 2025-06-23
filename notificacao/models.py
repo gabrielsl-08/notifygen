@@ -2,10 +2,9 @@ from django.db import models,transaction
 from crr.models import Crr
 from crr.models import ESTADO_CHOICES
 from django.contrib.auth.models import User
-from django.utils import timezone
-# Create your models here.
+
+
 class Notificacao(models.Model):  
-    
     crr = models.OneToOneField(Crr,unique=True, on_delete=models.CASCADE,related_name="notificacao",verbose_name='CRR')
     data_emissao = models.DateField(blank=False, null=False,verbose_name='Data de emissão')
     data_postagem = models.DateField(blank=False, null=False, verbose_name='Data de postagem')

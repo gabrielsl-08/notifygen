@@ -174,21 +174,10 @@ JAZZMIN_SETTINGS = {
 
     "custom_links": {
         "crr": [  # Refere-se à app label
-            {
-                "name": "Cadastro de CRRs",
-                "url": "criar_crr",  # Nome da URL, deve coincidir com path da url
-                "icon": "fas fa-exclamation-triangle",  # Adiciona um ícone
-                "permissions": ["crr.view_crr"]
-            },
-            {
-                "name": "Listagem de CRRs",
-                "url": "listar_crr",  # Nome da URL, deve coincidir com path da url
-                "icon": "fas fa-exclamation-triangle",  # Adiciona um ícone
-                "permissions": ["crr.view_crr"]
-            },
-            {
+           
+             {
                 "name": "Triagem de CRRs",
-                "url": "triagem_crr",  # Nome da URL, deve coincidir com path da url
+                "url": "/admin/crr/crr/?status=pendente",  # Nome da URL, deve coincidir com path da url
                 "icon": "fas fa-exclamation-triangle",  # Adiciona um ícone
                 "permissions": ["crr.view_crr"]
             },

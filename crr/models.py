@@ -20,7 +20,7 @@ class Crr(models.Model):
     dataFiscalizacao = models.DateField(blank=False, null=False,verbose_name='Data da fiscalização')
     horaFiscalizacao = models.TimeField(blank=False, null=False,verbose_name='Hora da fiscalização')
     observacao = models.CharField(max_length=300, blank=True, null=False,verbose_name='Observação')
-    matriculaAgente = models.CharField(max_length=10, blank=False, null=False)
+    matriculaAgente = models.CharField(max_length=10, blank=False, null=False, verbose_name='Matrícula do agente')
     medidaAdministrativa  = models.CharField(max_length=100, blank=True,default='Remoção do veículo ao Depósito', null=True,verbose_name='Medida Administrativa')
     localPatio =  models.CharField(max_length=100,default='RUA BOLIVIA, Nº202, JARAGUA - SÃO SEBASTIÃO/SP - 11600-748', blank=True, null=False,verbose_name='Pátio')
     placaGuincho = models.CharField(max_length=7, blank=True, null=False,verbose_name='Placa do guicho')
@@ -160,6 +160,10 @@ class Condutor(models.Model):
                 setattr(self, field, value.lower())
                                  
         super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = "Condutor"
+        verbose_name_plural = "Condutor"
 
 
 class Ait(models.Model):

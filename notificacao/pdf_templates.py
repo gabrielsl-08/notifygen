@@ -20,6 +20,8 @@ def render_notificacao_template(c, notificacao, width, height):
 
     primeiro_ait = aits[0].ait if len(aits) > 0 else ""
     segundo_ait = aits[1].ait if len(aits) > 1 else ""  
+    terceiro_ait = aits[2].ait if len(aits) > 2 else ""  
+    quarto_ait = aits[3].ait if len(aits) > 3 else ""  
 
     imagens = list(notificacao.crr.imagens.all())
     imagemVeiculo = None
@@ -240,7 +242,6 @@ def render_notificacao_template(c, notificacao, width, height):
     # Imagem Brasão
     #imagem =  notificacao.crr.imagens.first() if notificacao.crr.imagens.exists() else None 
     try:
-        imagemVeiculo = ImageReader(imagemVeiculo)  # Substitua pelo caminho da sua imagem
         c.drawImage(imagemVeiculo, 12.1 * cm, altura - 15.4 * cm, width=7.3 * cm, height=4.4 * cm, preserveAspectRatio=True)
     except Exception as e:
         print(f"Erro ao carregar a imagem: {e}")
@@ -328,17 +329,17 @@ def render_notificacao_template(c, notificacao, width, height):
 
     c.setFont("Helvetica", 10)
     c.drawString(7 * cm, altura - 13.3 * cm,str(primeiro_enquadramento))
-    c.drawString(7 * cm, altura - 13.8 * cm, str(segundo_enquadramento))
-    c.drawString(7 * cm, altura - 13.8 * cm, str(terceiro_enquadramento))
-    c.drawString(7 * cm, altura - 13.8 * cm, str(quarto_enquadramento))
+    c.drawString(7 * cm, altura - 13.7 * cm, str(segundo_enquadramento))
+    c.drawString(7 * cm, altura - 14.1 * cm, str(terceiro_enquadramento))
+    c.drawString(7 * cm, altura - 14.5 * cm, str(quarto_enquadramento))
 
     c.setFont("Helvetica", 8)
-    c.drawString(9.5* cm, altura - 12.8 * cm, "Auto de infração:") #\\\\\\\\\\\\\\
+    c.drawString(9.5* cm, altura - 12.8 * cm, "Auto de infração:") 
     c.setFont("Helvetica", 10)
-    c.drawString(9.5* cm, altura - 13.3 * cm, f"{primeiro_ait}") # \\\\\\\\\\\\\\\\\\\\\
-    c.drawString(9.5* cm, altura - 13.8 * cm, f"{segundo_ait}") # \\\\\\\\\\\\\\\\\\\\\
-    
-
+    c.drawString(9.5* cm, altura - 13.3 * cm, f"{primeiro_ait.upper()}") 
+    c.drawString(9.5* cm, altura - 13.7 * cm, f"{segundo_ait.upper()}") 
+    c.drawString(9.5* cm, altura - 14.1 * cm, f"{terceiro_ait.upper()}")
+    c.drawString(9.5* cm, altura - 14.5 * cm, f"{quarto_ait.upper()}")
 
      # Linha horizontal acima de Amparo Legal
     c.line(2 * cm, altura - 14.7 * cm, largura - 9.6 * cm, altura - 14.7 * cm)
