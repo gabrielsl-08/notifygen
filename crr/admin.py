@@ -30,7 +30,8 @@ class BaseReadOnlyInline(admin.StackedInline):  # ou admin.StackedInline
         return True
 
     def has_add_permission(self, request, obj=None):
-        return request.user.is_superuser or (obj and obj.status == 'pendente')
+        return True
+        #return request.user.is_superuser or (obj and obj.status == 'pendente')
 
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser
@@ -56,7 +57,7 @@ class VeiculoInline(BaseReadOnlyInline):
 
 class AitInline(BaseReadOnlyInline):
     model = Ait
-    extra = 1
+    extra = 0
     max_num = 4 
     fields = ['ait']
    
@@ -76,7 +77,7 @@ class EnquadramentoInline(BaseReadOnlyInline):
     
     model = Enquadramento
     form = EnquadramentoInlineForm
-    extra = 1
+    extra = 0
     max_num = 4
     fields = ['enquadramento']
     verbose_name_plural = "Enquadramentos"
@@ -290,13 +291,14 @@ class CrrAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         # Só aplica essa lógica se estiver editando (change = True)
         if change :
-            if obj.status == 'pendente':
-                obj.status = 'retido'
-                self.message_user(
-                request,
-                "O status do CRR mudou para retido.",
-                level=messages.WARNING
-            )
+            if not request.user.is_superuser:
+                if obj.status == 'pendente':
+                    obj.status = 'retido'
+                    self.message_user(
+                    request,
+                    "O status do CRR mudou para retido.",
+                    level=messages.WARNING
+                )
         super().save_model(request, obj, form, change)
         
         
