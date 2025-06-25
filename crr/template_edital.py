@@ -1,5 +1,4 @@
 from docx import Document
-from docx.shared import Inches, Pt
 from django.http import HttpResponse
 from io import BytesIO
 from django.utils import timezone
@@ -9,7 +8,7 @@ from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.oxml.ns import qn
 import os
 from django.conf import settings
-from django.db.models import QuerySet, Prefetch
+from django.db.models import Prefetch
 import logging
 from .models import Crr, Veiculo, Arrendatario
 from notificacao.models import NumeroEdital

@@ -1,25 +1,75 @@
 from pathlib import Path
-from django.conf import settings
-from django.conf.urls.static import static
 import os  
+import dj_database_url
+import environ
+
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
+env = environ.Env()
+environ.Env.read_env(BASE_DIR / ".env") 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-mf+l4cx+tdy3+^)ehgc(9d98po+*@mhx)o060v9z-j_f$$d9pr'
-
+SECRET_KEY = env('SECRET_KEY')
+print("SECRET_KEY =>", repr(SECRET_KEY))
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+DEBUG = env("DEBUG")
+
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost"])
 
 
-# Application definition
+
+
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Configuração do banco de dados
+DATABASES = {
+    'default': dj_database_url.config(
+        default='postgres://postgres:postgres@localhost:5432/divprom'
+    )
+}
+
+
+
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Alternativa moderna: BASE_DIR / 'media'
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+         'rest_framework_simplejwt.authentication.JWTAuthentication',
+         ],
+ 
+
+     }
+
+# Permissão para POST, PUT, DELETE
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000','https://divprom.herokuapp.com']  # ajuste se necessário
+CSRF_COOKIE_HTTPONLY = True
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+ROOT_URLCONF = 'divprom.urls'
+
 
 INSTALLED_APPS = [
      'jazzmin',  
@@ -39,24 +89,6 @@ INSTALLED_APPS = [
     
 ]
 
-# settings.py (NÃO RECOMENDADO para produção)
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8000']  # ajuste se necessário
-CSRF_COOKIE_HTTPONLY = False
-
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
-
-
-
-ROOT_URLCONF = 'divprom.urls'
 
 TEMPLATES = [
     {
@@ -77,20 +109,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'divprom.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'divprom',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
-}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -111,11 +129,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/5.1/topics/i18n/
-
 LANGUAGE_CODE = 'pt-br'
-
 TIME_ZONE = 'America/Sao_Paulo'
 
 USE_I18N = True
@@ -127,28 +141,6 @@ DATE_INPUT_FORMATS = ['%d/%m/%Y']
 TIME_INPUT_FORMATS = ['%H:%M']
 SHORT_DATE_FORMAT = 'd/m/Y'
 TIME_FORMAT = 'H:i'
-
-# Middleware necessário para localização funcionar corretamente
-
-
-
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Alternativa moderna: BASE_DIR / 'media'
-
-
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-         'rest_framework_simplejwt.authentication.JWTAuthentication',
-         ],
- 
-
-     }
-
-
 
 
 

@@ -1,0 +1,1 @@
+web: gunicorn divprom.wsgi --log-file -

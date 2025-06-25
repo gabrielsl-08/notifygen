@@ -1,10 +1,10 @@
 
-from rest_framework.permissions import IsAdminUser, DjangoModelPermissions
+from rest_framework.permissions import DjangoModelPermissions
 from rest_framework import viewsets
 from .models import Crr,Veiculo ,Condutor,TabelaEnquadramento,Ait, Enquadramento
 from .serializers import (CrrSerializer,VeiculoSerializer,CondutorSerializer,TabelaEnquadramentoSerializer,AitSerializer, EnquadramentoSerializer)
 
-from divprom.divprom.permissions import IsOwnerOfCrr
+from divprom.permissions import IsOwnerOfCrr
 
 
 class CrrViewSet(viewsets.ModelViewSet):

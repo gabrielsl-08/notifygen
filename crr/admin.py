@@ -8,11 +8,13 @@ from django import forms
 from django.urls import reverse
 from datetime import date, timedelta
 from django.utils.timezone import now
-from crr.utils import gerar_edital_docx
+from crr.template_edital import gerar_edital_docx
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources
 from django.contrib import messages
 import json
+
+
 # Classe base para aplicar regras de leitura
 class BaseReadOnlyInline(admin.StackedInline):  # ou admin.StackedInline
     extra = 0
@@ -54,7 +56,6 @@ class VeiculoInline(BaseReadOnlyInline):
    
 
 
-
 class AitInline(BaseReadOnlyInline):
     model = Ait
     extra = 0
@@ -63,7 +64,6 @@ class AitInline(BaseReadOnlyInline):
    
 
 class EnquadramentoInlineForm(forms.ModelForm): # ajusta o tamanho do campo Enquadramento
-
     
     class Meta:
         model = Enquadramento
@@ -73,8 +73,7 @@ class EnquadramentoInlineForm(forms.ModelForm): # ajusta o tamanho do campo Enqu
         }        
 
 class EnquadramentoInline(BaseReadOnlyInline):
-
-    
+   
     model = Enquadramento
     form = EnquadramentoInlineForm
     extra = 0
@@ -96,6 +95,7 @@ class TabelaArrendatarioResource(resources.ModelResource):
         model = TabelaArrendatario
         import_id_fields = ['nome_arrendatario']
         fields = ('nome_arrendatario', 'cnpj_arrendatario','endereco_arrendatario','numero_arrendatario','complemento_arrendatario','bairro_arrendatario','cidade_arrendatario','uf_arrendatario','cep_arrendatario')
+
 
 @admin.register(TabelaArrendatario)
 class TabelaArrendatarioAdmin(ImportExportModelAdmin):

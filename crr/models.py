@@ -1,7 +1,4 @@
-from django.db import models, transaction
-from django.core.validators import RegexValidator
-from django.db.models.signals import post_save
-from django.dispatch import receiver
+from django.db import models
 from datetime import timedelta
 from .choices import STATUS_CHOICES,CATEGORIA_CHOICES,ESTADO_CHOICES,STATUS_CHOICES,ESPECIE_CHOICES
 

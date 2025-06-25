@@ -6,7 +6,7 @@ from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from django.utils import timezone
-from .pdf_templates import render_notificacao_template
+from .template_pdf import render_notificacao_template
 from django.core.exceptions import ValidationError
 from datetime import date, timedelta
 from django.utils.html import format_html
