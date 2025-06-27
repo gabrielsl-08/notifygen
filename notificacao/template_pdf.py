@@ -444,7 +444,7 @@ def render_notificacao_template(c, notificacao, width, height):
     c.drawString(2.2 * cm, 26.1 * cm,f"{notificacao.cep.upper()}           {notificacao.cidade_destinatario.upper()} / {notificacao.uf_destinatario.upper()}")
 
     c.setFont("Helvetica-Bold", 12)
-    c.drawString(6 * cm, 25.15 * cm, "NOTIFCAÇÃO DE REMOÇÃO DE VEÍCULO")
+    c.drawString(6 * cm, 25.15 * cm, "NOTIFICAÇÃO DE REMOÇÃO DE VEÍCULO")
     # Linha horizontal acima de NOTIFCAÇÃO DE REMOÇÃO DE VEÍCULO"
     c.line(2 * cm, altura - 2.3 * cm, largura - 2.6 * cm, altura - 2.3 * cm)
 

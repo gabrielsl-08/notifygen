@@ -4,7 +4,7 @@ from rest_framework import viewsets
 from .models import Crr,Veiculo ,Condutor,TabelaEnquadramento,Ait, Enquadramento
 from .serializers import (CrrSerializer,VeiculoSerializer,CondutorSerializer,TabelaEnquadramentoSerializer,AitSerializer, EnquadramentoSerializer)
 
-from divprom.permissions import IsOwnerOfCrr
+from .permissions import IsOwnerOfCrr
 
 
 class CrrViewSet(viewsets.ModelViewSet):
