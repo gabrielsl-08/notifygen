@@ -1,11 +1,22 @@
-from rest_framework import permissions
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 
-class IsOwnerOfCrr(permissions.BasePermission):
+class IsJavaUser(BasePermission):
+    """
+    Permite apenas ao usuário 'java' fazer GET e POST.
+    Bloqueia PUT, PATCH, DELETE.
+    """
 
-    def has_object_permission(self, request, view, obj):
-        usuario = request.user  # Use `request.user` em vez de `request.usuario`
-        return obj.agenteAutuador == usuario  # Verifique o campo correto no modelo que associa o criador
-        
+    def has_permission(self, request, view):
+        user = request.user
+        if not user or not user.is_authenticated:
+            return False
 
-            
-        
+        # Permite apenas ao usuário 'java'
+        if user.username != 'java':
+            return False
+
+        # Permite apenas GET (list/detail) e POST (create)
+        if request.method in SAFE_METHODS or request.method == 'POST':
+            return True
+
+        return False

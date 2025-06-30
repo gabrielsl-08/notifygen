@@ -1,7 +1,6 @@
 # serializers.py
 from rest_framework import serializers
-from .models import (Crr,Veiculo ,Condutor,Ait, Enquadramento,TabelaEnquadramento,ImagemCrr)
-
+from .models import Crr,Veiculo ,Condutor,Ait, Enquadramento,TabelaEnquadramento,ImagemCrr
 
 
 
@@ -133,5 +132,33 @@ class CrrSerializer(serializers.ModelSerializer):
         return data
 
    
+            ### CONSULTA EXTERNA ###
 
-        
+class VeiculoPublicoSerializer(serializers.ModelSerializer):
+    """Serializer para dados públicos do veículo."""
+    class Meta:
+        model = Veiculo
+        fields = ['placa', 'marca', 'modelo', 'cor'] 
+
+
+class ConsultaExterna(serializers.ModelSerializer):
+
+    veiculo = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Crr
+        fields = [
+            'numeroCrr',
+            'veiculo',
+            'status',
+            'dataFiscalizacao',
+            'horaFiscalizacao',
+            'localFiscalizacao',
+        ]
+    
+    def get_veiculo(self, obj):
+        """Obtém o primeiro veículo relacionado a este CRR."""
+        veiculo = obj.veiculo.first()  
+        if veiculo:
+            return VeiculoPublicoSerializer(veiculo).data
+        return None

@@ -19,8 +19,8 @@ SECRET_KEY = env('SECRET_KEY')
 
 DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost"])
-
+#ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost"])
+ALLOWED_HOSTS = ['*']
 
 
 
@@ -48,7 +48,19 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
          'rest_framework_simplejwt.authentication.JWTAuthentication',
          ],
- 
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+
+    ## Rate limiting para usuários anônimos     
+    ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',  # Máximo 100 requisições por hora para usuários anônimos
+        'user': '1000/hour'  # Mais permissivo para usuários autenticados
+    }
 
      }
 

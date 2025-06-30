@@ -84,7 +84,7 @@ class EnquadramentoInline(BaseReadOnlyInline):
 
 class ArrendatarioInline(BaseReadOnlyInline):
     model = Arrendatario
-    extra = 1
+    extra = 0
     max_num = 1
     fields = ['arrendatario']
     verbose_name_plural = "Arrendatário"
@@ -145,11 +145,9 @@ class ImagemCrrInline(admin.StackedInline):
     max_num = 4
     fields = ['imagem',]
 
-
-    
+             
 @admin.register(Crr)
 class CrrAdmin(admin.ModelAdmin):
-    
     list_display = ('numeroCrr','get_placa','get_chassi','get_marca','criar_notificacao_link','dataFiscalizacao', 'get_enquadramentos','status','edital_emitido')
     list_filter = (FiltroCrrAtrasado,'dataFiscalizacao', 'status',)
     actions = ['gerar_edital_docx_action']
@@ -157,9 +155,7 @@ class CrrAdmin(admin.ModelAdmin):
     list_editable = ('status',)
     ordering = ('numeroCrr',)
     inlines = [CondutorInline, VeiculoInline,AitInline,EnquadramentoInline,ArrendatarioInline,ImagemCrrInline]
-   
     
-
     fieldsets = (
         ("CRR", {
             'fields': ('numeroCrr','matriculaAgente')
@@ -174,6 +170,7 @@ class CrrAdmin(admin.ModelAdmin):
         }),
         
         )
+       
 
     # Lista vazia na listagem de CRR
     def get_queryset(self, request):

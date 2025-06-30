@@ -81,7 +81,7 @@ def render_notificacao_template(c, notificacao, width, height):
 
      # Inserir uma imagem (exemplo: logo da prefeitura)
     try:
-        imagem = ImageReader("media/brasao.jpg")  # Substitua pelo caminho da sua imagem
+        imagem = ImageReader("static/brasao.jpg")  # Substitua pelo caminho da sua imagem
         c.drawImage(imagem, 2 * cm, altura - 6 * cm, width=2 * cm, height=3 * cm, preserveAspectRatio=True)
     except Exception as e:
         print(f"Erro ao carregar a imagem: {e}")
@@ -465,7 +465,7 @@ def render_notificacao_template(c, notificacao, width, height):
 
 # Imagem do trânsito 2ª pagina (VERSO) 
     try:
-        imagem = ImageReader("media/verso.jpeg")  # Substitua pelo caminho da sua imagem
+        imagem = ImageReader("static/verso.jpeg")  # Substitua pelo caminho da sua imagem
         c.drawImage(imagem, 1 * cm, altura - 16.2* cm, width=19* cm, height=10 * cm, preserveAspectRatio=True)
     except Exception as e:
         print(f"Erro ao carregar a imagem: {e}") 
@@ -477,7 +477,7 @@ def render_notificacao_template(c, notificacao, width, height):
 # Rodapé da 2ª pagina 
  # Imagem do rodapé 2ª pagina 
     try:
-        imagem = ImageReader("media/cabeçalho.jpg")  # Substitua pelo caminho da sua imagem
+        imagem = ImageReader("static/cabeçalho.jpg")  # Substitua pelo caminho da sua imagem
         c.drawImage(imagem, 2 * cm, altura - 25.5 * cm, width=17 * cm, height=13.5 * cm, preserveAspectRatio=True)
     except Exception as e:
         print(f"Erro ao carregar a imagem: {e}")

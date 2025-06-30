@@ -1,0 +1,124 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Consulta Pública de CRR</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .logo-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo-header img {
+            height: 80px;
+        }
+
+        .logo-header h5 {
+            margin: 10px 0 5px;
+        }
+
+        #consulta-form input {
+            max-width: 400px;
+        }
+
+        #resultado {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        footer {
+            margin-top: 60px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #555;
+            border-top: 1px solid #ccc;
+            padding-top: 15px;
+        }
+    </style>
+</head>
+<body class="container mt-4">
+
+    <!-- Cabeçalho -->
+    <div class="logo-header">
+        <img src="{% static 'brasao.jpg' %}" alt="Brasão">
+        <h5>PREFEITURA MUNICIPAL DE SÃO SEBASTIÃO</h5>
+        <p>SEGUR - DIVISÃO DE PROCESSAMENTO DE MULTAS</p>
+    </div>
+
+    <h2 class="text-center"> Veículos Removidos ao Pátio</h2>
+
+    <!-- Formulário -->
+    <form id="consulta-form" class="row g-3 justify-content-center mt-4">
+        <div class="col-md-5">
+            <label for="placa" class="form-label">Placa</label>
+            <input type="text" id="placa" name="placa" class="form-control" placeholder="Ex: ABC1234" maxlength="7">
+        </div>
+        <div class="col-md-5">
+            <label for="chassi" class="form-label">Chassi</label>
+            <input type="text" id="chassi" name="chassi" class="form-control" maxlength="17">
+        </div>
+        <div class="col-12 text-center">
+            <button type="submit" class="btn btn-primary">Consultar</button>
+        </div>
+    </form>
+
+    <!-- Resultado -->
+    <div id="resultado" class="mt-5"></div>
+
+    <!-- Rodapé -->
+    <footer>
+        Rua Amazonas, 84 - Industrial <br>
+        E-mail: <a href="mailto:transito@saosebastiao.sp.gov.br">transito@saosebastiao.sp.gov.br</a> &nbsp;|&nbsp;
+        Tel: (12) 3892-6180
+    </footer>
+
+    <!-- Script de requisição -->
+    <script>
+        document.getElementById('consulta-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const placa = document.getElementById('placa').value.trim();
+            const chassi = document.getElementById('chassi').value.trim();
+            const resultadoDiv = document.getElementById('resultado');
+            resultadoDiv.innerHTML = '';
+
+            if (!placa && !chassi) {
+                resultadoDiv.innerHTML = `<div class="alert alert-warning">Informe a placa ou o chassi para consultar.</div>`;
+                return;
+            }
+
+            let url = 'http://localhost:8000/api/v1/consulta-publica/crr/?';
+            if (placa) url += `placa=${encodeURIComponent(placa)}`;
+            if (chassi) url += `&chassi=${encodeURIComponent(chassi)}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultadoDiv.innerHTML = `
+                        <h4 class="mb-4">🔍 Resultado da Consulta</h4>
+                        <ul class="list-group mx-auto" style="max-width: 500px;">
+                            <li class="list-group-item"><strong>Placa:</strong> ${data.veiculo.placa}</li>
+                            <li class="list-group-item"><strong>Marca:</strong> ${data.veiculo.marca}</li>
+                            <li class="list-group-item"><strong>Modelo:</strong> ${data.veiculo.modelo}</li>
+                            <li class="list-group-item"><strong>Status:</strong> ${data.status}</li>
+                            <li class="list-group-item"><strong>Data da Fiscalização:</strong> ${data.dataFiscalizacao}</li>
+                            <li class="list-group-item"><strong>Hora da Fiscalização:</strong> ${data.horaFiscalizacao}</li>
+                        </ul>
+                    `;
+                } else {
+                    resultadoDiv.innerHTML = `
+                        <div class="alert alert-danger mt-3">${data.mensagem || 'Erro na consulta.'}</div>
+                    `;
+                }
+            } catch (error) {
+                resultadoDiv.innerHTML = `<div class="alert alert-danger mt-3">Erro ao conectar com o servidor.</div>`;
+            }
+        });
+    </script>
+</body>
+</html>
