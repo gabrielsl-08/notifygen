@@ -1,0 +1,59 @@
+{% extends 'crr/base.html' %}
+
+{% block title %}Enquadramentos | DIVPROM{% endblock %}
+{% block page_title %}Enquadramentos{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-card-list me-2"></i>Enquadramentos Cadastrados</span>
+        <a href="{% url 'crr:enquadramento_create' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg"></i> Novo Enquadramento
+        </a>
+    </div>
+    <div class="card-body p-0">
+        {% if itens %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Código</th>
+                        <th>Amparo Legal</th>
+                        <th>Descrição da Infração</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in itens %}
+                    <tr>
+                        <td><span class="badge bg-secondary">{{ item.codigo }}</span></td>
+                        <td>{{ item.amparo_legal }}</td>
+                        <td>{{ item.descricao_infracao }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'crr:enquadramento_edit' item.pk %}"
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'crr:enquadramento_delete' item.pk %}"
+                               class="btn btn-outline-danger btn-sm"
+                               onclick="return confirm('Excluir enquadramento {{ item.codigo }}?');">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+            <i class="bi bi-card-list fs-1"></i>
+            <p class="mt-2">Nenhum enquadramento cadastrado.</p>
+            <a href="{% url 'crr:enquadramento_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Cadastrar Enquadramento
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

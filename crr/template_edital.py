@@ -18,18 +18,23 @@ from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
-TEMPLATE_DOCX_PATH = os.path.join(settings.MEDIA_ROOT, 'modelo_edital.docx')
+TEMPLATE_DOCX_PATH = os.path.join(settings.STATICFILES_DIRS[0], 'modelo_edital.docx')
+
+MESES_PT = {
+    1: 'JANEIRO', 2: 'FEVEREIRO', 3: 'MARÇO', 4: 'ABRIL',
+    5: 'MAIO', 6: 'JUNHO', 7: 'JULHO', 8: 'AGOSTO',
+    9: 'SETEMBRO', 10: 'OUTUBRO', 11: 'NOVEMBRO', 12: 'DEZEMBRO',
+}
+
 
 def obter_proximo_numero_edital():
-    """Obtém e incrementa o número do edital de forma atômica"""
-    try:
-        with transaction.atomic():
-            obj = NumeroEdital.objects.select_for_update().get(id=1)
-            obj.numero += 1
-            obj.save()
-            return obj
-    except NumeroEdital.DoesNotExist:
-        obj = NumeroEdital.objects.create(id=1, numero=1)
+    """Obtém e incrementa o número do edital de forma atômica."""
+    with transaction.atomic():
+        obj, _ = NumeroEdital.objects.select_for_update().get_or_create(
+            id=1, defaults={'numero': 0}
+        )
+        obj.numero += 1
+        obj.save()
         return obj
 
 def gerar_edital_docx(crrs_ids):
@@ -53,19 +58,11 @@ def gerar_edital_docx(crrs_ids):
         logger.error(f"Erro ao carregar template DOCX: {e}")
         raise FileNotFoundError(f"Template DOCX não encontrado em {TEMPLATE_DOCX_PATH}") from e
 
-    # Configura locale para data em português
-    try:
-        locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
-    except locale.Error:
-        try:
-            locale.setlocale(locale.LC_TIME, 'pt_BR')
-        except locale.Error:
-            pass
-
     # Obtém número do edital
     numero_edital_obj = obter_proximo_numero_edital()
-    numero_edital = str(numero_edital_obj.numero - 1)  # Usa o número antes do incremento
-    data_formatada = now().strftime('%d DE %B DE %Y').upper()
+    numero_edital = str(numero_edital_obj.numero).zfill(2)
+    hoje = now()
+    data_formatada = f"{hoje.day:02d} DE {MESES_PT[hoje.month]} DE {hoje.year}"
 
     # Substitui placeholders no documento
     for paragraph in doc.paragraphs:

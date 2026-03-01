@@ -1,0 +1,505 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
+from django.urls import reverse_lazy
+from django.contrib import messages
+from django.db import transaction
+
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+from django.contrib.auth.views import PasswordChangeView as DjangoPasswordChangeView
+from django.contrib.auth.forms import PasswordChangeForm
+from .models import Crr, Condutor, Veiculo, Ait, Enquadramento, Arrendatario, ImagemCrr, DispositivoMobile, EditalGerado, TabelaArrendatario, TabelaEnquadramento
+from .forms import (
+    CrrForm, CondutorFormSet, VeiculoFormSet, AitFormSet,
+    EnquadramentoFormSet, ArrendatarioFormSet, ImagemCrrFormSet,
+    TabelaArrendatarioForm, TabelaEnquadramentoForm,
+)
+from .template_edital import gerar_edital_docx
+
+
+class CrrListView(LoginRequiredMixin, ListView):
+    model = Crr
+    template_name = 'crr/crr_list.html'
+    context_object_name = 'crrs'
+    paginate_by = 20
+    ordering = ['-criado_em']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        # Filtros
+        status = self.request.GET.get('status')
+        search = self.request.GET.get('search')
+
+        if status:
+            queryset = queryset.filter(status=status)
+
+        if search:
+            queryset = queryset.filter(
+                numeroCrr__icontains=search
+            ) | queryset.filter(
+                veiculo__placa__icontains=search
+            ) | queryset.filter(
+                veiculo__chassi__icontains=search
+            )
+
+        return queryset.distinct()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['status_filter'] = self.request.GET.get('status', '')
+        context['search'] = self.request.GET.get('search', '')
+        context['total_pendentes'] = Crr.objects.filter(status='pendente').count()
+        context['total_retidos'] = Crr.objects.filter(status='retido').count()
+        context['total_liberados'] = Crr.objects.filter(status='liberado').count()
+        return context
+
+
+class CrrDetailView(LoginRequiredMixin, DetailView):
+    model = Crr
+    template_name = 'crr/crr_detail.html'
+    context_object_name = 'crr'
+
+
+class CrrCreateView(LoginRequiredMixin, CreateView):
+    model = Crr
+    form_class = CrrForm
+    template_name = 'crr/crr_form.html'
+    success_url = reverse_lazy('crr:crr_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['condutor_formset'] = CondutorFormSet(self.request.POST, prefix='condutor')
+            context['veiculo_formset'] = VeiculoFormSet(self.request.POST, prefix='veiculo')
+            context['enquadramento_formset'] = EnquadramentoFormSet(self.request.POST, prefix='enquadramento')
+            context['ait_formset'] = AitFormSet(self.request.POST, prefix='ait')
+            context['arrendatario_formset'] = ArrendatarioFormSet(self.request.POST, prefix='arrendatario')
+            context['imagem_formset'] = ImagemCrrFormSet(self.request.POST, self.request.FILES, prefix='imagem')
+        else:
+            context['condutor_formset'] = CondutorFormSet(prefix='condutor')
+            context['veiculo_formset'] = VeiculoFormSet(prefix='veiculo')
+            context['enquadramento_formset'] = EnquadramentoFormSet(prefix='enquadramento')
+            context['ait_formset'] = AitFormSet(prefix='ait')
+            context['arrendatario_formset'] = ArrendatarioFormSet(prefix='arrendatario')
+            context['imagem_formset'] = ImagemCrrFormSet(prefix='imagem')
+        context['is_edit'] = False
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        condutor_formset = context['condutor_formset']
+        veiculo_formset = context['veiculo_formset']
+        enquadramento_formset = context['enquadramento_formset']
+        ait_formset = context['ait_formset']
+        arrendatario_formset = context['arrendatario_formset']
+        imagem_formset = context['imagem_formset']
+
+        with transaction.atomic():
+            self.object = form.save()
+
+            # Salvar formsets
+            for formset in [condutor_formset, veiculo_formset, enquadramento_formset,
+                           ait_formset, arrendatario_formset, imagem_formset]:
+                if formset.is_valid():
+                    formset.instance = self.object
+                    formset.save()
+
+        messages.success(self.request, f'CRR {self.object.numeroCrr} criado com sucesso!')
+        return redirect(self.success_url)
+
+    def form_invalid(self, form):
+        messages.error(self.request, 'Erro ao criar CRR. Verifique os dados informados.')
+        return super().form_invalid(form)
+
+
+class CrrUpdateView(LoginRequiredMixin, UpdateView):
+    model = Crr
+    form_class = CrrForm
+    template_name = 'crr/crr_form.html'
+    success_url = reverse_lazy('crr:crr_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['condutor_formset'] = CondutorFormSet(self.request.POST, instance=self.object, prefix='condutor')
+            context['veiculo_formset'] = VeiculoFormSet(self.request.POST, instance=self.object, prefix='veiculo')
+            context['enquadramento_formset'] = EnquadramentoFormSet(self.request.POST, instance=self.object, prefix='enquadramento')
+            context['ait_formset'] = AitFormSet(self.request.POST, instance=self.object, prefix='ait')
+            context['arrendatario_formset'] = ArrendatarioFormSet(self.request.POST, instance=self.object, prefix='arrendatario')
+            context['imagem_formset'] = ImagemCrrFormSet(self.request.POST, self.request.FILES, instance=self.object, prefix='imagem')
+        else:
+            context['condutor_formset'] = CondutorFormSet(instance=self.object, prefix='condutor')
+            context['veiculo_formset'] = VeiculoFormSet(instance=self.object, prefix='veiculo')
+            context['enquadramento_formset'] = EnquadramentoFormSet(instance=self.object, prefix='enquadramento')
+            context['ait_formset'] = AitFormSet(instance=self.object, prefix='ait')
+            context['arrendatario_formset'] = ArrendatarioFormSet(instance=self.object, prefix='arrendatario')
+            context['imagem_formset'] = ImagemCrrFormSet(instance=self.object, prefix='imagem')
+        context['is_edit'] = True
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        condutor_formset = context['condutor_formset']
+        veiculo_formset = context['veiculo_formset']
+        enquadramento_formset = context['enquadramento_formset']
+        ait_formset = context['ait_formset']
+        arrendatario_formset = context['arrendatario_formset']
+        imagem_formset = context['imagem_formset']
+
+        with transaction.atomic():
+            self.object = form.save()
+
+            for formset in [condutor_formset, veiculo_formset, enquadramento_formset,
+                           ait_formset, arrendatario_formset, imagem_formset]:
+                if formset.is_valid():
+                    formset.instance = self.object
+                    formset.save()
+
+        messages.success(self.request, f'CRR {self.object.numeroCrr} atualizado com sucesso!')
+        return redirect(self.success_url)
+
+    def form_invalid(self, form):
+        messages.error(self.request, 'Erro ao atualizar CRR. Verifique os dados informados.')
+        return super().form_invalid(form)
+
+
+class CrrDeleteView(LoginRequiredMixin, DeleteView):
+    model = Crr
+    template_name = 'crr/crr_confirm_delete.html'
+    success_url = reverse_lazy('crr:crr_list')
+
+    def delete(self, request, *args, **kwargs):
+        crr = self.get_object()
+        messages.success(request, f'CRR {crr.numeroCrr} excluído com sucesso!')
+        return super().delete(request, *args, **kwargs)
+
+
+# ==================== TRIAGEM ==================== #
+
+class TriagemListView(LoginRequiredMixin, ListView):
+    """Lista de CRRs pendentes para triagem"""
+    model = Crr
+    template_name = 'crr/triagem_list.html'
+    context_object_name = 'crrs'
+    paginate_by = 20
+    ordering = ['dataFiscalizacao']
+
+    def get_queryset(self):
+        queryset = super().get_queryset().filter(status='pendente')
+        search = self.request.GET.get('search')
+
+        if search:
+            queryset = queryset.filter(
+                numeroCrr__icontains=search
+            ) | queryset.filter(
+                veiculo__placa__icontains=search
+            ) | queryset.filter(
+                veiculo__chassi__icontains=search
+            )
+
+        return queryset.distinct()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search'] = self.request.GET.get('search', '')
+        context['total_pendentes'] = Crr.objects.filter(status='pendente').count()
+        return context
+
+
+class TriagemDetailView(LoginRequiredMixin, DetailView):
+    """Visualização detalhada do CRR para triagem"""
+    model = Crr
+    template_name = 'crr/triagem_detail.html'
+    context_object_name = 'crr'
+
+    def get_queryset(self):
+        return super().get_queryset().filter(status='pendente')
+
+
+class TriagemUpdateView(LoginRequiredMixin, UpdateView):
+    """Edição do CRR na triagem - ao salvar, muda status para 'retido'"""
+    model = Crr
+    form_class = CrrForm
+    template_name = 'crr/triagem_form.html'
+    success_url = reverse_lazy('crr:triagem_list')
+
+    def get_queryset(self):
+        return super().get_queryset().filter(status='pendente')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['condutor_formset'] = CondutorFormSet(self.request.POST, instance=self.object, prefix='condutor')
+            context['veiculo_formset'] = VeiculoFormSet(self.request.POST, instance=self.object, prefix='veiculo')
+            context['enquadramento_formset'] = EnquadramentoFormSet(self.request.POST, instance=self.object, prefix='enquadramento')
+            context['ait_formset'] = AitFormSet(self.request.POST, instance=self.object, prefix='ait')
+            context['arrendatario_formset'] = ArrendatarioFormSet(self.request.POST, instance=self.object, prefix='arrendatario')
+            context['imagem_formset'] = ImagemCrrFormSet(self.request.POST, self.request.FILES, instance=self.object, prefix='imagem')
+        else:
+            context['condutor_formset'] = CondutorFormSet(instance=self.object, prefix='condutor')
+            context['veiculo_formset'] = VeiculoFormSet(instance=self.object, prefix='veiculo')
+            context['enquadramento_formset'] = EnquadramentoFormSet(instance=self.object, prefix='enquadramento')
+            context['ait_formset'] = AitFormSet(instance=self.object, prefix='ait')
+            context['arrendatario_formset'] = ArrendatarioFormSet(instance=self.object, prefix='arrendatario')
+            context['imagem_formset'] = ImagemCrrFormSet(instance=self.object, prefix='imagem')
+        context['is_triagem'] = True
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        condutor_formset = context['condutor_formset']
+        veiculo_formset = context['veiculo_formset']
+        enquadramento_formset = context['enquadramento_formset']
+        ait_formset = context['ait_formset']
+        arrendatario_formset = context['arrendatario_formset']
+        imagem_formset = context['imagem_formset']
+
+        with transaction.atomic():
+            self.object = form.save(commit=False)
+            # Ao salvar na triagem, muda status para 'retido' (se não for superuser)
+            if not self.request.user.is_superuser:
+                self.object.status = 'retido'
+            self.object.save()
+
+            for formset in [condutor_formset, veiculo_formset, enquadramento_formset,
+                           ait_formset, arrendatario_formset, imagem_formset]:
+                if formset.is_valid():
+                    formset.instance = self.object
+                    formset.save()
+
+        messages.success(self.request, f'CRR {self.object.numeroCrr} triado com sucesso! Status: Retido')
+        return redirect(self.success_url)
+
+    def form_invalid(self, form):
+        messages.error(self.request, 'Erro ao salvar triagem. Verifique os dados informados.')
+        return super().form_invalid(form)
+
+
+@login_required
+def dispositivo_list(request):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    dispositivos = DispositivoMobile.objects.order_by('nome')
+    return render(request, 'crr/dispositivo_list.html', {'dispositivos': dispositivos})
+
+
+@login_required
+def dispositivo_create(request):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    if request.method == 'POST':
+        nome = request.POST.get('nome', '').strip()
+        if nome:
+            DispositivoMobile.objects.create(nome=nome)
+            messages.success(request, f'Dispositivo "{nome}" cadastrado. Código de ativação gerado automaticamente.')
+        else:
+            messages.error(request, 'Informe o nome do dispositivo.')
+    return redirect('crr:dispositivo_list')
+
+
+@login_required
+def dispositivo_edit(request, pk):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    dispositivo = get_object_or_404(DispositivoMobile, pk=pk)
+    if request.method == 'POST':
+        nome = request.POST.get('nome', '').strip()
+        ativo = request.POST.get('ativo') == '1'
+        if nome:
+            dispositivo.nome = nome
+            dispositivo.ativo = ativo
+            dispositivo.save(update_fields=['nome', 'ativo'])
+            messages.success(request, f'Dispositivo "{nome}" atualizado.')
+        else:
+            messages.error(request, 'Informe o nome do dispositivo.')
+    return redirect('crr:dispositivo_list')
+
+
+@login_required
+def dispositivo_delete(request, pk):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    dispositivo = get_object_or_404(DispositivoMobile, pk=pk)
+    if request.method == 'POST':
+        nome = dispositivo.nome
+        dispositivo.delete()
+        messages.success(request, f'Dispositivo "{nome}" removido.')
+    return redirect('crr:dispositivo_list')
+
+
+@login_required
+def crr_gerar_edital(request):
+    if request.method != 'POST':
+        return redirect('crr:crr_list')
+    ids = request.POST.getlist('crr_ids')
+    if not ids:
+        messages.warning(request, 'Selecione ao menos um CRR para gerar o edital.')
+        return redirect('crr:crr_list')
+    # Só CRRs retidos que ainda não tiveram edital emitido
+    queryset = Crr.objects.filter(pk__in=ids, status='retido', edital_emitido=False)
+    if not queryset.exists():
+        messages.warning(request, 'Nenhum CRR elegível selecionado (retido e sem edital emitido).')
+        return redirect('crr:crr_list')
+    crrs_numeros = list(queryset.values_list('numeroCrr', flat=True))
+    response = gerar_edital_docx(queryset)
+    queryset.update(edital_emitido=True)
+    # Salvar arquivo e registrar
+    cd = response.get('Content-Disposition', '')
+    filename = cd.split('filename=')[-1].strip('"')
+    numero = filename.split('_')[1] if filename.count('_') >= 2 else '00'
+    saved_path = default_storage.save(f'editais/{filename}', ContentFile(response.content))
+    EditalGerado.objects.create(
+        numero=numero,
+        arquivo=saved_path,
+        usuario=request.user,
+        crrs=', '.join(crrs_numeros),
+    )
+    return response
+
+
+@login_required
+def edital_list(request):
+    editais = EditalGerado.objects.select_related('usuario').order_by('-gerado_em')
+    return render(request, 'crr/edital_list.html', {'editais': editais})
+
+
+@login_required
+def triagem_status(request, pk, novo_status):
+    """Atualiza o status de um CRR via botão na triagem (retido / liberado)."""
+    VALIDOS = {'pendente', 'retido', 'liberado', 'cancelado'}
+    if novo_status not in VALIDOS:
+        messages.error(request, 'Status inválido.')
+        return redirect('crr:triagem_list')
+
+    crr = get_object_or_404(Crr, pk=pk)
+    crr.status = novo_status
+    crr.save(update_fields=['status'])
+
+    label = 'Retido' if novo_status == 'retido' else 'Liberado'
+    messages.success(request, f'CRR {crr.numeroCrr.upper()} marcado como {label}.')
+
+    next_url = request.GET.get('next', '')
+    if next_url == 'crr_list':
+        return redirect('crr:crr_list')
+    return redirect('crr:triagem_list')
+
+
+# -------- TabelaArrendatario CRUD (superuser only) -------- #
+
+@login_required
+def arrendatario_list(request):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    itens = TabelaArrendatario.objects.all().order_by('nome_arrendatario')
+    return render(request, 'crr/arrendatario_list.html', {'itens': itens})
+
+
+@login_required
+def arrendatario_create(request):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    if request.method == 'POST':
+        form = TabelaArrendatarioForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Arrendatário cadastrado com sucesso.')
+            return redirect('crr:arrendatario_list')
+    else:
+        form = TabelaArrendatarioForm()
+    return render(request, 'crr/arrendatario_form.html', {'form': form, 'titulo': 'Novo Arrendatário'})
+
+
+@login_required
+def arrendatario_edit(request, pk):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    obj = get_object_or_404(TabelaArrendatario, pk=pk)
+    if request.method == 'POST':
+        form = TabelaArrendatarioForm(request.POST, instance=obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Arrendatário atualizado com sucesso.')
+            return redirect('crr:arrendatario_list')
+    else:
+        form = TabelaArrendatarioForm(instance=obj)
+    return render(request, 'crr/arrendatario_form.html', {'form': form, 'titulo': 'Editar Arrendatário', 'obj': obj})
+
+
+@login_required
+def arrendatario_delete(request, pk):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    obj = get_object_or_404(TabelaArrendatario, pk=pk)
+    if request.method == 'POST':
+        obj.delete()
+        messages.success(request, 'Arrendatário excluído.')
+        return redirect('crr:arrendatario_list')
+    return render(request, 'crr/arrendatario_confirm_delete.html', {'obj': obj})
+
+
+# -------- TabelaEnquadramento CRUD (superuser only) -------- #
+
+@login_required
+def enquadramento_list(request):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    itens = TabelaEnquadramento.objects.all().order_by('codigo')
+    return render(request, 'crr/enquadramento_list.html', {'itens': itens})
+
+
+@login_required
+def enquadramento_create(request):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    if request.method == 'POST':
+        form = TabelaEnquadramentoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Enquadramento cadastrado com sucesso.')
+            return redirect('crr:enquadramento_list')
+    else:
+        form = TabelaEnquadramentoForm()
+    return render(request, 'crr/enquadramento_form.html', {'form': form, 'titulo': 'Novo Enquadramento'})
+
+
+@login_required
+def enquadramento_edit(request, pk):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    obj = get_object_or_404(TabelaEnquadramento, pk=pk)
+    if request.method == 'POST':
+        form = TabelaEnquadramentoForm(request.POST, instance=obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Enquadramento atualizado com sucesso.')
+            return redirect('crr:enquadramento_list')
+    else:
+        form = TabelaEnquadramentoForm(instance=obj)
+    return render(request, 'crr/enquadramento_form.html', {'form': form, 'titulo': 'Editar Enquadramento', 'obj': obj})
+
+
+@login_required
+def enquadramento_delete(request, pk):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    obj = get_object_or_404(TabelaEnquadramento, pk=pk)
+    if request.method == 'POST':
+        obj.delete()
+        messages.success(request, 'Enquadramento excluído.')
+        return redirect('crr:enquadramento_list')
+    return render(request, 'crr/enquadramento_confirm_delete.html', {'obj': obj})
+
+
+# -------- Alteração de senha (usuário comum) -------- #
+
+class MinhaSenhaView(DjangoPasswordChangeView):
+    template_name = 'crr/change_password.html'
+    form_class = PasswordChangeForm
+    success_url = reverse_lazy('crr:crr_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Senha alterada com sucesso.')
+        return super().form_valid(form)

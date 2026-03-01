@@ -1,0 +1,59 @@
+{% extends 'crr/base.html' %}
+
+{% block title %}Arrendatários | DIVPROM{% endblock %}
+{% block page_title %}Arrendatários{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-building me-2"></i>Arrendatários Cadastrados</span>
+        <a href="{% url 'crr:arrendatario_create' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg"></i> Novo Arrendatário
+        </a>
+    </div>
+    <div class="card-body p-0">
+        {% if itens %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nome</th>
+                        <th>CNPJ</th>
+                        <th>Cidade / UF</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in itens %}
+                    <tr>
+                        <td class="fw-semibold">{{ item.nome_arrendatario|upper }}</td>
+                        <td>{{ item.cnpj_arrendatario }}</td>
+                        <td>{{ item.cidade_arrendatario|upper }} / {{ item.uf_arrendatario|upper }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'crr:arrendatario_edit' item.pk %}"
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'crr:arrendatario_delete' item.pk %}"
+                               class="btn btn-outline-danger btn-sm"
+                               onclick="return confirm('Excluir {{ item.nome_arrendatario|upper }}?');">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+            <i class="bi bi-building fs-1"></i>
+            <p class="mt-2">Nenhum arrendatário cadastrado.</p>
+            <a href="{% url 'crr:arrendatario_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Cadastrar Arrendatário
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

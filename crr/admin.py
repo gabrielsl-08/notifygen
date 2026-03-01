@@ -1,8 +1,10 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import  (Crr,Ait,Condutor, Enquadramento,Arrendatario,Veiculo,
-                      TabelaEnquadramento,TabelaArrendatario, ImagemCrr
-                    )
+from .models import (
+    Crr, Ait, Condutor, Enquadramento, Arrendatario, Veiculo,
+    TabelaEnquadramento, TabelaArrendatario, ImagemCrr,
+    DispositivoMobile, Agente
+)
 
 from django import forms
 from django.urls import reverse
@@ -42,24 +44,24 @@ class BaseReadOnlyInline(admin.StackedInline):  # ou admin.StackedInline
 
 class CondutorInline(BaseReadOnlyInline):
     model = Condutor
-    extra = 0
-    max_num = 1  # Quantas linhas vazias para novos condutores
-    fields = ['nomeCondutor','cnh','cnhEstrangeira', 'ufCnh', 'cpfCondutor']
+    extra = 1
+    max_num = 1
+    fields = ['nomeCondutor','cpfCondutor','cnh','cnhEstrangeira', 'ufCnh']
 
    
 
 class VeiculoInline(BaseReadOnlyInline):
     model = Veiculo
-    extra = 0
-    max_num = 1  # Quantas linhas vazias para novos condutores
+    extra = 1
+    max_num = 1
     fields = ['placa','chassi','marca', 'modelo', 'cor','especie','categoria','ufVeiculo','municipioVeiculo']
    
 
 
 class AitInline(BaseReadOnlyInline):
     model = Ait
-    extra = 0
-    max_num = 4 
+    extra = 1
+    max_num = 4
     fields = ['ait']
    
 
@@ -73,10 +75,9 @@ class EnquadramentoInlineForm(forms.ModelForm): # ajusta o tamanho do campo Enqu
         }        
 
 class EnquadramentoInline(BaseReadOnlyInline):
-   
     model = Enquadramento
     form = EnquadramentoInlineForm
-    extra = 0
+    extra = 1
     max_num = 4
     fields = ['enquadramento']
     verbose_name_plural = "Enquadramentos"
@@ -84,7 +85,7 @@ class EnquadramentoInline(BaseReadOnlyInline):
 
 class ArrendatarioInline(BaseReadOnlyInline):
     model = Arrendatario
-    extra = 0
+    extra = 1
     max_num = 1
     fields = ['arrendatario']
     verbose_name_plural = "Arrendatário"
@@ -154,22 +155,24 @@ class CrrAdmin(admin.ModelAdmin):
     search_fields = ['numeroCrr', 'veiculo__placa','veiculo__chassi','veiculo__marca'] 
     list_editable = ('status',)
     ordering = ('numeroCrr',)
-    inlines = [CondutorInline, VeiculoInline,AitInline,EnquadramentoInline,ArrendatarioInline,ImagemCrrInline]
-    
     fieldsets = (
-        ("CRR", {
-            'fields': ('numeroCrr','matriculaAgente')
-        }),        
-        ("Local da Infração", {
-           
-            'fields': ('localFiscalizacao', 'dataFiscalizacao','horaFiscalizacao','observacao')
+        ("Identificação do CRR", {
+            'fields': ('numeroCrr',)
         }),
-         ("Dados do Guincho", {
-           
+        ("Local e Data da Fiscalização", {
+            'fields': ('localFiscalizacao', 'dataFiscalizacao', 'horaFiscalizacao')
+        }),
+        ("Dados do Guincho", {
             'fields': ('placaGuincho', 'encarregado')
         }),
-        
-        )
+        ("Informações Adicionais", {
+            'fields': ('observacao', 'matriculaAgente')
+        }),
+    )
+
+    # Ordem dos inlines conforme solicitado:
+    # 1. Condutor, 2. Veículo, 3. Enquadramento, 4. AIT, 5. Arrendatário, 6. Imagens
+    inlines = [CondutorInline, VeiculoInline, EnquadramentoInline, AitInline, ArrendatarioInline, ImagemCrrInline]
        
 
     # Lista vazia na listagem de CRR
@@ -303,6 +306,113 @@ class CrrAdmin(admin.ModelAdmin):
         js = (
             'js/mascaras.js',
         )
+
+# ==================== DISPOSITIVOS MOBILE ==================== #
+
+@admin.register(DispositivoMobile)
+class DispositivoMobileAdmin(admin.ModelAdmin):
+    list_display = [
+        'nome', 'codigo_ativacao', 'ativado',
+        'ativo', 'ultimo_acesso',
+    ]
+    list_filter = ['ativo', 'ativado']
+    search_fields = [
+        'nome', 'imei', 'codigo_ativacao',
+    ]
+    readonly_fields = [
+        'api_key', 'codigo_ativacao',
+        'criado_em', 'ultimo_acesso',
+    ]
+    actions = [
+        'regenerar_api_key', 'regenerar_codigo_ativacao',
+        'desativar_dispositivos', 'ativar_dispositivos',
+    ]
+
+    fieldsets = (
+        ('Identificacao do Dispositivo', {
+            'fields': ('nome', 'ativo'),
+        }),
+        ('Ativacao', {
+            'fields': ('codigo_ativacao', 'ativado'),
+        }),
+        ('Autenticacao API', {
+            'fields': ('api_key', 'imei'),
+            'classes': ('collapse',),
+        }),
+        ('Informacoes do Sistema', {
+            'fields': ('criado_em', 'ultimo_acesso')
+        }),
+    )
+
+    @admin.action(description="Regenerar API Key")
+    def regenerar_api_key(self, request, queryset):
+        for dispositivo in queryset:
+            dispositivo.api_key = DispositivoMobile.gerar_api_key()
+            dispositivo.save()
+        self.message_user(
+            request,
+            f"API Keys regeneradas para {queryset.count()} dispositivo(s). Os dispositivos precisarao fazer login novamente.",
+            level=messages.WARNING
+        )
+
+    @admin.action(description="Regenerar codigo de ativacao")
+    def regenerar_codigo_ativacao(self, request, queryset):
+        for dispositivo in queryset:
+            dispositivo.codigo_ativacao = ''
+            dispositivo.ativado = False
+            dispositivo.save()
+        self.message_user(
+            request,
+            f"Codigos regenerados para {queryset.count()} dispositivo(s). Os dispositivos precisarao ser ativados novamente.",
+            level=messages.WARNING
+        )
+
+    @admin.action(description="Desativar dispositivos selecionados")
+    def desativar_dispositivos(self, request, queryset):
+        queryset.update(ativo=False)
+        self.message_user(request, f"{queryset.count()} dispositivo(s) desativado(s).")
+
+    @admin.action(description="Ativar dispositivos selecionados")
+    def ativar_dispositivos(self, request, queryset):
+        queryset.update(ativo=True)
+        self.message_user(request, f"{queryset.count()} dispositivo(s) ativado(s).")
+
+
+
+@admin.register(Agente)
+class AgenteAdmin(admin.ModelAdmin):
+    list_display = [
+        'matricula', 'nome', 'ativo',
+        'senha_alterada', 'criado_em',
+    ]
+    list_filter = ['ativo', 'senha_alterada']
+    search_fields = ['matricula', 'nome']
+    ordering = ['nome']
+    actions = ['resetar_senha']
+
+    fieldsets = (
+        (None, {
+            'fields': ('matricula', 'nome', 'ativo', 'assinatura')
+        }),
+        ('Informacoes do Sistema', {
+            'fields': ('senha_alterada', 'criado_em',),
+            'classes': ('collapse',)
+        }),
+    )
+    readonly_fields = ['criado_em', 'senha_alterada']
+
+    @admin.action(description="Resetar senha para padrao (admin)")
+    def resetar_senha(self, request, queryset):
+        from django.contrib.auth.hashers import make_password
+        queryset.update(
+            senha=make_password('admin'),
+            senha_alterada=False,
+        )
+        self.message_user(
+            request,
+            f"Senha resetada para {queryset.count()} agente(s)."
+        )
+
 
 # --- Configurações Globais do Admin Site ---
 admin.site.site_header = "Administração CRR"

@@ -1,4 +1,6 @@
 from rest_framework.permissions import BasePermission, SAFE_METHODS
+from django.utils import timezone
+
 
 class IsJavaUser(BasePermission):
     """
@@ -20,3 +22,33 @@ class IsJavaUser(BasePermission):
             return True
 
         return False
+
+
+class IsDispositivoMobile(BasePermission):
+    """
+    Autenticação via API Key para dispositivos mobile.
+    Header: X-API-Key: <api_key>
+    """
+
+    def has_permission(self, request, view):
+        from .models import DispositivoMobile
+
+        api_key = request.headers.get('X-API-Key')
+        if not api_key:
+            return False
+
+        try:
+            dispositivo = DispositivoMobile.objects.get(
+                api_key=api_key,
+                ativo=True
+            )
+            # Atualiza último acesso
+            dispositivo.ultimo_acesso = timezone.now()
+            dispositivo.save(update_fields=['ultimo_acesso'])
+
+            # Anexa dispositivo ao request para uso nas views
+            request.dispositivo = dispositivo
+            return True
+
+        except DispositivoMobile.DoesNotExist:
+            return False

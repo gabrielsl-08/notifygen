@@ -1,0 +1,26 @@
+{% extends 'crr/base.html' %}
+
+{% block title %}Excluir Arrendatário | DIVPROM{% endblock %}
+{% block page_title %}Excluir Arrendatário{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header text-danger">
+        <i class="bi bi-exclamation-triangle me-2"></i>Confirmar Exclusão
+    </div>
+    <div class="card-body">
+        <p>Deseja realmente excluir o arrendatário <strong>{{ obj.nome_arrendatario|upper }}</strong>?</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash me-1"></i> Excluir
+                </button>
+                <a href="{% url 'crr:arrendatario_list' %}" class="btn btn-outline-secondary">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

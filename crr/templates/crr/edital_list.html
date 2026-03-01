@@ -1,0 +1,54 @@
+{% extends 'crr/base.html' %}
+
+{% block title %}Editais Gerados | DIVPROM{% endblock %}
+{% block page_title %}Editais Gerados{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-file-earmark-word me-2"></i>Histórico de Editais
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nº Edital</th>
+                        <th>Data / Hora</th>
+                        <th>Gerado por</th>
+                        <th>CRRs Incluídos</th>
+                        <th class="text-center">Download</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in editais %}
+                    <tr>
+                        <td><strong>{{ e.numero }}</strong></td>
+                        <td>{{ e.gerado_em|date:"d/m/Y H:i" }}</td>
+                        <td>{{ e.usuario.username|default:"-" }}</td>
+                        <td>
+                            <span class="text-muted small">{{ e.crrs|upper }}</span>
+                        </td>
+                        <td class="text-center">
+                            {% if e.arquivo %}
+                            <a href="{{ e.arquivo.url }}" class="btn btn-sm btn-outline-secondary" download title="Baixar DOCX">
+                                <i class="bi bi-download"></i>
+                            </a>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            Nenhum edital gerado ainda.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

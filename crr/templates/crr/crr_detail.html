@@ -1,0 +1,157 @@
+{% extends 'crr/base.html' %}
+
+{% block title %}CRR {{ crr.numeroCrr|upper }} | DIVPROM{% endblock %}
+{% block page_title %}Detalhes do CRR: {{ crr.numeroCrr|upper }}{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'crr:crr_list' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Voltar
+    </a>
+    <a href="{% url 'crr:crr_update' crr.pk %}" class="btn btn-warning btn-sm">
+        <i class="bi bi-pencil"></i> Editar
+    </a>
+    <span class="badge badge-{{ crr.status }} ms-2" style="font-size: 1rem;">
+        {{ crr.get_status_display }}
+    </span>
+</div>
+
+<!-- Condutor -->
+<div class="form-section">
+    <div class="form-section-title">
+        <i class="bi bi-person-badge"></i> Dados do Condutor
+    </div>
+    {% for condutor in crr.condutores.all %}
+    <div class="row">
+        <div class="col-md-4"><strong>Nome:</strong> {{ condutor.nomeCondutor|default:"-"|title }}</div>
+        <div class="col-md-2"><strong>CPF:</strong> {{ condutor.cpfCondutor|default:"-" }}</div>
+        <div class="col-md-2"><strong>CNH:</strong> {{ condutor.cnh|default:"-" }}</div>
+        <div class="col-md-2"><strong>CNH Estrangeira:</strong> {{ condutor.cnhEstrangeira|default:"-" }}</div>
+        <div class="col-md-2"><strong>UF CNH:</strong> {{ condutor.ufCnh|default:"-"|upper }}</div>
+    </div>
+    {% empty %}
+    <p class="text-muted">Nenhum condutor cadastrado.</p>
+    {% endfor %}
+</div>
+
+<!-- Veiculo -->
+<div class="form-section">
+    <div class="form-section-title">
+        <i class="bi bi-car-front"></i> Dados do Veiculo
+    </div>
+    {% for veiculo in crr.veiculo.all %}
+    <div class="row mb-2">
+        <div class="col-md-2"><strong>Placa:</strong> {{ veiculo.placa|default:"-"|upper }}</div>
+        <div class="col-md-3"><strong>Chassi:</strong> {{ veiculo.chassi|default:"-"|upper }}</div>
+        <div class="col-md-2"><strong>Marca:</strong> {{ veiculo.marca|default:"-"|title }}</div>
+        <div class="col-md-2"><strong>Modelo:</strong> {{ veiculo.modelo|default:"-"|title }}</div>
+        <div class="col-md-1"><strong>Cor:</strong> {{ veiculo.cor|default:"-"|title }}</div>
+        <div class="col-md-2"><strong>Especie:</strong> {{ veiculo.especie|default:"-"|title }}</div>
+    </div>
+    <div class="row">
+        <div class="col-md-2"><strong>Categoria:</strong> {{ veiculo.categoria|default:"-"|title }}</div>
+        <div class="col-md-2"><strong>UF:</strong> {{ veiculo.ufVeiculo|default:"-"|upper }}</div>
+        <div class="col-md-4"><strong>Municipio:</strong> {{ veiculo.municipioVeiculo|default:"-"|title }}</div>
+    </div>
+    {% empty %}
+    <p class="text-muted">Nenhum veiculo cadastrado.</p>
+    {% endfor %}
+</div>
+
+<!-- Local e Data -->
+<div class="form-section">
+    <div class="form-section-title">
+        <i class="bi bi-geo-alt"></i> Local e Data da Fiscalizacao
+    </div>
+    <div class="row">
+        <div class="col-md-6"><strong>Local:</strong> {{ crr.localFiscalizacao|title }}</div>
+        <div class="col-md-3"><strong>Data:</strong> {{ crr.dataFiscalizacao|date:"d/m/Y" }}</div>
+        <div class="col-md-3"><strong>Hora:</strong> {{ crr.horaFiscalizacao|time:"H:i" }}</div>
+    </div>
+</div>
+
+<!-- Enquadramentos -->
+<div class="form-section">
+    <div class="form-section-title">
+        <i class="bi bi-list-check"></i> Enquadramentos
+    </div>
+    <ul class="list-unstyled">
+        {% for enq in crr.enquadramentos.all %}
+        <li><strong>{{ enq.enquadramento.codigo }}</strong> - {{ enq.enquadramento.descricao_infracao|title }}</li>
+        {% empty %}
+        <li class="text-muted">Nenhum enquadramento cadastrado.</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<!-- AITs -->
+<div class="form-section">
+    <div class="form-section-title">
+        <i class="bi bi-clipboard-data"></i> AITs
+    </div>
+    <ul class="list-unstyled">
+        {% for ait in crr.aits.all %}
+        <li>{{ ait.ait|upper }}</li>
+        {% empty %}
+        <li class="text-muted">Nenhum AIT cadastrado.</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<!-- Guincho -->
+<div class="form-section">
+    <div class="form-section-title">
+        <i class="bi bi-truck"></i> Dados do Guincho
+    </div>
+    <div class="row">
+        <div class="col-md-3"><strong>Placa Guincho:</strong> {{ crr.placaGuincho|default:"-"|upper }}</div>
+        <div class="col-md-6"><strong>Encarregado:</strong> {{ crr.encarregado|default:"-"|title }}</div>
+    </div>
+</div>
+
+<!-- Informacoes Adicionais -->
+<div class="form-section">
+    <div class="form-section-title">
+        <i class="bi bi-chat-text"></i> Informacoes Adicionais
+    </div>
+    <div class="row">
+        <div class="col-12"><strong>Observacao:</strong> {{ crr.observacao|default:"-" }}</div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-md-3"><strong>Matricula Agente:</strong> {{ crr.matriculaAgente }}</div>
+        <div class="col-md-3"><strong>Numero CRR:</strong> {{ crr.numeroCrr|upper }}</div>
+    </div>
+</div>
+
+<!-- Arrendatario -->
+<div class="form-section">
+    <div class="form-section-title">
+        <i class="bi bi-building"></i> Arrendatario
+    </div>
+    {% for arr in crr.arrendatarios.all %}
+    <p>{{ arr.arrendatario.nome_arrendatario|title }} - {{ arr.arrendatario.cnpj_arrendatario }}</p>
+    {% empty %}
+    <p class="text-muted">Nenhum arrendatario cadastrado.</p>
+    {% endfor %}
+</div>
+
+<!-- Imagens -->
+<div class="form-section">
+    <div class="form-section-title">
+        <i class="bi bi-images"></i> Imagens do Veiculo
+    </div>
+    <div class="row">
+        {% for img in crr.imagens.all %}
+        <div class="col-md-3 mb-3">
+            <a href="{{ img.imagem.url }}" target="_blank">
+                <img src="{{ img.imagem.url }}" class="img-fluid rounded" alt="Imagem CRR">
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p class="text-muted">Nenhuma imagem cadastrada.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

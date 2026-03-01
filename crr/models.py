@@ -1,5 +1,7 @@
 from django.db import models
 from datetime import timedelta
+import secrets
+from django.contrib.auth.models import User
 from .choices import STATUS_CHOICES,CATEGORIA_CHOICES,ESTADO_CHOICES,STATUS_CHOICES,ESPECIE_CHOICES
 
 # ---------------- VEÍCULO ---------------- #
@@ -22,7 +24,18 @@ class Crr(models.Model):
     localPatio =  models.CharField(max_length=100,default='RUA BOLIVIA, Nº202, JARAGUA - SÃO SEBASTIÃO/SP - 11600-748', blank=True, null=False,verbose_name='Pátio')
     placaGuincho = models.CharField(max_length=7, blank=True, null=False,verbose_name='Placa do guicho')
     encarregado = models.CharField(max_length=50, blank=True, null=False,verbose_name='encarregado do guincho')
-    status = models.CharField(max_length=8, choices=STATUS_CHOICES,default='pendente',help_text="Status atual do veículo (Retido/Liberado)")    
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES,default='pendente',help_text="Status atual do veículo (Retido/Liberado)")
+    SITUACAO_ENTREGA_CHOICES = [
+        ('Assinou e recebeu 2a via',           'Assinou e recebeu 2ª via'),
+        ('Recusou assinar e recebeu 2a via',   'Recusou assinar e recebeu 2ª via'),
+        ('Recusou assinar e a receber 2a via', 'Recusou assinar e a receber 2ª via'),
+        ('Condutor ausente',                   'Condutor ausente'),
+    ]
+    situacaoEntrega = models.CharField(
+        max_length=50, blank=True, null=False, default='',
+        choices=SITUACAO_ENTREGA_CHOICES,
+        verbose_name='Situação de Entrega',
+    )
     not_gerada = models.BooleanField(default=False,verbose_name='Status da Notificação')
     edital_emitido = models.BooleanField(default=False) 
     criado_em = models.DateTimeField(auto_now_add=True)
@@ -32,7 +45,7 @@ class Crr(models.Model):
         # Definir os campos que devem ser convertidos para minúsculas
         lower_fields = [
              'numeroCrr','localFiscalizacao','municipioEstadoFiscalizacao','observacao',
-             'medidaAdministrativa','localPatio','placaGuincho','encarregado',
+             'medidaAdministrativa','localPatio','placaGuincho','encarregado','situacaoEntrega',
         ]
         
         # Aplicar normalização para minúsculas
@@ -140,6 +153,7 @@ class Condutor(models.Model):
     ufCnh = models.CharField(max_length=6, choices=ESTADO_CHOICES, blank=True, null=False, verbose_name='UF da CNH')
     cpfCondutor = models.CharField(max_length=14, blank=True, null=False, verbose_name='CPF')
     nomeCondutor = models.CharField(max_length=50, blank=True, null=False, verbose_name='Nome do Condutor')
+    assinaturaCondutor = models.TextField(blank=True, default='', verbose_name='Assinatura do Condutor (base64)')
 
 
     def __str__(self):
@@ -234,3 +248,108 @@ class ImagemCrr(models.Model):
 
     def __str__(self):
         return self.url or f"Imagem {self.id} para {self.crr.numeroCrr}"
+
+
+# ==================== AGENTES ==================== #
+
+class Agente(models.Model):
+    """Agente autorizado a usar o app mobile"""
+    matricula = models.CharField(max_length=20, unique=True, verbose_name='Matricula')
+    nome = models.CharField(max_length=100, verbose_name='Nome do Agente')
+    senha = models.CharField(max_length=128, default='', blank=True, verbose_name='Senha (hash)')
+    senha_alterada = models.BooleanField(default=False, verbose_name='Senha alterada')
+    assinatura = models.ImageField(upload_to='assinaturas/', blank=True, null=True, verbose_name='Assinatura')
+    ativo = models.BooleanField(default=True, verbose_name='Ativo')
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Agente'
+        verbose_name_plural = 'Agentes'
+        ordering = ['nome']
+
+    def __str__(self):
+        return f"{self.matricula} - {self.nome}"
+
+    def set_senha(self, raw_password):
+        from django.contrib.auth.hashers import make_password
+        self.senha = make_password(raw_password)
+
+    def check_senha(self, raw_password):
+        from django.contrib.auth.hashers import check_password
+        return check_password(raw_password, self.senha)
+
+    def save(self, *args, **kwargs):
+        if not self.pk and not self.senha:
+            from django.contrib.auth.hashers import make_password
+            self.senha = make_password('admin')
+        super().save(*args, **kwargs)
+
+
+# ==================== DISPOSITIVOS MOBILE ==================== #
+
+class DispositivoMobile(models.Model):
+    """Dispositivo mobile autorizado a criar CRRs"""
+    nome = models.CharField(max_length=100, verbose_name='Nome do Dispositivo')
+    imei = models.CharField(max_length=20, unique=True, blank=True, null=True,
+                           verbose_name='IMEI do Dispositivo',
+                           help_text='Numero IMEI unico do dispositivo (15-17 digitos)')
+    api_key = models.CharField(max_length=64, unique=True, verbose_name='API Key')
+    codigo_ativacao = models.CharField(
+        max_length=8, unique=True, blank=True,
+        verbose_name='Codigo de Ativacao',
+        help_text='Codigo de 6 digitos para ativar o dispositivo no app mobile'
+    )
+    ativado = models.BooleanField(default=False, verbose_name='Ativado',
+                                   help_text='Indica se o dispositivo foi ativado via app mobile')
+    ativo = models.BooleanField(default=True, verbose_name='Ativo')
+    criado_em = models.DateTimeField(auto_now_add=True)
+    ultimo_acesso = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Dispositivo Mobile'
+        verbose_name_plural = 'Dispositivos Mobile'
+
+    def __str__(self):
+        return f"{self.nome}"
+
+    def save(self, *args, **kwargs):
+        if not self.api_key:
+            self.api_key = secrets.token_hex(32)
+        if not self.codigo_ativacao:
+            self.codigo_ativacao = self._gerar_codigo_ativacao()
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def _gerar_codigo_ativacao():
+        """Gera um codigo de ativacao unico de 6 digitos"""
+        import random
+        while True:
+            codigo = f"{random.randint(100000, 999999)}"
+            if not DispositivoMobile.objects.filter(
+                codigo_ativacao=codigo
+            ).exists():
+                return codigo
+
+    @classmethod
+    def gerar_api_key(cls):
+        return secrets.token_hex(32)
+
+
+# ==================== EDITAIS GERADOS ==================== #
+
+class EditalGerado(models.Model):
+    numero = models.CharField(max_length=10, verbose_name='Número do Edital')
+    arquivo = models.FileField(upload_to='editais/', verbose_name='Arquivo DOCX')
+    usuario = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL, verbose_name='Gerado por'
+    )
+    crrs = models.TextField(verbose_name='CRRs Incluídos')
+    gerado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Edital Gerado'
+        verbose_name_plural = 'Editais Gerados'
+        ordering = ['-gerado_em']
+
+    def __str__(self):
+        return f"Edital nº {self.numero} — {self.gerado_em.strftime('%d/%m/%Y')}"

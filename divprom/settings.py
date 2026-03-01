@@ -29,9 +29,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Configuração do banco de dados
 DATABASES = {
-    'default': dj_database_url.config(
-        default='postgres://postgres:postgres@localhost:5432/divprom'
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
 
@@ -84,7 +85,7 @@ ROOT_URLCONF = 'divprom.urls'
 
 
 INSTALLED_APPS = [
-     'jazzmin',  
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -98,8 +99,40 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'authentication',
     "bootstrap5",
-    
+
 ]
+
+# Configuração do Jazzmin
+JAZZMIN_SETTINGS = {
+    "site_title": "DIVPROM",
+    "site_header": "DIVPROM",
+    "site_brand": "DIVPROM",
+    "welcome_sign": "Bem-vindo ao Sistema DIVPROM",
+    "copyright": "Prefeitura Municipal de São Sebastião",
+    "search_model": ["crr.Crr"],
+    "topmenu_links": [
+        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
+    ],
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "crr.Crr": "fas fa-file-alt",
+        "crr.TabelaEnquadramento": "fas fa-table",
+        "crr.TabelaArrendatario": "fas fa-building",
+        "notificacao.Notificacao": "fas fa-envelope",
+    },
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
+    "related_modal_active": False,
+    "use_google_fonts_cdn": True,
+    "changeform_format": "vertical_tabs",
+    "changeform_format_overrides": {
+        "crr.crr": "vertical_tabs",
+    },
+}
 
 
 TEMPLATES = [
@@ -154,50 +187,14 @@ TIME_INPUT_FORMATS = ['%H:%M']
 SHORT_DATE_FORMAT = 'd/m/Y'
 TIME_FORMAT = 'H:i'
 
+# Autenticação: usar login do Django Admin
+LOGIN_URL = '/admin/login/'
+LOGIN_REDIRECT_URL = '/crr/'
 
 
 
 
-JAZZMIN_SETTINGS = {
-    "show_sidebar": True,
-    "site_title": "DIVPROM",
-    "site_header": "DIVPROM",
-    "site_brand": "DIVPROM",
-    "site_logo": "/brasao.jpg",
-    "site_logo_classes": "img-circle",
-    "site_icon": None,
 
-    "icons": {
-        "auth": "fas fa-users-cog",
-        "auth.user": "fas fa-user",
-        "auth.Group": "fas fa-users",
-        "crr.Notificacao": "fa-solid fa-envelope",
-        "crr.Crr": "fa-solid fa-car",
-        "triagem": "fas fa-exclamation-triangle", 
-    },
-
-    "custom_links": {
-        "crr": [  # Refere-se à app label
-           
-             {
-                "name": "Triagem de CRRs",
-                "url": "/admin/crr/crr/?status=pendente",  # Nome da URL, deve coincidir com path da url
-                "icon": "fas fa-exclamation-triangle",  # Adiciona um ícone
-                "permissions": ["crr.view_crr"]
-            },
-        ],
-    },
-
-
-    "changeform_format": "single",             # Mostra tudo em uma página (sem abas)
-    "show_save_buttons_on_top": False,
-     # List of apps (and/or models) to base side menu ordering 
-    "order_with_respect_to": ["crr.Crr", "crr.Notificacao"],  
-     "language_chooser": False, 
-        
-    
-    
-}
 
 
 

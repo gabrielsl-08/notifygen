@@ -1,0 +1,128 @@
+{% extends 'crr/base.html' %}
+
+{% block title %}Triagem de CRRs | DIVPROM{% endblock %}
+{% block page_title %}Triagem de CRRs{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-center border-warning">
+            <div class="card-body">
+                <h3 class="text-warning">{{ total_pendentes }}</h3>
+                <p class="mb-0">CRRs Pendentes para Triagem</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-funnel me-2"></i>CRRs Aguardando Triagem</span>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-6">
+                <input type="text" name="search" class="form-control" placeholder="Buscar por CRR, placa ou chassi..." value="{{ search }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-search"></i> Filtrar
+                </button>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>CRR</th>
+                        <th>Placa</th>
+                        <th>Chassi</th>
+                        <th>Marca/Modelo</th>
+                        <th>Data Fiscalizacao</th>
+                        <th>Enquadramentos</th>
+                        <th class="text-center">Acoes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for crr in crrs %}
+                    <tr>
+                        <td><strong>{{ crr.numeroCrr|upper }}</strong></td>
+                        <td>
+                            {% for v in crr.veiculo.all %}
+                                {{ v.placa|upper }}{% if not forloop.last %}, {% endif %}
+                            {% empty %}
+                                -
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% for v in crr.veiculo.all %}
+                                {{ v.chassi|upper }}{% if not forloop.last %}, {% endif %}
+                            {% empty %}
+                                -
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% for v in crr.veiculo.all %}
+                                {{ v.marca|title }}/{{ v.modelo|title }}{% if not forloop.last %}, {% endif %}
+                            {% empty %}
+                                -
+                            {% endfor %}
+                        </td>
+                        <td>{{ crr.dataFiscalizacao|date:"d/m/Y" }}</td>
+                        <td>
+                            {% for enq in crr.enquadramentos.all %}
+                                <span class="badge bg-secondary">{{ enq.enquadramento.codigo }}</span>
+                            {% empty %}
+                                -
+                            {% endfor %}
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'crr:triagem_detail' crr.pk %}" class="btn btn-sm btn-outline-info" title="Visualizar">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'crr:triagem_update' crr.pk %}" class="btn btn-sm btn-warning" title="Editar e Triar">
+                                    <i class="bi bi-pencil"></i> Triar
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="bi bi-check-circle" style="font-size: 2rem;"></i>
+                            <p class="mt-2">Nenhum CRR pendente para triagem.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if page_obj.has_other_pages %}
+        <nav>
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{ search }}">Anterior</a>
+                </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}&search={{ search }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&search={{ search }}">Proximo</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
