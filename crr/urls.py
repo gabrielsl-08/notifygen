@@ -39,6 +39,12 @@ urlpatterns = [
     path('enquadramentos/<int:pk>/editar/', views.enquadramento_edit, name='enquadramento_edit'),
     path('enquadramentos/<int:pk>/excluir/', views.enquadramento_delete, name='enquadramento_delete'),
 
+    # Agentes (superuser)
+    path('agentes/', views.agente_list, name='agente_list'),
+    path('agentes/novo/', views.agente_create, name='agente_create'),
+    path('agentes/<int:pk>/editar/', views.agente_edit, name='agente_edit'),
+    path('agentes/<int:pk>/excluir/', views.agente_delete, name='agente_delete'),
+
     # Minha Senha
     path('minha-senha/', views.MinhaSenhaView.as_view(), name='minha_senha'),
 ]

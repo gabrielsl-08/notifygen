@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import inlineformset_factory
-from .models import Crr, Condutor, Veiculo, Ait, Enquadramento, Arrendatario, ImagemCrr, TabelaEnquadramento, TabelaArrendatario
+from .models import Crr, Condutor, Veiculo, Ait, Enquadramento, Arrendatario, ImagemCrr, TabelaEnquadramento, TabelaArrendatario, Agente
 
 
 class CrrForm(forms.ModelForm):
@@ -119,6 +119,36 @@ class TabelaEnquadramentoForm(forms.ModelForm):
             'amparo_legal': forms.TextInput(attrs={'class': 'form-control'}),
             'descricao_infracao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
+
+
+class AgenteForm(forms.ModelForm):
+    nova_senha = forms.CharField(
+        label='Nova Senha (opcional)',
+        required=False,
+        min_length=4,
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Deixe em branco para não alterar'}),
+        help_text='Se preenchido, a senha será redefinida e o agente deverá alterá-la no próximo acesso.',
+    )
+
+    class Meta:
+        model = Agente
+        fields = ['matricula', 'nome', 'ativo', 'assinatura']
+        widgets = {
+            'matricula': forms.TextInput(attrs={'class': 'form-control'}),
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'assinatura': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        }
+
+    def save(self, commit=True):
+        agente = super().save(commit=False)
+        nova_senha = self.cleaned_data.get('nova_senha')
+        if nova_senha:
+            agente.set_senha(nova_senha)
+            agente.senha_alterada = False
+        if commit:
+            agente.save()
+        return agente
 
 
 # Formsets para os modelos relacionados

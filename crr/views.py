@@ -10,11 +10,11 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.contrib.auth.views import PasswordChangeView as DjangoPasswordChangeView
 from django.contrib.auth.forms import PasswordChangeForm
-from .models import Crr, Condutor, Veiculo, Ait, Enquadramento, Arrendatario, ImagemCrr, DispositivoMobile, EditalGerado, TabelaArrendatario, TabelaEnquadramento
+from .models import Crr, Condutor, Veiculo, Ait, Enquadramento, Arrendatario, ImagemCrr, DispositivoMobile, EditalGerado, TabelaArrendatario, TabelaEnquadramento, Agente
 from .forms import (
     CrrForm, CondutorFormSet, VeiculoFormSet, AitFormSet,
     EnquadramentoFormSet, ArrendatarioFormSet, ImagemCrrFormSet,
-    TabelaArrendatarioForm, TabelaEnquadramentoForm,
+    TabelaArrendatarioForm, TabelaEnquadramentoForm, AgenteForm,
 )
 from .template_edital import gerar_edital_docx
 
@@ -308,10 +308,12 @@ def dispositivo_edit(request, pk):
     if request.method == 'POST':
         nome = request.POST.get('nome', '').strip()
         ativo = request.POST.get('ativo') == '1'
+        ativado = request.POST.get('ativado') == '1'
         if nome:
             dispositivo.nome = nome
             dispositivo.ativo = ativo
-            dispositivo.save(update_fields=['nome', 'ativo'])
+            dispositivo.ativado = ativado
+            dispositivo.save(update_fields=['nome', 'ativo', 'ativado'])
             messages.success(request, f'Dispositivo "{nome}" atualizado.')
         else:
             messages.error(request, 'Informe o nome do dispositivo.')
@@ -491,6 +493,68 @@ def enquadramento_delete(request, pk):
         messages.success(request, 'Enquadramento excluído.')
         return redirect('crr:enquadramento_list')
     return render(request, 'crr/enquadramento_confirm_delete.html', {'obj': obj})
+
+
+# -------- Agentes (superuser only) -------- #
+
+@login_required
+def agente_list(request):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    agentes = Agente.objects.order_by('nome')
+    return render(request, 'crr/agente_list.html', {'agentes': agentes})
+
+
+@login_required
+def agente_create(request):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    if request.method == 'POST':
+        form = AgenteForm(request.POST, request.FILES)
+        if form.is_valid():
+            agente = form.save(commit=False)
+            nova_senha = form.cleaned_data.get('nova_senha')
+            if nova_senha:
+                agente.set_senha(nova_senha)
+                agente.senha_alterada = False
+            else:
+                agente.set_senha('admin')
+                agente.senha_alterada = False
+            agente.save()
+            messages.success(request, f'Agente {agente.nome} cadastrado. Senha inicial: "admin" (ou a definida).')
+            return redirect('crr:agente_list')
+    else:
+        form = AgenteForm()
+    return render(request, 'crr/agente_form.html', {'form': form, 'titulo': 'Novo Agente'})
+
+
+@login_required
+def agente_edit(request, pk):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    agente = get_object_or_404(Agente, pk=pk)
+    if request.method == 'POST':
+        form = AgenteForm(request.POST, request.FILES, instance=agente)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Agente {agente.nome} atualizado.')
+            return redirect('crr:agente_list')
+    else:
+        form = AgenteForm(instance=agente)
+    return render(request, 'crr/agente_form.html', {'form': form, 'titulo': 'Editar Agente', 'obj': agente})
+
+
+@login_required
+def agente_delete(request, pk):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    agente = get_object_or_404(Agente, pk=pk)
+    if request.method == 'POST':
+        nome = agente.nome
+        agente.delete()
+        messages.success(request, f'Agente {nome} removido.')
+        return redirect('crr:agente_list')
+    return render(request, 'crr/agente_confirm_delete.html', {'obj': agente})
 
 
 # -------- Alteração de senha (usuário comum) -------- #

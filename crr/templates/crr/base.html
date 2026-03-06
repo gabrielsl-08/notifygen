@@ -201,6 +201,9 @@
             <a href="{% url 'crr:enquadramento_list' %}" class="{% if 'enquadramentos' in request.path %}active{% endif %}">
                 <i class="bi bi-card-list"></i> Enquadramentos
             </a>
+            <a href="{% url 'crr:agente_list' %}" class="{% if 'agentes' in request.path %}active{% endif %}">
+                <i class="bi bi-people"></i> Agentes
+            </a>
             {% endif %}
             <hr class="my-2 mx-3 border-secondary">
             {% if user.is_superuser %}

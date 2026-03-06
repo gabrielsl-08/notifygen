@@ -156,6 +156,42 @@
     </div>
 </div>
 
+<!-- Situacao de Entrega e Assinatura do Condutor -->
+<div class="form-section">
+    <div class="form-section-title">
+        <i class="bi bi-pen"></i> Situacao de Entrega ao Condutor
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <strong>Situacao:</strong>
+            {% if crr.situacaoEntrega == 'Assinou e recebeu 2a via' %}
+                <span class="badge bg-success">{{ crr.situacaoEntrega }}</span>
+            {% elif crr.situacaoEntrega == 'Recusou assinar e recebeu 2a via' %}
+                <span class="badge bg-warning text-dark">{{ crr.situacaoEntrega }}</span>
+            {% elif crr.situacaoEntrega == 'Recusou assinar e a receber 2a via' %}
+                <span class="badge bg-danger">{{ crr.situacaoEntrega }}</span>
+            {% elif crr.situacaoEntrega == 'Condutor ausente' %}
+                <span class="badge bg-secondary">{{ crr.situacaoEntrega }}</span>
+            {% else %}
+                <span class="text-muted">Nao registrada</span>
+            {% endif %}
+        </div>
+    </div>
+    {% if crr.assinaturaCondutor %}
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <strong>Assinatura do Condutor:</strong>
+            <div class="mt-2">
+                <img src="data:image/jpeg;base64,{{ crr.assinaturaCondutor }}"
+                     class="img-fluid rounded border"
+                     style="max-height: 150px; max-width: 300px;"
+                     alt="Assinatura do Condutor">
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
 <!-- Botoes de Acao da Triagem -->
 <div class="form-section">
     <div class="form-section-title">

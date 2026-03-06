@@ -66,7 +66,7 @@
                         <td class="text-center">
                             <button type="button" class="btn btn-sm btn-outline-warning"
                                     title="Editar"
-                                    onclick="abrirEdicao({{ d.pk }}, '{{ d.nome|escapejs }}', {{ d.ativo|yesno:'true,false' }})">
+                                    onclick="abrirEdicao({{ d.pk }}, '{{ d.nome|escapejs }}', {{ d.ativo|yesno:'true,false' }}, {{ d.ativado|yesno:'true,false' }})">
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <form method="post" action="{% url 'crr:dispositivo_delete' d.pk %}" class="d-inline"
@@ -106,9 +106,16 @@
                         <label class="form-label">Nome</label>
                         <input type="text" name="nome" id="edit-nome" class="form-control" required>
                     </div>
-                    <div class="form-check">
+                    <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" name="ativo" value="1" id="edit-ativo">
                         <label class="form-check-label" for="edit-ativo">Dispositivo ativo</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="ativado" value="1" id="edit-ativado">
+                        <label class="form-check-label" for="edit-ativado">
+                            Código já ativado
+                            <small class="text-muted d-block">Desmarque para permitir uma nova ativação neste dispositivo</small>
+                        </label>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -123,11 +130,12 @@
 
 {% block extra_js %}
 <script>
-function abrirEdicao(pk, nome, ativo) {
+function abrirEdicao(pk, nome, ativo, ativado) {
     const baseUrl = "{% url 'crr:dispositivo_edit' 0 %}".replace('/0/', '/' + pk + '/');
     document.getElementById('form-editar').action = baseUrl;
     document.getElementById('edit-nome').value = nome;
     document.getElementById('edit-ativo').checked = ativo;
+    document.getElementById('edit-ativado').checked = ativado;
     new bootstrap.Modal(document.getElementById('modalEditar')).show();
 }
 </script>

@@ -1,0 +1,71 @@
+{% extends 'crr/base.html' %}
+
+{% block title %}{{ titulo }} | DIVPROM{% endblock %}
+{% block page_title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px;">
+    <div class="card-header">
+        <i class="bi bi-person-gear me-2"></i>{{ titulo }}
+    </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label">Matrícula *</label>
+                {{ form.matricula }}
+                {% if form.matricula.errors %}
+                    <div class="text-danger small">{{ form.matricula.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Nome *</label>
+                {{ form.nome }}
+                {% if form.nome.errors %}
+                    <div class="text-danger small">{{ form.nome.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3 form-check">
+                {{ form.ativo }}
+                <label class="form-check-label">Ativo</label>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Assinatura (imagem)</label>
+                {% if obj and obj.assinatura %}
+                    <div class="mb-2">
+                        <img src="{{ obj.assinatura.url }}" height="60"
+                             class="border rounded" alt="Assinatura atual">
+                        <small class="text-muted ms-2">Assinatura atual</small>
+                    </div>
+                {% endif %}
+                {{ form.assinatura }}
+            </div>
+
+            <hr>
+            <div class="mb-3">
+                <label class="form-label">
+                    <i class="bi bi-key me-1"></i>{{ form.nova_senha.label }}
+                </label>
+                {{ form.nova_senha }}
+                <div class="form-text">{{ form.nova_senha.help_text }}</div>
+                {% if form.nova_senha.errors %}
+                    <div class="text-danger small">{{ form.nova_senha.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> Salvar
+                </button>
+                <a href="{% url 'crr:agente_list' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

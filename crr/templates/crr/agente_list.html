@@ -1,0 +1,72 @@
+{% extends 'crr/base.html' %}
+
+{% block title %}Agentes | DIVPROM{% endblock %}
+{% block page_title %}Agentes Mobile{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-people me-2"></i>Agentes Cadastrados</span>
+        <a href="{% url 'crr:agente_create' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg"></i> Novo Agente
+        </a>
+    </div>
+    <div class="card-body p-0">
+        {% if agentes %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Matrícula</th>
+                        <th>Nome</th>
+                        <th>Situação</th>
+                        <th>Senha Alterada</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for agente in agentes %}
+                    <tr>
+                        <td><span class="badge bg-secondary">{{ agente.matricula }}</span></td>
+                        <td>{{ agente.nome }}</td>
+                        <td>
+                            {% if agente.ativo %}
+                                <span class="badge bg-success">Ativo</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inativo</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if agente.senha_alterada %}
+                                <span class="badge bg-success"><i class="bi bi-check-lg"></i> Sim</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle"></i> Não</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'crr:agente_edit' agente.pk %}"
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'crr:agente_delete' agente.pk %}"
+                               class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+            <i class="bi bi-people fs-1"></i>
+            <p class="mt-2">Nenhum agente cadastrado.</p>
+            <a href="{% url 'crr:agente_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Cadastrar Agente
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

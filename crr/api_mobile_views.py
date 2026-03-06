@@ -56,6 +56,12 @@ def ativar_dispositivo(request):
             'erro': 'Dispositivo desativado. Contate o administrador.'
         }, status=status.HTTP_403_FORBIDDEN)
 
+    if dispositivo.ativado:
+        return Response({
+            'sucesso': False,
+            'erro': 'Código de ativação já utilizado. Solicite ao administrador a liberação do dispositivo.'
+        }, status=status.HTTP_403_FORBIDDEN)
+
     # Valida matricula do agente
     if not matricula:
         return Response({
