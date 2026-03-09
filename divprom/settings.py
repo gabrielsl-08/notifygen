@@ -194,6 +194,11 @@ TIME_FORMAT = 'H:i'
 LOGIN_URL = '/admin/login/'
 LOGIN_REDIRECT_URL = '/crr/'
 
+# Sessão: expira após 30 minutos de inatividade
+SESSION_COOKIE_AGE = 1800          # 30 minutos em segundos
+SESSION_SAVE_EVERY_REQUEST = True  # Renova o timer a cada requisição
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
 
 
 

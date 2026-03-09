@@ -10,11 +10,16 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.contrib.auth.views import PasswordChangeView as DjangoPasswordChangeView
 from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.models import User, Group
+from django.contrib.admin.models import LogEntry
+from django.contrib.contenttypes.models import ContentType
+from django.core.paginator import Paginator
 from .models import Crr, Condutor, Veiculo, Ait, Enquadramento, Arrendatario, ImagemCrr, DispositivoMobile, EditalGerado, TabelaArrendatario, TabelaEnquadramento, Agente
 from .forms import (
     CrrForm, CondutorFormSet, VeiculoFormSet, AitFormSet,
     EnquadramentoFormSet, ArrendatarioFormSet, ImagemCrrFormSet,
     TabelaArrendatarioForm, TabelaEnquadramentoForm, AgenteForm,
+    UsuarioCreateForm, UsuarioEditForm, GrupoForm,
 )
 from .template_edital import gerar_edital_docx
 
@@ -371,7 +376,7 @@ def edital_list(request):
 @login_required
 def triagem_status(request, pk, novo_status):
     """Atualiza o status de um CRR via botão na triagem (retido / liberado)."""
-    VALIDOS = {'pendente', 'retido', 'liberado', 'cancelado'}
+    VALIDOS = {'pendente', 'retido', 'liberado', 'cancelado', 'leiloado'}
     if novo_status not in VALIDOS:
         messages.error(request, 'Status inválido.')
         return redirect('crr:triagem_list')
@@ -380,7 +385,9 @@ def triagem_status(request, pk, novo_status):
     crr.status = novo_status
     crr.save(update_fields=['status'])
 
-    label = 'Retido' if novo_status == 'retido' else 'Liberado'
+    labels = {'retido': 'Retido', 'liberado': 'Liberado', 'cancelado': 'Cancelado',
+              'leiloado': 'Leiloado', 'pendente': 'Pendente'}
+    label = labels.get(novo_status, novo_status.capitalize())
     messages.success(request, f'CRR {crr.numeroCrr.upper()} marcado como {label}.')
 
     next_url = request.GET.get('next', '')
@@ -555,6 +562,160 @@ def agente_delete(request, pk):
         messages.success(request, f'Agente {nome} removido.')
         return redirect('crr:agente_list')
     return render(request, 'crr/agente_confirm_delete.html', {'obj': agente})
+
+
+# -------- Logs do Sistema (superuser only) -------- #
+
+@login_required
+def log_list(request):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+
+    logs = LogEntry.objects.select_related('user', 'content_type').order_by('-action_time')
+
+    usuario_id = request.GET.get('usuario')
+    data_de    = request.GET.get('data_de')
+    data_ate   = request.GET.get('data_ate')
+    acao       = request.GET.get('acao')
+    model      = request.GET.get('model')
+
+    if usuario_id:
+        logs = logs.filter(user_id=usuario_id)
+    if data_de:
+        logs = logs.filter(action_time__date__gte=data_de)
+    if data_ate:
+        logs = logs.filter(action_time__date__lte=data_ate)
+    if acao:
+        logs = logs.filter(action_flag=acao)
+    if model:
+        logs = logs.filter(content_type__model=model)
+
+    paginator = Paginator(logs, 50)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    usuarios = User.objects.filter(logentry__isnull=False).distinct().order_by('username')
+    content_types = ContentType.objects.filter(logentry__isnull=False).distinct().order_by('model')
+
+    return render(request, 'crr/log_list.html', {
+        'page_obj': page_obj,
+        'usuarios': usuarios,
+        'content_types': content_types,
+        'filtros': {
+            'usuario': usuario_id, 'data_de': data_de, 'data_ate': data_ate,
+            'acao': acao, 'model': model,
+        },
+    })
+
+
+# -------- Usuários (superuser only) -------- #
+
+@login_required
+def usuario_list(request):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    usuarios = User.objects.all().order_by('username')
+    return render(request, 'crr/usuario_list.html', {'usuarios': usuarios})
+
+
+@login_required
+def usuario_create(request):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    if request.method == 'POST':
+        form = UsuarioCreateForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Usuário criado com sucesso.')
+            return redirect('crr:usuario_list')
+    else:
+        form = UsuarioCreateForm()
+    return render(request, 'crr/usuario_form.html', {'form': form, 'titulo': 'Novo Usuário'})
+
+
+@login_required
+def usuario_edit(request, pk):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    usuario = get_object_or_404(User, pk=pk)
+    if request.method == 'POST':
+        form = UsuarioEditForm(request.POST, instance=usuario)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Usuário {usuario.username} atualizado.')
+            return redirect('crr:usuario_list')
+    else:
+        form = UsuarioEditForm(instance=usuario)
+    return render(request, 'crr/usuario_form.html', {'form': form, 'titulo': 'Editar Usuário', 'obj': usuario})
+
+
+@login_required
+def usuario_delete(request, pk):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    usuario = get_object_or_404(User, pk=pk)
+    if request.method == 'POST':
+        if usuario == request.user:
+            messages.error(request, 'Você não pode excluir seu próprio usuário.')
+            return redirect('crr:usuario_list')
+        username = usuario.username
+        usuario.delete()
+        messages.success(request, f'Usuário "{username}" removido.')
+        return redirect('crr:usuario_list')
+    return render(request, 'crr/usuario_confirm_delete.html', {'obj': usuario})
+
+
+# -------- Grupos (superuser only) -------- #
+
+@login_required
+def grupo_list(request):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    grupos = Group.objects.all().order_by('name')
+    return render(request, 'crr/grupo_list.html', {'grupos': grupos})
+
+
+@login_required
+def grupo_create(request):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    if request.method == 'POST':
+        form = GrupoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Grupo criado com sucesso.')
+            return redirect('crr:grupo_list')
+    else:
+        form = GrupoForm()
+    return render(request, 'crr/grupo_form.html', {'form': form, 'titulo': 'Novo Grupo'})
+
+
+@login_required
+def grupo_edit(request, pk):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    grupo = get_object_or_404(Group, pk=pk)
+    if request.method == 'POST':
+        form = GrupoForm(request.POST, instance=grupo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Grupo "{grupo.name}" atualizado.')
+            return redirect('crr:grupo_list')
+    else:
+        form = GrupoForm(instance=grupo)
+    return render(request, 'crr/grupo_form.html', {'form': form, 'titulo': 'Editar Grupo', 'obj': grupo})
+
+
+@login_required
+def grupo_delete(request, pk):
+    if not request.user.is_superuser:
+        return redirect('crr:crr_list')
+    grupo = get_object_or_404(Group, pk=pk)
+    if request.method == 'POST':
+        nome = grupo.name
+        grupo.delete()
+        messages.success(request, f'Grupo "{nome}" removido.')
+        return redirect('crr:grupo_list')
+    return render(request, 'crr/grupo_confirm_delete.html', {'obj': grupo})
 
 
 # -------- Alteração de senha (usuário comum) -------- #

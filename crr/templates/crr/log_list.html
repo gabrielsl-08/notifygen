@@ -1,0 +1,120 @@
+{% extends 'crr/base.html' %}
+
+{% block title %}Logs do Sistema | DIVPROM{% endblock %}
+{% block page_title %}Logs do Sistema{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-journal-text me-2"></i>Registro de Ações
+    </div>
+    <div class="card-body">
+
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-2">
+                <label class="form-label">Usuário</label>
+                <select name="usuario" class="form-select">
+                    <option value="">Todos</option>
+                    {% for u in usuarios %}
+                    <option value="{{ u.pk }}" {% if filtros.usuario == u.pk|stringformat:"s" %}selected{% endif %}>{{ u.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Data início</label>
+                <input type="date" name="data_de" class="form-control" value="{{ filtros.data_de }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Data fim</label>
+                <input type="date" name="data_ate" class="form-control" value="{{ filtros.data_ate }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Ação</label>
+                <select name="acao" class="form-select">
+                    <option value="">Todas</option>
+                    <option value="1" {% if filtros.acao == '1' %}selected{% endif %}>Adição</option>
+                    <option value="2" {% if filtros.acao == '2' %}selected{% endif %}>Alteração</option>
+                    <option value="3" {% if filtros.acao == '3' %}selected{% endif %}>Exclusão</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Model</label>
+                <select name="model" class="form-select">
+                    <option value="">Todos</option>
+                    {% for ct in content_types %}
+                    <option value="{{ ct.model }}" {% if filtros.model == ct.model %}selected{% endif %}>{{ ct.model }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-search"></i> Filtrar
+                </button>
+                <a href="{% url 'crr:log_list' %}" class="btn btn-outline-secondary w-100">Limpar</a>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th>Data/Hora</th>
+                        <th>Usuário</th>
+                        <th>Ação</th>
+                        <th>Model</th>
+                        <th>Objeto</th>
+                        <th>Detalhes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in page_obj %}
+                    <tr>
+                        <td class="text-nowrap">{{ log.action_time|date:"d/m/Y H:i" }}</td>
+                        <td>{{ log.user.username }}</td>
+                        <td>
+                            {% if log.action_flag == 1 %}
+                            <span class="badge bg-success">Adição</span>
+                            {% elif log.action_flag == 2 %}
+                            <span class="badge bg-warning text-dark">Alteração</span>
+                            {% elif log.action_flag == 3 %}
+                            <span class="badge bg-danger">Exclusão</span>
+                            {% endif %}
+                        </td>
+                        <td><code>{{ log.content_type.model }}</code></td>
+                        <td>{{ log.object_repr }}</td>
+                        <td class="text-muted small">{{ log.change_message }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">Nenhum log encontrado.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if page_obj.has_other_pages %}
+        <nav>
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&usuario={{ filtros.usuario }}&data_de={{ filtros.data_de }}&data_ate={{ filtros.data_ate }}&acao={{ filtros.acao }}&model={{ filtros.model }}">Anterior</a>
+                </li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}&usuario={{ filtros.usuario }}&data_de={{ filtros.data_de }}&data_ate={{ filtros.data_ate }}&acao={{ filtros.acao }}&model={{ filtros.model }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&usuario={{ filtros.usuario }}&data_de={{ filtros.data_de }}&data_ate={{ filtros.data_ate }}&acao={{ filtros.acao }}&model={{ filtros.model }}">Próximo</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

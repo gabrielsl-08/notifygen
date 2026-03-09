@@ -121,6 +121,90 @@ class TabelaEnquadramentoForm(forms.ModelForm):
         }
 
 
+class UsuarioCreateForm(forms.ModelForm):
+    password1 = forms.CharField(
+        label='Senha', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    password2 = forms.CharField(
+        label='Confirmar Senha', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+
+    class Meta:
+        from django.contrib.auth.models import User
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email',
+                  'is_active', 'is_staff', 'is_superuser', 'groups']
+        widgets = {
+            'username':     forms.TextInput(attrs={'class': 'form-control'}),
+            'first_name':   forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name':    forms.TextInput(attrs={'class': 'form-control'}),
+            'email':        forms.EmailInput(attrs={'class': 'form-control'}),
+            'is_active':    forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_staff':     forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_superuser': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'groups':       forms.CheckboxSelectMultiple(),
+        }
+
+    def clean_password2(self):
+        p1 = self.cleaned_data.get('password1')
+        p2 = self.cleaned_data.get('password2')
+        if p1 and p2 and p1 != p2:
+            raise forms.ValidationError('As senhas não coincidem.')
+        return p2
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data['password1'])
+        if commit:
+            user.save()
+            self.save_m2m()
+        return user
+
+
+class UsuarioEditForm(forms.ModelForm):
+    nova_senha = forms.CharField(
+        label='Nova Senha (opcional)', required=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control', 'placeholder': 'Deixe em branco para não alterar'
+        }),
+    )
+
+    class Meta:
+        from django.contrib.auth.models import User
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email',
+                  'is_active', 'is_staff', 'is_superuser', 'groups']
+        widgets = {
+            'username':     forms.TextInput(attrs={'class': 'form-control'}),
+            'first_name':   forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name':    forms.TextInput(attrs={'class': 'form-control'}),
+            'email':        forms.EmailInput(attrs={'class': 'form-control'}),
+            'is_active':    forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_staff':     forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_superuser': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'groups':       forms.CheckboxSelectMultiple(),
+        }
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        nova_senha = self.cleaned_data.get('nova_senha')
+        if nova_senha:
+            user.set_password(nova_senha)
+        if commit:
+            user.save()
+            self.save_m2m()
+        return user
+
+
+class GrupoForm(forms.ModelForm):
+    class Meta:
+        from django.contrib.auth.models import Group
+        model = Group
+        fields = ['name', 'permissions']
+        widgets = {
+            'name':        forms.TextInput(attrs={'class': 'form-control'}),
+            'permissions': forms.CheckboxSelectMultiple(),
+        }
+
+
 class AgenteForm(forms.ModelForm):
     nova_senha = forms.CharField(
         label='Nova Senha (opcional)',

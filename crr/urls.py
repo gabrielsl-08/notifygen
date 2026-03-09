@@ -47,4 +47,19 @@ urlpatterns = [
 
     # Minha Senha
     path('minha-senha/', views.MinhaSenhaView.as_view(), name='minha_senha'),
+
+    # Logs do sistema (superuser)
+    path('logs/', views.log_list, name='log_list'),
+
+    # Usuários (superuser)
+    path('usuarios/', views.usuario_list, name='usuario_list'),
+    path('usuarios/novo/', views.usuario_create, name='usuario_create'),
+    path('usuarios/<int:pk>/editar/', views.usuario_edit, name='usuario_edit'),
+    path('usuarios/<int:pk>/excluir/', views.usuario_delete, name='usuario_delete'),
+
+    # Grupos (superuser)
+    path('grupos/', views.grupo_list, name='grupo_list'),
+    path('grupos/novo/', views.grupo_create, name='grupo_create'),
+    path('grupos/<int:pk>/editar/', views.grupo_edit, name='grupo_edit'),
+    path('grupos/<int:pk>/excluir/', views.grupo_delete, name='grupo_delete'),
 ]

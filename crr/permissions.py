@@ -17,8 +17,8 @@ class IsJavaUser(BasePermission):
         if user.username != 'java':
             return False
 
-        # Permite apenas GET (list/detail) e POST (create)
-        if request.method in SAFE_METHODS or request.method == 'POST':
+        # Permite apenas GET (leitura) e PATCH (atualização parcial de status)
+        if request.method in SAFE_METHODS or request.method == 'PATCH':
             return True
 
         return False

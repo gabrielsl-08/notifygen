@@ -138,6 +138,7 @@
         .badge-retido     { background: #e74c3c; }
         .badge-liberado   { background: #27ae60; }
         .badge-cancelado  { background: #6c757d; }
+        .badge-leiloado   { background: #6f42c1; }
 
         .badge-select-retido {
             background-color: #e74c3c;
@@ -203,6 +204,15 @@
             </a>
             <a href="{% url 'crr:agente_list' %}" class="{% if 'agentes' in request.path %}active{% endif %}">
                 <i class="bi bi-people"></i> Agentes
+            </a>
+            <a href="{% url 'crr:usuario_list' %}" class="{% if 'usuarios' in request.path %}active{% endif %}">
+                <i class="bi bi-person-badge"></i> Usuários
+            </a>
+            <a href="{% url 'crr:grupo_list' %}" class="{% if 'grupos' in request.path %}active{% endif %}">
+                <i class="bi bi-diagram-3"></i> Grupos
+            </a>
+            <a href="{% url 'crr:log_list' %}" class="{% if 'logs' in request.path %}active{% endif %}">
+                <i class="bi bi-journal-text"></i> Logs do Sistema
             </a>
             {% endif %}
             <hr class="my-2 mx-3 border-secondary">

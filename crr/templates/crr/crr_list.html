@@ -49,9 +49,11 @@
             <div class="col-md-3">
                 <select name="status" class="form-select">
                     <option value="">Todos os status</option>
-                    <option value="pendente" {% if status_filter == 'pendente' %}selected{% endif %}>Pendente</option>
-                    <option value="retido"   {% if status_filter == 'retido'   %}selected{% endif %}>Retido</option>
-                    <option value="liberado" {% if status_filter == 'liberado' %}selected{% endif %}>Liberado</option>
+                    <option value="pendente"  {% if status_filter == 'pendente'  %}selected{% endif %}>Pendente</option>
+                    <option value="retido"    {% if status_filter == 'retido'    %}selected{% endif %}>Retido</option>
+                    <option value="liberado"  {% if status_filter == 'liberado'  %}selected{% endif %}>Liberado</option>
+                    <option value="cancelado" {% if status_filter == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                    <option value="leiloado"  {% if status_filter == 'leiloado'  %}selected{% endif %}>Leiloado</option>
                 </select>
             </div>
             <div class="col-md-2">
@@ -119,6 +121,7 @@
                                     <option value="retido"     {% if crr.status == 'retido'     %}selected{% endif %}>Retido</option>
                                     <option value="liberado"   {% if crr.status == 'liberado'   %}selected{% endif %}>Liberado</option>
                                     <option value="cancelado"  {% if crr.status == 'cancelado'  %}selected{% endif %}>Cancelado</option>
+                                    <option value="leiloado"   {% if crr.status == 'leiloado'   %}selected{% endif %}>Leiloado</option>
                                 </select>
                                 {% elif crr.status == 'retido' %}
                                 {# Usuário comum: dropdown só retido → liberado #}
@@ -220,6 +223,7 @@
 .badge-select-retido    { background-color: #e74c3c; }
 .badge-select-liberado  { background-color: #27ae60; }
 .badge-select-cancelado { background-color: #6c757d; }
+.badge-select-leiloado  { background-color: #6f42c1; }
 .badge-select-status option { background-color: #fff; color: #212529; font-weight: normal; }
 </style>
 {% endblock %}
@@ -230,7 +234,7 @@ function alterarStatusSuperuser(select) {
     const novoStatus = select.value;
     const atual = select.dataset.current;
     if (novoStatus === atual) return;
-    const labels = { pendente: 'Pendente', retido: 'Retido', liberado: 'Liberado' };
+    const labels = { pendente: 'Pendente', retido: 'Retido', liberado: 'Liberado', cancelado: 'Cancelado', leiloado: 'Leiloado' };
     if (!confirm('Alterar status para ' + labels[novoStatus] + '?')) {
         select.value = atual;
         return;

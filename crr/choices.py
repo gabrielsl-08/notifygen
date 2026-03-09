@@ -22,5 +22,6 @@ STATUS_CHOICES = [
     ('retido', 'Retido'),
     ('liberado', 'Liberado'),
     ('cancelado', 'Cancelado'),
+    ('leiloado', 'Leiloado'),
 ]
 

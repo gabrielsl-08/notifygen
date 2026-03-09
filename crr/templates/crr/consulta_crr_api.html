@@ -3,122 +3,481 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Consulta Pública de CRR</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Veículos Removidos | Prefeitura de São Sebastião</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        .logo-header {
-            text-align: center;
-            margin-bottom: 20px;
+        :root {
+            --primary: #0a3d62;
+            --primary-light: #1a5276;
+            --accent: #2980b9;
         }
 
-        .logo-header img {
-            height: 80px;
+        body {
+            background: linear-gradient(135deg, #0a3d62 0%, #1a5276 50%, #2980b9 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
+            padding: 30px 16px 60px;
         }
 
-        .logo-header h5 {
-            margin: 10px 0 5px;
-        }
-
-        #consulta-form input {
-            max-width: 400px;
-        }
-
-        #resultado {
-            max-width: 600px;
+        .main-card {
+            max-width: 680px;
             margin: 0 auto;
-            text-align: center;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
         }
 
-        footer {
-            margin-top: 60px;
+        .card-header-gov {
+            background: #fff;
+            color: #0a3d62;
+            padding: 28px 32px 24px;
             text-align: center;
-            font-size: 0.9em;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .card-header-gov img {
+            height: 72px;
+        }
+
+        .card-header-gov h6 {
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
             color: #555;
-            border-top: 1px solid #ccc;
-            padding-top: 15px;
+            margin: 10px 0 2px;
+        }
+
+        .card-header-gov h5 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0;
+            color: #0a3d62;
+        }
+
+        .card-header-gov .page-title {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .card-header-gov .page-title h4 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 0;
+            color: #0a3d62;
+        }
+
+        .card-header-gov .page-title .subtitle {
+            color: #777;
+        }
+
+        .card-body-form {
+            padding: 32px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 1.5px solid #dee2e6;
+            padding: 10px 14px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(41,128,185,0.15);
+        }
+
+        .divider-or {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #aaa;
+            font-size: 0.85rem;
+            margin: 4px 0;
+        }
+
+        .divider-or::before,
+        .divider-or::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #dee2e6;
+        }
+
+        .btn-consultar {
+            background: linear-gradient(135deg, #0a3d62, #2980b9);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 32px;
+            font-weight: 600;
+            font-size: 1rem;
+            width: 100%;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+
+        .btn-consultar:hover {
+            opacity: 0.92;
+            color: #fff;
+        }
+
+        .btn-consultar:active {
+            transform: scale(0.98);
+        }
+
+        .btn-consultar:disabled {
+            opacity: 0.7;
+        }
+
+        /* Resultado */
+        #resultado {
+            padding: 0 32px 32px;
+        }
+
+        .result-card {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .result-header {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .result-header.success { background: #e8f5e9; }
+        .result-header.danger  { background: #fdecea; }
+
+        .result-header .vehicle-plate {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #0a3d62;
+            letter-spacing: 0.05em;
+        }
+
+        .result-header .crr-num {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .result-body {
+            padding: 0;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            gap: 12px;
+        }
+
+        .info-row:last-child { border-bottom: none; }
+
+        .info-row .info-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: #f0f4f8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0a3d62;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .info-row .info-label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            line-height: 1;
+        }
+
+        .info-row .info-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #222;
+            line-height: 1.3;
+        }
+
+        /* Status badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-pendente  { background: #fff3cd; color: #856404; }
+        .status-retido    { background: #cfe2ff; color: #084298; }
+        .status-liberado  { background: #d1e7dd; color: #0f5132; }
+        .status-cancelado { background: #f8d7da; color: #842029; }
+        .status-leiloado  { background: #e8d5f5; color: #5a1a8e; }
+
+        /* Loading */
+        .spinner-wrap {
+            text-align: center;
+            padding: 32px;
+            color: #0a3d62;
+        }
+
+        /* Alert */
+        .alert-info-custom {
+            background: #e8f4fd;
+            border: 1px solid #bee3f8;
+            border-radius: 10px;
+            padding: 14px 18px;
+            color: #1a5276;
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        .page-footer {
+            max-width: 680px;
+            margin: 24px auto 0;
+            text-align: center;
+            color: rgba(255,255,255,0.65);
+            font-size: 0.82rem;
+            line-height: 1.8;
+        }
+
+        .page-footer a {
+            color: rgba(255,255,255,0.85);
         }
     </style>
 </head>
-<body class="container mt-4">
+<body>
 
+<div class="main-card">
     <!-- Cabeçalho -->
-    <div class="logo-header">
-        <img src="{% static 'brasao.jpg' %}" alt="Brasão">
-        <h5>PREFEITURA MUNICIPAL DE SÃO SEBASTIÃO</h5>
-        <p>SEGUR - DIVISÃO DE PROCESSAMENTO DE MULTAS</p>
+    <div class="card-header-gov">
+        <img src="{% static 'brasao.jpg' %}" alt="Brasão de São Sebastião">
+        <h6>Prefeitura Municipal de</h6>
+        <h5>São Sebastião — SP</h5>
+        <div class="page-title">
+            <h4><i class="bi bi-truck me-2"></i>Consulta de Veículos Removidos</h4>
+            <div class="subtitle" style="font-size:0.82rem; margin-top:4px;">
+                SEGUR — Divisão de Processamento de Multas
+            </div>
+        </div>
     </div>
 
-    <h2 class="text-center"> Veículos Removidos ao Pátio</h2>
-
     <!-- Formulário -->
-    <form id="consulta-form" class="row g-3 justify-content-center mt-4">
-        <div class="col-md-5">
-            <label for="placa" class="form-label">Placa</label>
-            <input type="text" id="placa" name="placa" class="form-control" placeholder="Ex: ABC1234" maxlength="7">
+    <div class="card-body-form">
+        <p class="text-muted mb-3" style="font-size:0.9rem;">
+            <i class="bi bi-info-circle me-1"></i>
+            Informe a <strong>placa</strong> ou o <strong>chassi</strong> do veículo para verificar se o veículo foi removido pelo município de São Sebastião/SP.
+        </p>
+
+        <div style="background:#fff8e1; border-left:4px solid #f59e0b; border-radius:0 8px 8px 0; padding:14px 16px; margin-bottom:20px; font-size:0.85rem; color:#555;">
+            <div style="font-weight:700; color:#b45309; margin-bottom:6px;">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>Avisos Importantes
+            </div>
+            <ul style="margin:0; padding-left:16px; line-height:1.8;">
+                <li>Pode haver atraso na inserção das informações no sistema. Em caso de dúvidas, disque <strong>153</strong>.</li>
+                <li>A consulta está restrita a veículos removidos pelo município de São Sebastião/SP. Para veículos recolhidos por outros órgãos de trânsito, o proprietário deve entrar em contato com a respectiva instituição.</li>
+            </ul>
         </div>
-        <div class="col-md-5">
-            <label for="chassi" class="form-label">Chassi</label>
-            <input type="text" id="chassi" name="chassi" class="form-control" maxlength="17">
-        </div>
-        <div class="col-12 text-center">
-            <button type="submit" class="btn btn-primary">Consultar</button>
-        </div>
-    </form>
+        <form id="consulta-form">
+            <div class="mb-3">
+                <label for="placa" class="form-label">
+                    <i class="bi bi-card-text me-1"></i>Placa do Veículo
+                </label>
+                <input type="text" id="placa" name="placa" class="form-control"
+                       placeholder="Ex: ABC1234 ou ABC-1D23"
+                       maxlength="8" style="text-transform:uppercase;">
+            </div>
+
+            <div class="divider-or">ou</div>
+
+            <div class="mb-4">
+                <label for="chassi" class="form-label">
+                    <i class="bi bi-upc me-1"></i>Número do Chassi
+                </label>
+                <input type="text" id="chassi" name="chassi" class="form-control"
+                       placeholder="Ex: 9BWZZZ377VT004251"
+                       maxlength="17" style="text-transform:uppercase;">
+            </div>
+
+            <button type="submit" class="btn btn-consultar" id="btn-consultar">
+                <i class="bi bi-search me-2"></i>Consultar
+            </button>
+        </form>
+    </div>
 
     <!-- Resultado -->
-    <div id="resultado" class="mt-5"></div>
+    <div id="resultado"></div>
+</div>
 
-    <!-- Rodapé -->
-    <footer>
-        Rua Amazonas, 84 - Industrial <br>
-        E-mail: <a href="mailto:transito@saosebastiao.sp.gov.br">transito@saosebastiao.sp.gov.br</a> &nbsp;|&nbsp;
-        Tel: (12) 3892-6180
-    </footer>
+<!-- Rodapé -->
+<div class="page-footer">
+    <div>Rua Amazonas, 84 — Industrial, São Sebastião/SP</div>
+    <div>
+        <i class="bi bi-envelope me-1"></i>
+        <a href="mailto:transito@saosebastiao.sp.gov.br">transito@saosebastiao.sp.gov.br</a>
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        <i class="bi bi-telephone me-1"></i>(12) 3892-6180
+    </div>
+</div>
 
-    <!-- Script de requisição -->
-    <script>
-        document.getElementById('consulta-form').addEventListener('submit', async function (e) {
-            e.preventDefault();
+<script>
+    const API_URL = 'https://systrafcrr-60e7e480b649.herokuapp.com/api/v1/consulta-publica/crr/';
 
-            const placa = document.getElementById('placa').value.trim();
-            const chassi = document.getElementById('chassi').value.trim();
-            const resultadoDiv = document.getElementById('resultado');
-            resultadoDiv.innerHTML = '';
+    const STATUS_CONFIG = {
+        pendente:  { label: 'Pendente',    icon: 'bi-clock',            css: 'status-pendente' },
+        retido:    { label: 'Retido',      icon: 'bi-lock',             css: 'status-retido' },
+        liberado:  { label: 'Liberado',    icon: 'bi-check-circle',     css: 'status-liberado' },
+        cancelado: { label: 'Cancelado',   icon: 'bi-x-circle',         css: 'status-cancelado' },
+        leiloado:  { label: 'Leiloado',    icon: 'bi-hammer',           css: 'status-leiloado' },
+    };
 
-            if (!placa && !chassi) {
-                resultadoDiv.innerHTML = `<div class="alert alert-warning">Informe a placa ou o chassi para consultar.</div>`;
-                return;
+    function formatarData(data) {
+        if (!data) return '—';
+        const [ano, mes, dia] = data.split('-');
+        return `${dia}/${mes}/${ano}`;
+    }
+
+    function formatarHora(hora) {
+        if (!hora) return '—';
+        return hora.substring(0, 5);
+    }
+
+    function renderStatus(status) {
+        const cfg = STATUS_CONFIG[status] || { label: status, icon: 'bi-dash', css: 'status-pendente' };
+        return `<span class="status-badge ${cfg.css}"><i class="bi ${cfg.icon}"></i>${cfg.label}</span>`;
+    }
+
+    function renderResultado(data) {
+        const v = data.veiculo || {};
+        const statusCfg = STATUS_CONFIG[data.status] || {};
+        const isLiberado = data.status === 'liberado';
+
+        return `
+        <div class="result-card">
+            <div class="result-header ${isLiberado ? 'success' : ''}">
+                <div>
+                    <div class="vehicle-plate">${v.placa || '—'}</div>
+                    <div class="crr-num">CRR Nº ${data.numeroCrr || '—'}</div>
+                </div>
+                <div class="ms-auto">
+                    ${renderStatus(data.status)}
+                </div>
+            </div>
+            <div class="result-body">
+                <div class="info-row">
+                    <div class="info-icon"><i class="bi bi-car-front"></i></div>
+                    <div>
+                        <div class="info-label">Veículo</div>
+                        <div class="info-value">${v.marca || '—'} ${v.modelo || ''} ${v.cor ? '— ' + v.cor : ''}</div>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-icon"><i class="bi bi-calendar-event"></i></div>
+                    <div>
+                        <div class="info-label">Data da Fiscalização</div>
+                        <div class="info-value">${formatarData(data.dataFiscalizacao)} às ${formatarHora(data.horaFiscalizacao)}</div>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-icon"><i class="bi bi-geo-alt"></i></div>
+                    <div>
+                        <div class="info-label">Local da Fiscalização</div>
+                        <div class="info-value">${data.localFiscalizacao || '—'}</div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    document.getElementById('consulta-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const placa  = document.getElementById('placa').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+        const chassi = document.getElementById('chassi').value.trim().toUpperCase();
+        const resultadoDiv = document.getElementById('resultado');
+        const btn = document.getElementById('btn-consultar');
+
+        resultadoDiv.innerHTML = '';
+
+        if (!placa && !chassi) {
+            resultadoDiv.innerHTML = `
+                <div style="padding: 0 32px 24px;">
+                    <div class="alert-info-custom">
+                        <i class="bi bi-exclamation-circle me-2"></i>
+                        Informe a placa ou o chassi do veículo para realizar a consulta.
+                    </div>
+                </div>`;
+            return;
+        }
+
+        // Loading
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Consultando...';
+        resultadoDiv.innerHTML = `
+            <div class="spinner-wrap">
+                <div class="spinner-border" role="status" style="color:#0a3d62; width:2rem; height:2rem;"></div>
+                <div class="mt-2" style="color:#555; font-size:0.9rem;">Consultando...</div>
+            </div>`;
+
+        let url = API_URL + '?';
+        if (placa)  url += `placa=${encodeURIComponent(placa)}`;
+        if (chassi) url += `${placa ? '&' : ''}chassi=${encodeURIComponent(chassi)}`;
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (response.ok) {
+                resultadoDiv.innerHTML = `<div style="padding: 0 32px 32px;">${renderResultado(data)}</div>`;
+            } else {
+                const msg = data.mensagem || data.erro || 'Veículo não encontrado.';
+                resultadoDiv.innerHTML = `
+                    <div style="padding: 0 32px 24px;">
+                        <div class="alert alert-warning d-flex align-items-center gap-2" style="border-radius:10px;">
+                            <i class="bi bi-search" style="font-size:1.2rem;"></i>
+                            <span>${msg}</span>
+                        </div>
+                    </div>`;
             }
+        } catch (err) {
+            resultadoDiv.innerHTML = `
+                <div style="padding: 0 32px 24px;">
+                    <div class="alert alert-danger d-flex align-items-center gap-2" style="border-radius:10px;">
+                        <i class="bi bi-wifi-off" style="font-size:1.2rem;"></i>
+                        <span>Não foi possível conectar ao servidor. Tente novamente em alguns instantes.</span>
+                    </div>
+                </div>`;
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-search me-2"></i>Consultar';
+        }
+    });
 
-            let url = 'http://localhost:8000/api/v1/consulta-publica/crr/?';
-            if (placa) url += `placa=${encodeURIComponent(placa)}`;
-            if (chassi) url += `&chassi=${encodeURIComponent(chassi)}`;
-
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-
-                if (response.ok) {
-                    resultadoDiv.innerHTML = `
-                        <h4 class="mb-4">🔍 Resultado da Consulta</h4>
-                        <ul class="list-group mx-auto" style="max-width: 500px;">
-                            <li class="list-group-item"><strong>Placa:</strong> ${data.veiculo.placa}</li>
-                            <li class="list-group-item"><strong>Marca:</strong> ${data.veiculo.marca}</li>
-                            <li class="list-group-item"><strong>Modelo:</strong> ${data.veiculo.modelo}</li>
-                            <li class="list-group-item"><strong>Status:</strong> ${data.status}</li>
-                            <li class="list-group-item"><strong>Data da Fiscalização:</strong> ${data.dataFiscalizacao}</li>
-                            <li class="list-group-item"><strong>Hora da Fiscalização:</strong> ${data.horaFiscalizacao}</li>
-                        </ul>
-                    `;
-                } else {
-                    resultadoDiv.innerHTML = `
-                        <div class="alert alert-danger mt-3">${data.mensagem || 'Erro na consulta.'}</div>
-                    `;
-                }
-            } catch (error) {
-                resultadoDiv.innerHTML = `<div class="alert alert-danger mt-3">Erro ao conectar com o servidor.</div>`;
-            }
-        });
-    </script>
+    // Formatar placa automaticamente
+    document.getElementById('placa').addEventListener('input', function () {
+        this.value = this.value.toUpperCase();
+    });
+    document.getElementById('chassi').addEventListener('input', function () {
+        this.value = this.value.toUpperCase();
+    });
+</script>
 </body>
 </html>

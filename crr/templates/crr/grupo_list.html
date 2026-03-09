@@ -1,0 +1,50 @@
+{% extends 'crr/base.html' %}
+
+{% block title %}Grupos | DIVPROM{% endblock %}
+{% block page_title %}Gestão de Grupos{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-diagram-3 me-2"></i>Grupos de Permissão</span>
+        <a href="{% url 'crr:grupo_create' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg"></i> Novo Grupo
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nome do Grupo</th>
+                        <th>Permissões</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for grupo in grupos %}
+                    <tr>
+                        <td><strong>{{ grupo.name }}</strong></td>
+                        <td>
+                            <span class="text-muted">{{ grupo.permissions.count }} permissão(ões)</span>
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'crr:grupo_edit' grupo.pk %}" class="btn btn-sm btn-outline-warning" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'crr:grupo_delete' grupo.pk %}" class="btn btn-sm btn-outline-danger" title="Excluir">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-4">Nenhum grupo cadastrado.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

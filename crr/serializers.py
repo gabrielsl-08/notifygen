@@ -135,6 +135,61 @@ class CrrSerializer(serializers.ModelSerializer):
         return data
 
    
+            ### JAVA API SERIALIZERS ###
+
+class CrrJavaSerializer(serializers.ModelSerializer):
+    """Serializer de leitura para o sistema Java (somente campos relevantes)."""
+    placa = serializers.SerializerMethodField()
+    marca = serializers.SerializerMethodField()
+    modelo = serializers.SerializerMethodField()
+    cor = serializers.SerializerMethodField()
+    nomeCondutor = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Crr
+        fields = [
+            'id', 'numeroCrr', 'status', 'dataFiscalizacao', 'horaFiscalizacao',
+            'localFiscalizacao', 'municipioEstadoFiscalizacao', 'medidaAdministrativa',
+            'localPatio', 'encarregado', 'criado_em',
+            'placa', 'marca', 'modelo', 'cor', 'nomeCondutor',
+        ]
+
+    def get_placa(self, obj):
+        v = obj.veiculo.first()
+        return v.placa if v else ''
+
+    def get_marca(self, obj):
+        v = obj.veiculo.first()
+        return v.marca if v else ''
+
+    def get_modelo(self, obj):
+        v = obj.veiculo.first()
+        return v.modelo if v else ''
+
+    def get_cor(self, obj):
+        v = obj.veiculo.first()
+        return v.cor if v else ''
+
+    def get_nomeCondutor(self, obj):
+        c = obj.condutores.first()
+        return c.nomeCondutor if c else ''
+
+
+class CrrStatusUpdateSerializer(serializers.ModelSerializer):
+    """Serializer para atualização de status via sistema Java (somente 'liberado')."""
+
+    class Meta:
+        model = Crr
+        fields = ['status']
+
+    def validate_status(self, value):
+        if value != 'liberado':
+            raise serializers.ValidationError(
+                "Apenas é permitido atualizar o status para 'liberado'."
+            )
+        return value
+
+
             ### CONSULTA EXTERNA ###
 
 class VeiculoPublicoSerializer(serializers.ModelSerializer):
