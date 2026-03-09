@@ -23,6 +23,16 @@ class CrrViewSet(mixins.RetrieveModelMixin,
     permission_classes = [IsJavaUser]
     http_method_names = ['get', 'patch', 'head', 'options']
 
+    def get_queryset(self):
+        qs = Crr.objects.all().order_by('-criado_em')
+        numero = self.request.query_params.get('numeroCrr')
+        placa = self.request.query_params.get('placa')
+        if numero:
+            qs = qs.filter(numeroCrr__iexact=numero.strip())
+        if placa:
+            qs = qs.filter(veiculo__placa__iexact=placa.strip())
+        return qs
+
     def get_serializer_class(self):
         if self.request.method == 'PATCH':
             return CrrStatusUpdateSerializer
