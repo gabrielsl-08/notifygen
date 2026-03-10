@@ -70,8 +70,12 @@ def consulta_publica_crr(request):
     data = dict(serializer.data)
 
     # Mapeamento de status para o público:
-    # 'liberado' permanece 'liberado'; todos os demais viram 'retido'
-    data['status'] = 'liberado' if crr_instance.status == 'liberado' else 'retido'
+    # 'pendente' e 'retido' → 'retido'
+    # 'liberado' → 'liberado'
+    # 'leiloado' → 'leiloado'
+    # 'cancelado' já foi bloqueado acima (404)
+    status_map = {'liberado': 'liberado', 'leiloado': 'leiloado'}
+    data['status'] = status_map.get(crr_instance.status, 'retido')
 
     return Response(data, status=status.HTTP_200_OK)
 
