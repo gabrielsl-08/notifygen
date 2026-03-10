@@ -209,6 +209,7 @@ class ConsultaExterna(serializers.ModelSerializer):
             'numeroCrr',
             'veiculo',
             'status',
+            'localPatio',
             'dataFiscalizacao',
             'horaFiscalizacao',
             'localFiscalizacao',
