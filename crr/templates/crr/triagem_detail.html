@@ -191,28 +191,4 @@
     </div>
     {% endif %}
 </div>
-
-<!-- Botoes de Acao da Triagem -->
-<div class="form-section">
-    <div class="form-section-title">
-        <i class="bi bi-check2-square"></i> Acao da Triagem
-    </div>
-    <div class="d-flex gap-3">
-        <a href="{% url 'crr:triagem_status' crr.pk 'retido' %}" class="btn btn-danger btn-lg" onclick="return confirm('Confirma marcar CRR {{ crr.numeroCrr|upper }} como RETIDO?');">
-            <i class="bi bi-lock"></i> Marcar como Retido
-        </a>
-        <a href="{% url 'crr:triagem_status' crr.pk 'liberado' %}" class="btn btn-success btn-lg" onclick="return confirm('Confirma marcar CRR {{ crr.numeroCrr|upper }} como LIBERADO?');">
-            <i class="bi bi-unlock"></i> Marcar como Liberado
-        </a>
-        <a href="{% url 'crr:triagem_status' crr.pk 'cancelado' %}" class="btn btn-secondary btn-lg" onclick="return confirm('Confirma CANCELAR o CRR {{ crr.numeroCrr|upper }}? Esta ação indica que o CRR não é válido.');">
-            <i class="bi bi-slash-circle"></i> Cancelar CRR
-        </a>
-        <a href="{% url 'crr:triagem_status' crr.pk 'leiloado' %}" class="btn btn-lg" style="background:#6f42c1;color:#fff;" onclick="return confirm('Confirma marcar CRR {{ crr.numeroCrr|upper }} como LEILOADO?');">
-            <i class="bi bi-hammer"></i> Marcar como Leiloado
-        </a>
-        <a href="{% url 'crr:triagem_list' %}" class="btn btn-outline-secondary btn-lg">
-            <i class="bi bi-x-lg"></i> Voltar
-        </a>
-    </div>
-</div>
 {% endblock %}
