@@ -107,10 +107,10 @@ INSTALLED_APPS = [
 
 # Configuração do Jazzmin
 JAZZMIN_SETTINGS = {
-    "site_title": "DIVPROM",
-    "site_header": "DIVPROM",
-    "site_brand": "DIVPROM",
-    "welcome_sign": "Bem-vindo ao Sistema DIVPROM",
+    "site_title": "SYSTRAF",
+    "site_header": "SYSTRAF",
+    "site_brand": "SYSTRAF",
+    "welcome_sign": "Bem-vindo ao Sistema SYSTRAF",
     "copyright": "Prefeitura Municipal de São Sebastião",
     "search_model": ["crr.Crr"],
     "topmenu_links": [
@@ -198,6 +198,17 @@ LOGIN_REDIRECT_URL = '/crr/'
 SESSION_COOKIE_AGE = 1800          # 30 minutos em segundos
 SESSION_SAVE_EVERY_REQUEST = True  # Renova o timer a cada requisição
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+
+# Email (configurar via variáveis de ambiente no Heroku)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST          = os.environ.get('EMAIL_HOST', '')
+EMAIL_PORT          = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS       = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_USE_SSL       = os.environ.get('EMAIL_USE_SSL', 'False') == 'True'
+EMAIL_HOST_USER     = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL  = os.environ.get('EMAIL_HOST_USER', '')
 
 
 

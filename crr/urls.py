@@ -10,6 +10,7 @@ urlpatterns = [
     path('<int:pk>/', views.CrrDetailView.as_view(), name='crr_detail'),
     path('<int:pk>/editar/', views.CrrUpdateView.as_view(), name='crr_update'),
     path('<int:pk>/excluir/', views.CrrDeleteView.as_view(), name='crr_delete'),
+    path('<int:pk>/reenviar-email/', views.reenviar_email_crr, name='reenviar_email_crr'),
 
     # Dispositivos Mobile
     path('dispositivos/', views.dispositivo_list, name='dispositivo_list'),

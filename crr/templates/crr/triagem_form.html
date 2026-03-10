@@ -1,6 +1,6 @@
 {% extends 'crr/base.html' %}
 
-{% block title %}Triagem CRR {{ object.numeroCrr|upper }} | DIVPROM{% endblock %}
+{% block title %}Triagem CRR {{ object.numeroCrr|upper }} | SYSTRAF{% endblock %}
 {% block page_title %}Triagem: {{ object.numeroCrr|upper }}{% endblock %}
 
 {% block content %}
@@ -231,6 +231,10 @@
             <i class="bi bi-truck"></i> Dados do Guincho
         </div>
         <div class="row g-3">
+            <div class="col-12">
+                <label class="form-label">Local do Pátio</label>
+                {{ form.localPatio }}
+            </div>
             <div class="col-md-3">
                 <label class="form-label">Placa do Guincho</label>
                 {{ form.placaGuincho }}

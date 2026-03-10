@@ -138,20 +138,25 @@ class CrrSerializer(serializers.ModelSerializer):
             ### JAVA API SERIALIZERS ###
 
 class CrrJavaSerializer(serializers.ModelSerializer):
-    """Serializer de leitura para o sistema Java (somente campos relevantes)."""
+    """Serializer de leitura para o sistema Java."""
     placa = serializers.SerializerMethodField()
     marca = serializers.SerializerMethodField()
     modelo = serializers.SerializerMethodField()
-    cor = serializers.SerializerMethodField()
+    aits = serializers.SerializerMethodField()
     nomeCondutor = serializers.SerializerMethodField()
+    cpfCondutor = serializers.SerializerMethodField()
+    cnh = serializers.SerializerMethodField()
+    cnhEstrangeira = serializers.SerializerMethodField()
+    ufCnh = serializers.SerializerMethodField()
+    assinaturaCondutor = serializers.SerializerMethodField()
 
     class Meta:
         model = Crr
         fields = [
-            'id', 'numeroCrr', 'status', 'dataFiscalizacao', 'horaFiscalizacao',
-            'localFiscalizacao', 'municipioEstadoFiscalizacao', 'medidaAdministrativa',
-            'localPatio', 'encarregado', 'criado_em',
-            'placa', 'marca', 'modelo', 'cor', 'nomeCondutor',
+            'numeroCrr', 'status',
+            'placa', 'marca', 'modelo', 'aits',
+            'nomeCondutor', 'cpfCondutor', 'cnh', 'cnhEstrangeira',
+            'ufCnh', 'assinaturaCondutor',
         ]
 
     def get_placa(self, obj):
@@ -166,13 +171,32 @@ class CrrJavaSerializer(serializers.ModelSerializer):
         v = obj.veiculo.first()
         return v.modelo if v else ''
 
-    def get_cor(self, obj):
-        v = obj.veiculo.first()
-        return v.cor if v else ''
+    def get_aits(self, obj):
+        return [a.ait for a in obj.aits.all()]
 
     def get_nomeCondutor(self, obj):
         c = obj.condutores.first()
         return c.nomeCondutor if c else ''
+
+    def get_cpfCondutor(self, obj):
+        c = obj.condutores.first()
+        return c.cpfCondutor if c else ''
+
+    def get_cnh(self, obj):
+        c = obj.condutores.first()
+        return c.cnh if c else ''
+
+    def get_cnhEstrangeira(self, obj):
+        c = obj.condutores.first()
+        return c.cnhEstrangeira if c else ''
+
+    def get_ufCnh(self, obj):
+        c = obj.condutores.first()
+        return c.ufCnh if c else ''
+
+    def get_assinaturaCondutor(self, obj):
+        c = obj.condutores.first()
+        return c.assinaturaCondutor if c else ''
 
 
 class CrrStatusUpdateSerializer(serializers.ModelSerializer):
@@ -480,6 +504,13 @@ class CrrMobileSerializer(serializers.ModelSerializer):
                         }
                     )
                     Enquadramento.objects.create(crr=crr, enquadramento=enquad_obj)
+
+            # Enviar email ao pátio (falha silenciosa)
+            try:
+                from .email_utils import enviar_email_crr
+                enviar_email_crr(crr)
+            except Exception:
+                pass
 
             return crr
 

@@ -1,6 +1,6 @@
 {% extends 'crr/base.html' %}
 
-{% block title %}Triagem de CRRs | DIVPROM{% endblock %}
+{% block title %}Triagem de CRRs | SYSTRAF{% endblock %}
 {% block page_title %}Triagem de CRRs{% endblock %}
 
 {% block content %}
@@ -64,7 +64,7 @@
                         </td>
                         <td>
                             {% for v in crr.veiculo.all %}
-                                {{ v.marca|title }}/{{ v.modelo|title }}{% if not forloop.last %}, {% endif %}
+                                {{ v.marca|upper }}/{{ v.modelo|upper }}{% if not forloop.last %}, {% endif %}
                             {% empty %}
                                 -
                             {% endfor %}

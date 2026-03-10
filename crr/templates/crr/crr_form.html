@@ -1,6 +1,6 @@
 {% extends 'crr/base.html' %}
 
-{% block title %}{% if is_edit %}Editar{% else %}Novo{% endif %} CRR | DIVPROM{% endblock %}
+{% block title %}{% if is_edit %}Editar{% else %}Novo{% endif %} CRR | SYSTRAF{% endblock %}
 {% block page_title %}{% if is_edit %}Editar CRR: {{ object.numeroCrr|upper }}{% else %}Novo CRR{% endif %}{% endblock %}
 
 {% block content %}
@@ -218,6 +218,10 @@
             <i class="bi bi-truck"></i> Dados do Guincho
         </div>
         <div class="row g-3">
+            <div class="col-12">
+                <label class="form-label">Local do Pátio</label>
+                {{ form.localPatio }}
+            </div>
             <div class="col-md-3">
                 <label class="form-label">Placa do Guincho</label>
                 {{ form.placaGuincho }}

@@ -25,12 +25,25 @@ class CrrViewSet(mixins.RetrieveModelMixin,
 
     def get_queryset(self):
         qs = Crr.objects.all().order_by('-criado_em')
-        numero = self.request.query_params.get('numeroCrr')
-        placa = self.request.query_params.get('placa')
+        params = self.request.query_params
+        numero = params.get('numeroCrr')
+        placa = params.get('placa')
+        chassi = params.get('chassi')
+        marca = params.get('marca')
+        modelo = params.get('modelo')
+        status_param = params.get('status')
         if numero:
             qs = qs.filter(numeroCrr__iexact=numero.strip())
         if placa:
             qs = qs.filter(veiculo__placa__iexact=placa.strip())
+        if chassi:
+            qs = qs.filter(veiculo__chassi__iexact=chassi.strip())
+        if marca:
+            qs = qs.filter(veiculo__marca__icontains=marca.strip())
+        if modelo:
+            qs = qs.filter(veiculo__modelo__icontains=modelo.strip())
+        if status_param:
+            qs = qs.filter(status__iexact=status_param.strip())
         return qs
 
     def get_serializer_class(self):

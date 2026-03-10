@@ -3,12 +3,27 @@ from django.forms import inlineformset_factory
 from .models import Crr, Condutor, Veiculo, Ait, Enquadramento, Arrendatario, ImagemCrr, TabelaEnquadramento, TabelaArrendatario, Agente
 
 
+PATIO_CHOICES = [
+    ('AV ODISSEU 750 - CANTO DO MAR - SÃO SEBASTIÃO/SP',
+     'AV ODISSEU 750 - CANTO DO MAR - SÃO SEBASTIÃO/SP'),
+    ('RUA BOLIVIA, Nº202, JARAGUA - SÃO SEBASTIÃO/SP - 11600-748',
+     'RUA BOLIVIA, Nº202, JARAGUA - SÃO SEBASTIÃO/SP - 11600-748'),
+]
+
+
 class CrrForm(forms.ModelForm):
+    localPatio = forms.ChoiceField(
+        choices=PATIO_CHOICES,
+        initial='AV ODISSEU 750 - CANTO DO MAR - SÃO SEBASTIÃO/SP',
+        label='Local do Pátio',
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+
     class Meta:
         model = Crr
         fields = [
             'numeroCrr', 'localFiscalizacao', 'dataFiscalizacao',
-            'horaFiscalizacao', 'placaGuincho', 'encarregado',
+            'horaFiscalizacao', 'localPatio', 'placaGuincho', 'encarregado',
             'observacao', 'matriculaAgente'
         ]
         widgets = {

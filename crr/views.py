@@ -32,9 +32,11 @@ class CrrListView(LoginRequiredMixin, ListView):
     ordering = ['-criado_em']
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        # Só exibe resultados após o usuário usar o filtro
+        if 'search' not in self.request.GET and 'status' not in self.request.GET:
+            return Crr.objects.none()
 
-        # Filtros
+        queryset = super().get_queryset()
         status = self.request.GET.get('status')
         search = self.request.GET.get('search')
 
@@ -716,6 +718,27 @@ def grupo_delete(request, pk):
         messages.success(request, f'Grupo "{nome}" removido.')
         return redirect('crr:grupo_list')
     return render(request, 'crr/grupo_confirm_delete.html', {'obj': grupo})
+
+
+# -------- Reenvio de email do CRR -------- #
+
+@login_required
+def reenviar_email_crr(request, pk):
+    crr = get_object_or_404(Crr, pk=pk)
+    from .email_utils import enviar_email_crr
+    sucesso = enviar_email_crr(crr)
+    if sucesso:
+        messages.success(
+            request,
+            f'Email do CRR {crr.numeroCrr.upper()} enviado com sucesso.'
+        )
+    else:
+        messages.error(
+            request,
+            f'Falha ao enviar email do CRR {crr.numeroCrr.upper()}. '
+            'Verifique as configurações de email.'
+        )
+    return redirect('crr:crr_detail', pk=pk)
 
 
 # -------- Alteração de senha (usuário comum) -------- #

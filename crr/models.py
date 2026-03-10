@@ -21,7 +21,7 @@ class Crr(models.Model):
     observacao = models.CharField(max_length=300, blank=True, null=False,verbose_name='Observação')
     matriculaAgente = models.CharField(max_length=10, blank=False, null=False, verbose_name='Matrícula do agente')
     medidaAdministrativa  = models.CharField(max_length=100, blank=True,default='Remoção do veículo ao Depósito', null=True,verbose_name='Medida Administrativa')
-    localPatio =  models.CharField(max_length=100,default='RUA BOLIVIA, Nº202, JARAGUA - SÃO SEBASTIÃO/SP - 11600-748', blank=True, null=False,verbose_name='Pátio')
+    localPatio = models.CharField(max_length=100, default='AV ODISSEU 750 - CANTO DO MAR - SÃO SEBASTIÃO/SP', blank=True, null=False, verbose_name='Pátio')
     placaGuincho = models.CharField(max_length=7, blank=True, null=False,verbose_name='Placa do guicho')
     encarregado = models.CharField(max_length=50, blank=True, null=False,verbose_name='encarregado do guincho')
     status = models.CharField(max_length=10, choices=STATUS_CHOICES,default='pendente',help_text="Status atual do veículo (Retido/Liberado)")

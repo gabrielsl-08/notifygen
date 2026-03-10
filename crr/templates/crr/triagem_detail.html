@@ -1,6 +1,6 @@
 {% extends 'crr/base.html' %}
 
-{% block title %}Triagem CRR {{ crr.numeroCrr|upper }} | DIVPROM{% endblock %}
+{% block title %}Triagem CRR {{ crr.numeroCrr|upper }} | SYSTRAF{% endblock %}
 {% block page_title %}Triagem: {{ crr.numeroCrr|upper }}{% endblock %}
 
 {% block content %}
@@ -20,7 +20,7 @@
     </div>
     {% for condutor in crr.condutores.all %}
     <div class="row">
-        <div class="col-md-4"><strong>Nome:</strong> {{ condutor.nomeCondutor|default:"-"|title }}</div>
+        <div class="col-md-4"><strong>Nome:</strong> {{ condutor.nomeCondutor|default:"-"|upper }}</div>
         <div class="col-md-2"><strong>CPF:</strong> {{ condutor.cpfCondutor|default:"-" }}</div>
         <div class="col-md-2"><strong>CNH:</strong> {{ condutor.cnh|default:"-" }}</div>
         <div class="col-md-2"><strong>CNH Estrangeira:</strong> {{ condutor.cnhEstrangeira|default:"-" }}</div>
@@ -40,15 +40,15 @@
     <div class="row mb-2">
         <div class="col-md-2"><strong>Placa:</strong> {{ veiculo.placa|default:"-"|upper }}</div>
         <div class="col-md-3"><strong>Chassi:</strong> {{ veiculo.chassi|default:"-"|upper }}</div>
-        <div class="col-md-2"><strong>Marca:</strong> {{ veiculo.marca|default:"-"|title }}</div>
-        <div class="col-md-2"><strong>Modelo:</strong> {{ veiculo.modelo|default:"-"|title }}</div>
-        <div class="col-md-1"><strong>Cor:</strong> {{ veiculo.cor|default:"-"|title }}</div>
-        <div class="col-md-2"><strong>Especie:</strong> {{ veiculo.especie|default:"-"|title }}</div>
+        <div class="col-md-2"><strong>Marca:</strong> {{ veiculo.marca|default:"-"|upper }}</div>
+        <div class="col-md-2"><strong>Modelo:</strong> {{ veiculo.modelo|default:"-"|upper }}</div>
+        <div class="col-md-1"><strong>Cor:</strong> {{ veiculo.cor|default:"-"|upper }}</div>
+        <div class="col-md-2"><strong>Especie:</strong> {{ veiculo.especie|default:"-"|upper }}</div>
     </div>
     <div class="row">
-        <div class="col-md-2"><strong>Categoria:</strong> {{ veiculo.categoria|default:"-"|title }}</div>
+        <div class="col-md-2"><strong>Categoria:</strong> {{ veiculo.categoria|default:"-"|upper }}</div>
         <div class="col-md-2"><strong>UF:</strong> {{ veiculo.ufVeiculo|default:"-"|upper }}</div>
-        <div class="col-md-4"><strong>Municipio:</strong> {{ veiculo.municipioVeiculo|default:"-"|title }}</div>
+        <div class="col-md-4"><strong>Municipio:</strong> {{ veiculo.municipioVeiculo|default:"-"|upper }}</div>
     </div>
     {% empty %}
     <p class="text-muted">Nenhum veiculo cadastrado.</p>
@@ -61,7 +61,7 @@
         <i class="bi bi-geo-alt"></i> Local e Data da Fiscalizacao
     </div>
     <div class="row">
-        <div class="col-md-6"><strong>Local:</strong> {{ crr.localFiscalizacao|title }}</div>
+        <div class="col-md-6"><strong>Local:</strong> {{ crr.localFiscalizacao|upper }}</div>
         <div class="col-md-3"><strong>Data:</strong> {{ crr.dataFiscalizacao|date:"d/m/Y" }}</div>
         <div class="col-md-3"><strong>Hora:</strong> {{ crr.horaFiscalizacao|time:"H:i" }}</div>
     </div>
@@ -76,7 +76,7 @@
             </div>
             <ul class="list-unstyled">
                 {% for enq in crr.enquadramentos.all %}
-                <li><strong>{{ enq.enquadramento.codigo }}</strong> - {{ enq.enquadramento.descricao_infracao|title }}</li>
+                <li><strong>{{ enq.enquadramento.codigo }}</strong> - {{ enq.enquadramento.descricao_infracao|upper }}</li>
                 {% empty %}
                 <li class="text-muted">Nenhum enquadramento cadastrado.</li>
                 {% endfor %}
@@ -104,9 +104,12 @@
     <div class="form-section-title">
         <i class="bi bi-truck"></i> Dados do Guincho
     </div>
+    <div class="row mb-2">
+        <div class="col-12"><strong>Pátio:</strong> {{ crr.localPatio|default:"-"|upper }}</div>
+    </div>
     <div class="row">
         <div class="col-md-3"><strong>Placa Guincho:</strong> {{ crr.placaGuincho|default:"-"|upper }}</div>
-        <div class="col-md-6"><strong>Encarregado:</strong> {{ crr.encarregado|default:"-"|title }}</div>
+        <div class="col-md-6"><strong>Encarregado:</strong> {{ crr.encarregado|default:"-"|upper }}</div>
     </div>
 </div>
 
@@ -130,7 +133,7 @@
         <i class="bi bi-building"></i> Arrendatario
     </div>
     {% for arr in crr.arrendatarios.all %}
-    <p>{{ arr.arrendatario.nome_arrendatario|title }} - {{ arr.arrendatario.cnpj_arrendatario }}</p>
+    <p>{{ arr.arrendatario.nome_arrendatario|upper }} - {{ arr.arrendatario.cnpj_arrendatario }}</p>
     {% empty %}
     <p class="text-muted">Nenhum arrendatario cadastrado.</p>
     {% endfor %}
