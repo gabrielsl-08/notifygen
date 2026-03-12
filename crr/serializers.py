@@ -373,6 +373,7 @@ class CrrMobileReadSerializer(serializers.ModelSerializer):
 
 class CrrMobileSerializer(serializers.ModelSerializer):
     """Serializer para criação de CRR via app mobile"""
+    numeroCrr = serializers.CharField(required=False, allow_blank=True, default='')
     dataFiscalizacao = serializers.DateField(
         input_formats=['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y']
     )
@@ -419,9 +420,22 @@ class CrrMobileSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'status', 'criado_em']
 
     def validate_numeroCrr(self, value):
-        """Valida que o número começa com E e é único"""
+        """Valida/gera o número do CRR. Se vazio, gera o próximo sequencial."""
         if not value:
-            raise serializers.ValidationError("Número do CRR é obrigatório.")
+            from django.db import connection, transaction
+            with transaction.atomic():
+                # Lock de tabela garante exclusividade mesmo sem linhas existentes
+                with connection.cursor() as cursor:
+                    cursor.execute('LOCK TABLE crr_crr IN SHARE ROW EXCLUSIVE MODE')
+                from django.db.models import Max, IntegerField
+                from django.db.models.functions import Cast, Substr
+                resultado = Crr.objects.filter(
+                    numeroCrr__regex=r'^[eE]\d+'
+                ).annotate(
+                    num_part=Cast(Substr('numeroCrr', 2), IntegerField())
+                ).aggregate(max_num=Max('num_part'))
+                proximo = (resultado['max_num'] or 0) + 1
+                return f"E{proximo:04d}"
 
         value = value.upper()
         if not value.startswith('E'):
