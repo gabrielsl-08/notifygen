@@ -1,2 +1,2 @@
-release: python manage.py migrate --no-input && python manage.py importar_dados_iniciais
+release: python manage.py migrate --no-input
 web: gunicorn divprom.wsgi --log-file -
