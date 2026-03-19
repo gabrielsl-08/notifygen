@@ -101,7 +101,7 @@ class CrrSerializer(serializers.ModelSerializer):
             for numero_ait in aits_list:
                 Ait.objects.create(crr=crr, ait=numero_ait)
 
-            for imagem in imagens_data[:4]:  # limita a até 4 imagens
+            for imagem in imagens_data[:8]:  # limita a até 8 imagens
                 ImagemCrr.objects.create(crr=crr, **imagem)    
 
             # Cria Enquadramentos
@@ -491,7 +491,7 @@ class CrrMobileSerializer(serializers.ModelSerializer):
             # Cria Imagens (aceita base64 strings do app mobile)
             import base64 as b64mod
             from django.core.files.base import ContentFile
-            for i, imagem in enumerate(imagens_data[:4]):
+            for i, imagem in enumerate(imagens_data[:8]):
                 try:
                     if isinstance(imagem, str) and len(imagem) > 100:
                         # base64 string do app mobile
