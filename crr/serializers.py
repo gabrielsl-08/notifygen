@@ -490,7 +490,9 @@ class CrrMobileSerializer(serializers.ModelSerializer):
 
             # Cria Imagens (aceita base64 strings do app mobile)
             import base64 as b64mod
+            import logging
             from django.core.files.base import ContentFile
+            logger = logging.getLogger(__name__)
             for i, imagem in enumerate(imagens_data[:8]):
                 try:
                     if isinstance(imagem, str) and len(imagem) > 100:
@@ -500,11 +502,12 @@ class CrrMobileSerializer(serializers.ModelSerializer):
                         img_file = ContentFile(img_bytes, name=nome)
                         imagem_obj = ImagemCrr(crr=crr, nomeArquivo=nome)
                         imagem_obj.imagem.save(nome, img_file, save=True)
+                        logger.info(f"Imagem {nome} salva com sucesso. URL: {imagem_obj.imagem.url}")
                     elif isinstance(imagem, dict):
                         # formato antigo {nomeArquivo, url}
                         ImagemCrr.objects.create(crr=crr, **imagem)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.error(f"Erro ao salvar imagem {i+1} do CRR {crr.numeroCrr}: {e}", exc_info=True)
 
             # Cria Enquadramentos
             for codigo in enquadramentos_list:
