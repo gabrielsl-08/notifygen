@@ -5,12 +5,7 @@ from .models import (
     TabelaEnquadramento, ImagemCrr, DispositivoMobile
 )
 # = DETALHES DO CRR = #
-from .serializers import (
-    VeiculoSerializer,
-    CondutorSerializer,
-    AitSerializer,
-    TabelaEnquadramentoSerializer,
-)
+
 class ArrendatarioDetalheSerializer(serializers.ModelSerializer):
     nomeArrendatario = serializers.CharField(source='arrendatario.nome_arrendatario', read_only=True)
     cnpjArrendatario = serializers.CharField(source='arrendatario.cnpj_arrendatario', read_only=True)
