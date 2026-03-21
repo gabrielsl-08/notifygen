@@ -1,30 +1,44 @@
 from rest_framework import viewsets, mixins, status as drf_status
 from rest_framework.response import Response
+
 from .models import Crr, Veiculo, Condutor, TabelaEnquadramento, Ait, Enquadramento
 from .serializers import (
-    CrrSerializer, VeiculoSerializer, CondutorSerializer,
-    TabelaEnquadramentoSerializer, AitSerializer, EnquadramentoSerializer,
-    CrrJavaSerializer, CrrStatusUpdateSerializer,
+    CrrJavaSerializer,
+    CrrJavaDetalheSerializer,
+    CrrStatusUpdateSerializer,
+    VeiculoSerializer,
+    AitSerializer,
+    CondutorSerializer,
+    TabelaEnquadramentoSerializer,
+    EnquadramentoSerializer,
 )
 from .permissions import IsJavaUser
 
 
-class CrrViewSet(mixins.RetrieveModelMixin,
-                 mixins.ListModelMixin,
-                 mixins.UpdateModelMixin,
-                 viewsets.GenericViewSet):
-    """
-    API para o sistema Java:
-    - GET  /api/v1/crr/        -> lista todos os CRRs
-    - GET  /api/v1/crr/{id}/   -> detalhe de um CRR
-    - PATCH /api/v1/crr/{id}/  -> atualiza status (somente para 'liberado')
-    """
+class CrrViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
     queryset = Crr.objects.all().order_by('-criado_em')
     permission_classes = [IsJavaUser]
     http_method_names = ['get', 'patch', 'head', 'options']
 
     def get_queryset(self):
-        qs = Crr.objects.all().order_by('-criado_em')
+        qs = (
+            Crr.objects.all()
+            .prefetch_related(
+                'veiculo',
+                'condutores',
+                'aits',
+                'enquadramentos__enquadramento',
+                'arrendatarios__arrendatario',
+                'imagens',
+            )
+            .order_by('-criado_em')
+        )
+
         params = self.request.query_params
         numero = params.get('numeroCrr')
         placa = params.get('placa')
@@ -32,6 +46,7 @@ class CrrViewSet(mixins.RetrieveModelMixin,
         marca = params.get('marca')
         modelo = params.get('modelo')
         status_param = params.get('status')
+
         if numero:
             qs = qs.filter(numeroCrr__iexact=numero.strip())
         if placa:
@@ -44,11 +59,14 @@ class CrrViewSet(mixins.RetrieveModelMixin,
             qs = qs.filter(veiculo__modelo__icontains=modelo.strip())
         if status_param:
             qs = qs.filter(status__iexact=status_param.strip())
-        return qs
+
+        return qs.distinct()
 
     def get_serializer_class(self):
         if self.request.method == 'PATCH':
             return CrrStatusUpdateSerializer
+        if self.action == 'retrieve':
+            return CrrJavaDetalheSerializer
         return CrrJavaSerializer
 
     def partial_update(self, request, *args, **kwargs):
