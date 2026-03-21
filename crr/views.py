@@ -741,7 +741,7 @@ def reenviar_email_crr(request, pk):
     return redirect('crr:crr_detail', pk=pk)
 
 
-# -------- Alteração de senha (usuário comum) -------- #
+# - Acesso View JAVA- #
 
 class MinhaSenhaView(DjangoPasswordChangeView):
     template_name = 'crr/change_password.html'
@@ -751,3 +751,57 @@ class MinhaSenhaView(DjangoPasswordChangeView):
     def form_valid(self, form):
         messages.success(self.request, 'Senha alterada com sucesso.')
         return super().form_valid(form)
+
+# - Alteração de senha (usuário comum) - #
+class CrrViewSet(mixins.RetrieveModelMixin,
+                 mixins.ListModelMixin,
+                 mixins.UpdateModelMixin,
+                 viewsets.GenericViewSet):
+
+    queryset = Crr.objects.all().order_by('-criado_em')
+    permission_classes = [IsJavaUser]
+    http_method_names = ['get', 'patch', 'head', 'options']
+
+    def get_queryset(self):
+        qs = (
+            Crr.objects.all()
+            .prefetch_related(
+                'veiculo',
+                'condutores',
+                'aits',
+                'enquadramentos__enquadramento',
+                'arrendatarios__arrendatario',
+                'imagens',
+            )
+            .order_by('-criado_em')
+        )
+
+        params = self.request.query_params
+        numero = params.get('numeroCrr')
+        placa = params.get('placa')
+        chassi = params.get('chassi')
+        marca = params.get('marca')
+        modelo = params.get('modelo')
+        status_param = params.get('status')
+
+        if numero:
+            qs = qs.filter(numeroCrr__iexact=numero.strip())
+        if placa:
+            qs = qs.filter(veiculo__placa__iexact=placa.strip())
+        if chassi:
+            qs = qs.filter(veiculo__chassi__iexact=chassi.strip())
+        if marca:
+            qs = qs.filter(veiculo__marca__icontains=marca.strip())
+        if modelo:
+            qs = qs.filter(veiculo__modelo__icontains=modelo.strip())
+        if status_param:
+            qs = qs.filter(status__iexact=status_param.strip())
+
+        return qs.distinct()
+
+    def get_serializer_class(self):
+        if self.request.method == 'PATCH':
+            return CrrStatusUpdateSerializer
+        if self.action == 'retrieve':
+            return CrrJavaDetalheSerializer
+        return CrrJavaSerializer
