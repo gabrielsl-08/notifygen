@@ -4,8 +4,112 @@ from .models import (
     Crr, Veiculo, Condutor, Ait, Enquadramento,
     TabelaEnquadramento, ImagemCrr, DispositivoMobile
 )
+# = DETALHES DO CRR = #
+from .serializers import (
+    VeiculoSerializer,
+    CondutorSerializer,
+    AitSerializer,
+    TabelaEnquadramentoSerializer,
+)
+class ArrendatarioDetalheSerializer(serializers.ModelSerializer):
+    nomeArrendatario = serializers.CharField(source='arrendatario.nome_arrendatario', read_only=True)
+    cnpjArrendatario = serializers.CharField(source='arrendatario.cnpj_arrendatario', read_only=True)
+    enderecoArrendatario = serializers.CharField(source='arrendatario.endereco_arrendatario', read_only=True)
+    numeroArrendatario = serializers.CharField(source='arrendatario.numero_arrendatario', read_only=True)
+    complementoArrendatario = serializers.CharField(source='arrendatario.complemento_arrendatario', read_only=True)
+    bairroArrendatario = serializers.CharField(source='arrendatario.bairro_arrendatario', read_only=True)
+    cidadeArrendatario = serializers.CharField(source='arrendatario.cidade_arrendatario', read_only=True)
+    ufArrendatario = serializers.CharField(source='arrendatario.uf_arrendatario', read_only=True)
+    cepArrendatario = serializers.CharField(source='arrendatario.cep_arrendatario', read_only=True)
+
+    class Meta:
+        model = Arrendatario
+        fields = [
+            'id',
+            'nomeArrendatario',
+            'cnpjArrendatario',
+            'enderecoArrendatario',
+            'numeroArrendatario',
+            'complementoArrendatario',
+            'bairroArrendatario',
+            'cidadeArrendatario',
+            'ufArrendatario',
+            'cepArrendatario',
+        ]
 
 
+class EnquadramentoDetalheSerializer(serializers.ModelSerializer):
+    detalhe = TabelaEnquadramentoSerializer(source='enquadramento', read_only=True)
+
+    class Meta:
+        model = Enquadramento
+        fields = ['id', 'detalhe']
+
+
+class ImagemCrrDetalheSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImagemCrr
+        fields = ['id', 'nomeArquivo', 'url']
+
+
+class CrrJavaDetalheSerializer(serializers.ModelSerializer):
+    veiculo = VeiculoSerializer(many=True, read_only=True)
+    condutores = CondutorSerializer(many=True, read_only=True)
+    aits = AitSerializer(many=True, read_only=True)
+    enquadramentos = EnquadramentoDetalheSerializer(many=True, read_only=True)
+    arrendatarios = ArrendatarioDetalheSerializer(many=True, read_only=True)
+    imagens = ImagemCrrDetalheSerializer(many=True, read_only=True)
+
+    data = serializers.SerializerMethodField()
+    hora = serializers.SerializerMethodField()
+    local = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Crr
+        fields = [
+            'id',
+            'numeroCrr',
+            'status',
+            'situacaoEntrega',
+            'not_gerada',
+            'edital_emitido',
+            'matriculaAgente',
+            'medidaAdministrativa',
+            'observacao',
+            'placaGuincho',
+            'encarregado',
+            'localPatio',
+            'localFiscalizacao',
+            'municipioEstadoFiscalizacao',
+            'dataFiscalizacao',
+            'horaFiscalizacao',
+            'data',
+            'hora',
+            'local',
+            'veiculo',
+            'condutores',
+            'aits',
+            'enquadramentos',
+            'arrendatarios',
+            'imagens',
+            'criado_em',
+            'editado_em',
+        ]
+
+    def get_data(self, obj):
+        return obj.dataFiscalizacao.isoformat() if obj.dataFiscalizacao else ''
+
+    def get_hora(self, obj):
+        return obj.horaFiscalizacao.strftime('%H:%M:%S') if obj.horaFiscalizacao else ''
+
+    def get_local(self, obj):
+        local = obj.localFiscalizacao or ''
+        municipio = obj.municipioEstadoFiscalizacao or ''
+        if local and municipio:
+            return f'{local} - {municipio}'
+        return local or municipio
+
+# = ATÉ AQUI = #
 
 class VeiculoSerializer(serializers.ModelSerializer):
     class Meta:
