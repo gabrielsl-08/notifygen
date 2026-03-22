@@ -195,6 +195,7 @@ class CrrJavaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Crr
         fields = [
+            'id',
             'numeroCrr',
             'status',
             'placa',
