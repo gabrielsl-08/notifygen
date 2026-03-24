@@ -741,7 +741,7 @@ def reenviar_email_crr(request, pk):
     return redirect('crr:crr_detail', pk=pk)
 
 
-# -------- Alteração de senha (usuário comum) -------- #
+# - Acesso View JAVA- #
 
 class MinhaSenhaView(DjangoPasswordChangeView):
     template_name = 'crr/change_password.html'
@@ -751,3 +751,11 @@ class MinhaSenhaView(DjangoPasswordChangeView):
     def form_valid(self, form):
         messages.success(self.request, 'Senha alterada com sucesso.')
         return super().form_valid(form)
+
+# - Alteração de senha (usuário comum) - #
+
+        if self.request.method == 'PATCH':
+            return CrrStatusUpdateSerializer
+        if self.action == 'retrieve':
+            return CrrJavaDetalheSerializer
+        return CrrJavaSerializer
