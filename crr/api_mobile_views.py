@@ -283,7 +283,9 @@ def buscar_crrs(request):
     modelo = request.query_params.get('modelo', '').strip()
     data = request.query_params.get('data', '').strip()
 
-    if not any([placa, marca, modelo, data]):
+    numero_crr = request.query_params.get('numeroCrr', '').strip()
+
+    if not any([placa, marca, modelo, data, numero_crr]):
         return Response({
             'sucesso': False,
             'erro': 'Informe ao menos um filtro de busca'
@@ -294,6 +296,8 @@ def buscar_crrs(request):
         'enquadramentos__enquadramento',
     )
 
+    if numero_crr:
+        crrs = crrs.filter(numeroCrr__icontains=numero_crr)
     if placa:
         crrs = crrs.filter(veiculo__placa__icontains=placa)
     if marca:
@@ -323,9 +327,13 @@ def criar_crr(request):
 
     O numeroCrr deve ser do lote atribuído ao dispositivo.
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"criar_crr payload situacaoEntrega={request.data.get('situacaoEntrega', 'NAO_ENVIADO')}")
     serializer = CrrMobileSerializer(data=request.data)
 
     if serializer.is_valid():
+        logger.info(f"criar_crr validated situacaoEntrega={serializer.validated_data.get('situacaoEntrega', 'NAO_VALIDADO')}")
         crr = serializer.save()
         return Response({
             'sucesso': True,
@@ -333,6 +341,7 @@ def criar_crr(request):
             'crr': CrrMobileSerializer(crr).data
         }, status=status.HTTP_201_CREATED)
 
+    logger.error(f"criar_crr erros de validacao: {serializer.errors}")
     return Response({
         'sucesso': False,
         'erros': serializer.errors
@@ -394,6 +403,48 @@ def atualizar_condutor_crr(request, crr_id):
             condutor.save(update_fields=['assinaturaCondutor'])
 
     return Response({'sucesso': True, 'mensagem': 'Condutor atualizado com sucesso'})
+
+
+@api_view(['POST'])
+@permission_classes([IsDispositivoMobile])
+def enviar_email_condutor_view(request, crr_id):
+    """
+    Envia email do CRR para o condutor.
+
+    POST /api/v1/mobile/crr/<crr_id>/enviar-email/
+    Header: X-API-Key: <api_key>
+    {
+        "email": "condutor@email.com"
+    }
+    """
+    from .models import Crr
+    from .email_utils import enviar_email_condutor
+
+    email_dest = request.data.get('email', '').strip()
+    if not email_dest:
+        return Response(
+            {'sucesso': False, 'erro': 'Email não informado'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        crr = Crr.objects.prefetch_related(
+            'veiculo', 'condutores', 'aits',
+            'enquadramentos__enquadramento',
+        ).get(id=crr_id)
+    except Crr.DoesNotExist:
+        return Response(
+            {'sucesso': False, 'erro': 'CRR não encontrado'},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    sucesso, erro = enviar_email_condutor(crr, email_dest)
+    if sucesso:
+        return Response({'sucesso': True, 'mensagem': 'Email enviado com sucesso'})
+    return Response(
+        {'sucesso': False, 'erro': f'Falha ao enviar email: {erro}'},
+        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    )
 
 
 # ==================== DADOS AUXILIARES ==================== #
