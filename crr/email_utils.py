@@ -5,42 +5,47 @@ from django.conf import settings
 
 
 def gerar_texto_crr(crr):
-    """Gera texto formatado do CRR para anexo de email."""
-    SEP = "=" * 40
-    DIV = "-" * 40
+    """Gera texto formatado do CRR para anexo de email.
+    Layout identico ao impresso (print_utils.py)."""
+    DIV = "-" * 32
     linhas = []
 
-    linhas.append(SEP)
-    linhas.append("COMPROVANTE DE RECOLHIMENTO E REMOCAO")
-    linhas.append(SEP)
-    linhas.append(f"NUMERO: {crr.numeroCrr.upper()}")
     data = crr.dataFiscalizacao.strftime('%d/%m/%Y') if crr.dataFiscalizacao else '-'
     hora = crr.horaFiscalizacao.strftime('%H:%M') if crr.horaFiscalizacao else '-'
-    linhas.append(f"DATA: {data}")
-    linhas.append(f"HORA: {hora}")
-    linhas.append(f"STATUS: {crr.get_status_display().upper()}")
-    linhas.append(DIV)
 
+    # Titulo
+    linhas.append("COMPROVANTE DE RECOLHIMENTO")
+    linhas.append("E REMOCAO - CRR")
+
+    # Identificacao
+    linhas.append(DIV)
+    linhas.append("IDENTIFICACAO DO CRR")
+    linhas.append(DIV)
+    linhas.append(f"numero: {crr.numeroCrr.upper()}")
+    linhas.append(f"data: {data}")
+    linhas.append(f"hora: {hora}")
+
+    # Veiculo
+    linhas.append(DIV)
+    linhas.append("VEICULO")
+    linhas.append(DIV)
     v = crr.veiculo.first()
-    if v:
-        linhas.append("VEICULO:")
-        linhas.append(f"  PLACA:  {v.placa.upper() if v.placa else '-'}")
-        linhas.append(f"  CHASSI: {v.chassi.upper() if v.chassi else '-'}")
-        linhas.append(f"  MARCA:  {v.marca.upper() if v.marca else '-'}")
-        linhas.append(f"  MODELO: {v.modelo.upper() if v.modelo else '-'}")
-        linhas.append(f"  COR:    {v.cor.upper() if v.cor else '-'}")
-    linhas.append(DIV)
+    linhas.append(f"placa: {v.placa.upper() if v and v.placa else '-'}")
+    linhas.append(f"chassi: {v.chassi.upper() if v and v.chassi else '-'}")
+    linhas.append(f"marca: {v.marca.upper() if v and v.marca else '-'}")
+    linhas.append(f"modelo: {v.modelo.upper() if v and v.modelo else '-'}")
+    linhas.append(f"cor: {v.cor.upper() if v and v.cor else '-'}")
 
-    linhas.append("FISCALIZACAO:")
-    local = crr.localFiscalizacao.upper() if crr.localFiscalizacao else '-'
-    medida = crr.medidaAdministrativa.upper() if crr.medidaAdministrativa else '-'
-    linhas.append(f"  LOCAL:  {local}")
-    linhas.append(f"  MEDIDA: {medida}")
+    # Fiscalizacao
     linhas.append(DIV)
+    linhas.append("FISCALIZACAO")
+    linhas.append(DIV)
+    linhas.append(f"local: {crr.localFiscalizacao.upper() if crr.localFiscalizacao else '-'}")
+    linhas.append(f"medida: {crr.medidaAdministrativa.upper() if crr.medidaAdministrativa else '-'}")
 
     aits = [a.ait for a in crr.aits.all()]
     if aits:
-        linhas.append(f"  AITs: {', '.join(a.upper() for a in aits)}")
+        linhas.append(f"AITs: {', '.join(a.upper() for a in aits)}")
 
     enqs = [
         str(e.enquadramento.codigo)
@@ -48,30 +53,48 @@ def gerar_texto_crr(crr):
         if e.enquadramento
     ]
     if enqs:
-        linhas.append(f"  ENQUADR.: {', '.join(enqs)}")
-    linhas.append(DIV)
+        linhas.append(f"enquadr.: {', '.join(enqs)}")
+        if '00000' in enqs:
+            linhas.append("  ART. 279-A")
 
-    linhas.append("OUTROS DADOS:")
-    linhas.append(f"  PATIO:       {crr.localPatio.upper() if crr.localPatio else '-'}")
-    linhas.append(f"  GUINCHO:     {crr.placaGuincho.upper() if crr.placaGuincho else '-'}")
-    linhas.append(f"  ENCARREGADO: {crr.encarregado.upper() if crr.encarregado else '-'}")
-    linhas.append(f"  AGENTE:      {crr.matriculaAgente.upper() if crr.matriculaAgente else '-'}")
+    # Outros dados
     linhas.append(DIV)
+    linhas.append("OUTROS DADOS")
+    linhas.append(DIV)
+    linhas.append(f"patio: {crr.localPatio.upper() if crr.localPatio else '-'}")
+    linhas.append(f"guincho: {crr.placaGuincho.upper() if crr.placaGuincho else '-'}")
+    linhas.append(f"encarr.: {crr.encarregado.upper() if crr.encarregado else '-'}")
+    linhas.append(f"agente: {crr.matriculaAgente.upper() if crr.matriculaAgente else '-'}")
 
+    # Condutor
+    linhas.append(DIV)
+    linhas.append("CONDUTOR")
+    linhas.append(DIV)
     c = crr.condutores.first()
-    linhas.append("CONDUTOR:")
     if c and c.nomeCondutor:
-        linhas.append(f"  NOME: {c.nomeCondutor.upper()}")
-        linhas.append(f"  CPF:  {c.cpfCondutor or '-'}")
-        linhas.append(f"  CNH:  {c.cnh or '-'}")
+        linhas.append(f"nome: {c.nomeCondutor.upper()}")
+        linhas.append(f"cpf: {c.cpfCondutor or '-'}")
     else:
-        linhas.append("  AUSENTE")
+        linhas.append("ausente")
 
+    # Observacao
     if crr.observacao:
         linhas.append(DIV)
-        linhas.append(f"OBS: {crr.observacao.upper()}")
+        linhas.append("OBSERVACAO")
+        linhas.append(DIV)
+        linhas.append(f"obs.: {crr.observacao.upper()}")
 
-    linhas.append(SEP)
+    # Assinatura condutor
+    linhas.append(DIV)
+    linhas.append("")
+    linhas.append("assinatura do condutor:")
+    linhas.append("_" * 32)
+
+    situacao = crr.situacaoEntrega or ''
+    if situacao:
+        linhas.append(situacao.upper())
+
+    linhas.append(DIV)
     return "\n".join(linhas)
 
 
