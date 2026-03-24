@@ -106,7 +106,7 @@ def ativar_dispositivo(request):
         'mensagem': 'Dispositivo ativado com sucesso',
         'dispositivo': DispositivoSerializer(dispositivo).data,
         'senha_alterada': agente.senha_alterada,
-        'assinatura_url': request.build_absolute_uri(agente.assinatura.url) if agente.assinatura else None,
+        'assinatura_url': agente.assinatura.url if agente.assinatura else None,
     })
 
 
@@ -548,10 +548,7 @@ def validar_login(request):
     dispositivo.ultimo_acesso = timezone.now()
     dispositivo.save(update_fields=['ultimo_acesso'])
 
-    assinatura_url = (
-        request.build_absolute_uri(agente.assinatura.url)
-        if agente.assinatura else None
-    )
+    assinatura_url = agente.assinatura.url if agente.assinatura else None
     return Response({
         'sucesso': True,
         'agente': {
