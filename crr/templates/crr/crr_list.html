@@ -112,17 +112,7 @@
                             </td>
                             <td>{{ crr.dataFiscalizacao|date:"d/m/Y" }}</td>
                             <td>
-                                {% if crr.situacaoEntrega == 'Assinou e recebeu 2a via' %}
-                                    <span class="badge bg-success">{{ crr.situacaoEntrega }}</span>
-                                {% elif crr.situacaoEntrega == 'Recusou assinar e recebeu 2a via' %}
-                                    <span class="badge bg-warning text-dark">{{ crr.situacaoEntrega }}</span>
-                                {% elif crr.situacaoEntrega == 'Recusou assinar e a receber 2a via' %}
-                                    <span class="badge bg-danger">{{ crr.situacaoEntrega }}</span>
-                                {% elif crr.situacaoEntrega == 'Condutor ausente' %}
-                                    <span class="badge bg-secondary">{{ crr.situacaoEntrega }}</span>
-                                {% else %}
-                                    <span class="text-muted">-</span>
-                                {% endif %}
+                                {{ crr.situacaoEntrega|default:"-" }}
                             </td>
                             <td>
                                 {% if user.is_superuser %}
