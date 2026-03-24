@@ -112,7 +112,7 @@
                             </td>
                             <td>{{ crr.dataFiscalizacao|date:"d/m/Y" }}</td>
                             <td>
-                                {{ crr.situacaoEntrega|default:"-" }}
+                                {{ crr.situacaoEntrega|title|default:"-" }}
                             </td>
                             <td>
                                 {% if user.is_superuser %}

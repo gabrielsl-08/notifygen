@@ -171,7 +171,7 @@
     <div class="row">
         <div class="col-md-6">
             <strong>Situacao:</strong>
-            {{ crr.situacaoEntrega|default:"" }}
+            {{ crr.situacaoEntrega|title|default:"" }}
         </div>
     </div>
     {% if crr.assinaturaCondutor %}

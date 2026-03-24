@@ -502,6 +502,9 @@ class CrrMobileSerializer(serializers.ModelSerializer):
     situacaoEntrega = serializers.CharField(required=False, allow_blank=True, default='')
     sincronizado = serializers.BooleanField(read_only=True, default=True)
 
+    def validate_situacaoEntrega(self, value):
+        return value.lower() if value else value
+
     class Meta:
         model = Crr
         fields = [

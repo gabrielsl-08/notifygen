@@ -26,10 +26,10 @@ class Crr(models.Model):
     encarregado = models.CharField(max_length=50, blank=True, null=False,verbose_name='encarregado do guincho')
     status = models.CharField(max_length=10, choices=STATUS_CHOICES,default='pendente',help_text="Status atual do veículo (Retido/Liberado)")
     SITUACAO_ENTREGA_CHOICES = [
-        ('Assinou e recebeu 2a via',           'Assinou e recebeu 2ª via'),
-        ('Recusou assinar e recebeu 2a via',   'Recusou assinar e recebeu 2ª via'),
-        ('Recusou assinar e a receber 2a via', 'Recusou assinar e a receber 2ª via'),
-        ('Condutor ausente',                   'Condutor ausente'),
+        ('assinou e recebeu 2a via',           'Assinou e recebeu 2ª via'),
+        ('recusou assinar e recebeu 2a via',   'Recusou assinar e recebeu 2ª via'),
+        ('recusou assinar e a receber 2a via', 'Recusou assinar e a receber 2ª via'),
+        ('condutor ausente',                   'Condutor ausente'),
     ]
     situacaoEntrega = models.CharField(
         max_length=50, blank=True, null=False, default='',
@@ -45,7 +45,7 @@ class Crr(models.Model):
         # Definir os campos que devem ser convertidos para minúsculas
         lower_fields = [
              'numeroCrr','localFiscalizacao','municipioEstadoFiscalizacao','observacao',
-             'medidaAdministrativa','localPatio','placaGuincho','encarregado','situacaoEntrega',
+             'medidaAdministrativa','localPatio','placaGuincho','encarregado',
         ]
         
         # Aplicar normalização para minúsculas

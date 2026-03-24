@@ -329,11 +329,11 @@ def criar_crr(request):
     """
     import logging
     logger = logging.getLogger(__name__)
-    logger.info(f"criar_crr payload situacaoEntrega={request.data.get('situacaoEntrega', 'NAO_ENVIADO')}")
+    logger.warning(f"criar_crr payload situacaoEntrega={request.data.get('situacaoEntrega', 'NAO_ENVIADO')}")
     serializer = CrrMobileSerializer(data=request.data)
 
     if serializer.is_valid():
-        logger.info(f"criar_crr validated situacaoEntrega={serializer.validated_data.get('situacaoEntrega', 'NAO_VALIDADO')}")
+        logger.warning(f"criar_crr validated situacaoEntrega={serializer.validated_data.get('situacaoEntrega', 'NAO_VALIDADO')}")
         crr = serializer.save()
         return Response({
             'sucesso': True,
@@ -383,7 +383,7 @@ def atualizar_condutor_crr(request, crr_id):
         'Recusou assinar e a receber 2a via',
     }
 
-    situacao = request.data.get('situacaoEntrega', '').strip()
+    situacao = request.data.get('situacaoEntrega', '').strip().lower()
     assinatura = request.data.get('assinaturaCondutor', '')
 
     if situacao and situacao not in SITUACOES_VALIDAS:
