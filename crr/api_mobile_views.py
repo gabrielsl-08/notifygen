@@ -438,13 +438,13 @@ def enviar_email_condutor_view(request, crr_id):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    sucesso, erro = enviar_email_condutor(crr, email_dest)
-    if sucesso:
-        return Response({'sucesso': True, 'mensagem': 'Email enviado com sucesso'})
-    return Response(
-        {'sucesso': False, 'erro': f'Falha ao enviar email: {erro}'},
-        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-    )
+    import threading
+
+    def _enviar():
+        enviar_email_condutor(crr, email_dest)
+
+    threading.Thread(target=_enviar, daemon=True).start()
+    return Response({'sucesso': True, 'mensagem': 'Email sendo enviado'})
 
 
 # ==================== DADOS AUXILIARES ==================== #
