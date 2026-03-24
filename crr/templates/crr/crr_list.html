@@ -85,6 +85,7 @@
                             <th>Placa</th>
                             <th>Chassi</th>
                             <th>Data</th>
+                            <th>Situação Entrega</th>
                             <th>Status</th>
                             <th class="text-center">Edital</th>
                             <th class="text-center">Ações</th>
@@ -110,6 +111,19 @@
                                 {% empty %}-{% endfor %}
                             </td>
                             <td>{{ crr.dataFiscalizacao|date:"d/m/Y" }}</td>
+                            <td>
+                                {% if crr.situacaoEntrega == 'Assinou e recebeu 2a via' %}
+                                    <span class="badge bg-success">{{ crr.situacaoEntrega }}</span>
+                                {% elif crr.situacaoEntrega == 'Recusou assinar e recebeu 2a via' %}
+                                    <span class="badge bg-warning text-dark">{{ crr.situacaoEntrega }}</span>
+                                {% elif crr.situacaoEntrega == 'Recusou assinar e a receber 2a via' %}
+                                    <span class="badge bg-danger">{{ crr.situacaoEntrega }}</span>
+                                {% elif crr.situacaoEntrega == 'Condutor ausente' %}
+                                    <span class="badge bg-secondary">{{ crr.situacaoEntrega }}</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
                             <td>
                                 {% if user.is_superuser %}
                                 {# Superusuário: dropdown completo (pendente / retido / liberado) #}
@@ -173,7 +187,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="8" class="text-center text-muted py-4">
+                            <td colspan="9" class="text-center text-muted py-4">
                                 Nenhum CRR encontrado.
                             </td>
                         </tr>

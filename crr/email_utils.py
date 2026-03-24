@@ -1,4 +1,5 @@
 import os
+import smtplib
 from django.core.mail import EmailMessage
 from django.conf import settings
 
@@ -111,3 +112,49 @@ def enviar_email_crr(crr):
 
     except Exception:
         return False
+
+
+def enviar_email_condutor(crr, email_condutor):
+    """
+    Envia email ao condutor com o CRR como anexo .txt.
+    Retorna (True, '') em sucesso, (False, 'mensagem') em falha.
+    """
+    if not email_condutor:
+        return False, 'Email do condutor não informado'
+
+    try:
+        v = crr.veiculo.first()
+        placa = v.placa.upper() if v and v.placa else 'S/PLACA'
+        data = (
+            crr.dataFiscalizacao.strftime('%d/%m/%Y')
+            if crr.dataFiscalizacao else '-'
+        )
+        assunto = f"CRR {crr.numeroCrr.upper()} — {placa} — {data}"
+        corpo = (
+            f"Prezado(a),\n\n"
+            f"Segue em anexo o Comprovante de Recolhimento e Remoção "
+            f"(CRR) nº {crr.numeroCrr.upper()}, referente ao veículo "
+            f"de placa {placa}, lavrado em {data}.\n\n"
+            f"Atenciosamente,\n"
+            f"Fiscalização de Trânsito"
+        )
+        texto = gerar_texto_crr(crr)
+        nome_arquivo = f"crr_{crr.numeroCrr}.txt"
+
+        email = EmailMessage(
+            subject=assunto,
+            body=corpo,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[email_condutor],
+        )
+        email.attach(nome_arquivo, texto, 'text/plain')
+        connection = email.get_connection()
+        connection.timeout = 20
+        email.connection = connection
+        email.send(fail_silently=False)
+        return True, ''
+
+    except smtplib.SMTPException as e:
+        return False, f'Erro SMTP: {str(e)}'
+    except Exception as e:
+        return False, str(e)
