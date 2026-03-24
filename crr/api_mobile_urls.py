@@ -22,6 +22,7 @@ urlpatterns = [
     path('crr/buscar/', api_mobile_views.buscar_crrs, name='mobile_crr_buscar'),
     path('crr/criar/', api_mobile_views.criar_crr, name='mobile_crr_criar'),
     path('crr/<int:crr_id>/atualizar-condutor/', api_mobile_views.atualizar_condutor_crr, name='mobile_crr_atualizar_condutor'),
+    path('crr/<int:crr_id>/enviar-email/', api_mobile_views.enviar_email_condutor_view, name='mobile_crr_enviar_email'),
 
     # Dados Auxiliares (requer API Key)
     path('enquadramentos/', api_mobile_views.listar_enquadramentos, name='mobile_enquadramentos'),
