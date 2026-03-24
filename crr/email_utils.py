@@ -4,48 +4,65 @@ from django.core.mail import EmailMessage
 from django.conf import settings
 
 
+def _wrap_email(label, valor, largura=60):
+    """Formata 'label: VALOR' com quebra de linha para email."""
+    prefixo = f"{label}: "
+    valor = str(valor).upper()
+    disp = largura - len(prefixo)
+    if disp <= 4 or len(valor) <= disp:
+        return [prefixo + valor]
+    linhas = []
+    cont = " " * len(prefixo)
+    linhas.append(prefixo + valor[:disp])
+    resto = valor[disp:]
+    while resto:
+        linhas.append(cont + resto[:largura - len(cont)])
+        resto = resto[largura - len(cont):]
+    return linhas
+
+
 def gerar_texto_crr(crr):
     """Gera texto formatado do CRR para anexo de email.
-    Layout identico ao impresso (print_utils.py)."""
-    DIV = "-" * 32
+    Layout identico ao impresso, com largura adaptada para email."""
+    LARG = 60
+    DIV = "-" * LARG
     linhas = []
 
     data = crr.dataFiscalizacao.strftime('%d/%m/%Y') if crr.dataFiscalizacao else '-'
     hora = crr.horaFiscalizacao.strftime('%H:%M') if crr.horaFiscalizacao else '-'
 
     # Titulo
-    linhas.append("COMPROVANTE DE RECOLHIMENTO")
-    linhas.append("E REMOCAO - CRR")
+    linhas.append("COMPROVANTE DE RECOLHIMENTO E REMOCAO - CRR")
 
     # Identificacao
     linhas.append(DIV)
     linhas.append("IDENTIFICACAO DO CRR")
     linhas.append(DIV)
-    linhas.append(f"numero: {crr.numeroCrr.upper()}")
-    linhas.append(f"data: {data}")
-    linhas.append(f"hora: {hora}")
+    linhas += _wrap_email("numero", crr.numeroCrr, LARG)
+    linhas += _wrap_email("data", data, LARG)
+    linhas += _wrap_email("hora", hora, LARG)
 
     # Veiculo
     linhas.append(DIV)
     linhas.append("VEICULO")
     linhas.append(DIV)
     v = crr.veiculo.first()
-    linhas.append(f"placa: {v.placa.upper() if v and v.placa else '-'}")
-    linhas.append(f"chassi: {v.chassi.upper() if v and v.chassi else '-'}")
-    linhas.append(f"marca: {v.marca.upper() if v and v.marca else '-'}")
-    linhas.append(f"modelo: {v.modelo.upper() if v and v.modelo else '-'}")
-    linhas.append(f"cor: {v.cor.upper() if v and v.cor else '-'}")
+    linhas += _wrap_email("placa", v.placa if v and v.placa else '-', LARG)
+    linhas += _wrap_email("chassi", v.chassi if v and v.chassi else '-', LARG)
+    linhas += _wrap_email("marca", v.marca if v and v.marca else '-', LARG)
+    linhas += _wrap_email("modelo", v.modelo if v and v.modelo else '-', LARG)
+    linhas += _wrap_email("cor", v.cor if v and v.cor else '-', LARG)
 
     # Fiscalizacao
     linhas.append(DIV)
     linhas.append("FISCALIZACAO")
     linhas.append(DIV)
-    linhas.append(f"local: {crr.localFiscalizacao.upper() if crr.localFiscalizacao else '-'}")
-    linhas.append(f"medida: {crr.medidaAdministrativa.upper() if crr.medidaAdministrativa else '-'}")
+    linhas += _wrap_email("local", crr.localFiscalizacao or '-', LARG)
+    linhas += _wrap_email("medida", crr.medidaAdministrativa or '-', LARG)
 
     aits = [a.ait for a in crr.aits.all()]
     if aits:
-        linhas.append(f"AITs: {', '.join(a.upper() for a in aits)}")
+        linhas += _wrap_email("AITs", ', '.join(a.upper() for a in aits), LARG)
 
     enqs = [
         str(e.enquadramento.codigo)
@@ -53,7 +70,7 @@ def gerar_texto_crr(crr):
         if e.enquadramento
     ]
     if enqs:
-        linhas.append(f"enquadr.: {', '.join(enqs)}")
+        linhas += _wrap_email("enquadr.", ', '.join(enqs), LARG)
         if '00000' in enqs:
             linhas.append("  ART. 279-A")
 
@@ -61,10 +78,10 @@ def gerar_texto_crr(crr):
     linhas.append(DIV)
     linhas.append("OUTROS DADOS")
     linhas.append(DIV)
-    linhas.append(f"patio: {crr.localPatio.upper() if crr.localPatio else '-'}")
-    linhas.append(f"guincho: {crr.placaGuincho.upper() if crr.placaGuincho else '-'}")
-    linhas.append(f"encarr.: {crr.encarregado.upper() if crr.encarregado else '-'}")
-    linhas.append(f"agente: {crr.matriculaAgente.upper() if crr.matriculaAgente else '-'}")
+    linhas += _wrap_email("patio", crr.localPatio or '-', LARG)
+    linhas += _wrap_email("guincho", crr.placaGuincho or '-', LARG)
+    linhas += _wrap_email("encarr.", crr.encarregado or '-', LARG)
+    linhas += _wrap_email("agente", crr.matriculaAgente or '-', LARG)
 
     # Condutor
     linhas.append(DIV)
@@ -72,8 +89,8 @@ def gerar_texto_crr(crr):
     linhas.append(DIV)
     c = crr.condutores.first()
     if c and c.nomeCondutor:
-        linhas.append(f"nome: {c.nomeCondutor.upper()}")
-        linhas.append(f"cpf: {c.cpfCondutor or '-'}")
+        linhas += _wrap_email("nome", c.nomeCondutor, LARG)
+        linhas += _wrap_email("cpf", c.cpfCondutor or '-', LARG)
     else:
         linhas.append("ausente")
 
@@ -82,13 +99,13 @@ def gerar_texto_crr(crr):
         linhas.append(DIV)
         linhas.append("OBSERVACAO")
         linhas.append(DIV)
-        linhas.append(f"obs.: {crr.observacao.upper()}")
+        linhas += _wrap_email("obs.", crr.observacao, LARG)
 
     # Assinatura condutor
     linhas.append(DIV)
     linhas.append("")
     linhas.append("assinatura do condutor:")
-    linhas.append("_" * 32)
+    linhas.append("_" * LARG)
 
     situacao = crr.situacaoEntrega or ''
     if situacao:
