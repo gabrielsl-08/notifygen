@@ -327,13 +327,9 @@ def criar_crr(request):
 
     O numeroCrr deve ser do lote atribuído ao dispositivo.
     """
-    import logging
-    logger = logging.getLogger(__name__)
-    logger.warning(f"criar_crr payload situacaoEntrega={request.data.get('situacaoEntrega', 'NAO_ENVIADO')}")
     serializer = CrrMobileSerializer(data=request.data)
 
     if serializer.is_valid():
-        logger.warning(f"criar_crr validated situacaoEntrega={serializer.validated_data.get('situacaoEntrega', 'NAO_VALIDADO')}")
         crr = serializer.save()
         return Response({
             'sucesso': True,
@@ -341,7 +337,6 @@ def criar_crr(request):
             'crr': CrrMobileSerializer(crr).data
         }, status=status.HTTP_201_CREATED)
 
-    logger.error(f"criar_crr erros de validacao: {serializer.errors}")
     return Response({
         'sucesso': False,
         'erros': serializer.errors
@@ -377,10 +372,10 @@ def atualizar_condutor_crr(request, crr_id):
         )
 
     SITUACOES_VALIDAS = {
-        'Condutor ausente',
-        'Assinou e recebeu 2a via',
-        'Recusou assinar e recebeu 2a via',
-        'Recusou assinar e a receber 2a via',
+        'condutor ausente',
+        'assinou e recebeu 2a via',
+        'recusou assinar e recebeu 2a via',
+        'recusou assinar e a receber 2a via',
     }
 
     situacao = request.data.get('situacaoEntrega', '').strip().lower()
