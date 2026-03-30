@@ -28,8 +28,10 @@ def gerar_texto_crr(crr):
     DIV = "-" * LARG
     linhas = []
 
-    data = crr.dataFiscalizacao.strftime('%d/%m/%Y') if crr.dataFiscalizacao else '-'
-    hora = crr.horaFiscalizacao.strftime('%H:%M') if crr.horaFiscalizacao else '-'
+    data = (crr.dataFiscalizacao.strftime('%d/%m/%Y')
+            if crr.dataFiscalizacao else '-')
+    hora = (crr.horaFiscalizacao.strftime('%H:%M')
+            if crr.horaFiscalizacao else '-')
 
     # Titulo
     linhas.append("COMPROVANTE DE RECOLHIMENTO E REMOCAO - CRR")
@@ -115,6 +117,51 @@ def gerar_texto_crr(crr):
     return "\n".join(linhas)
 
 
+_CORPO_PATIO = (
+    "Prezados,\n\n"
+    "Segue em anexo o Comprovante de Recolhimento e Remoção (CRR) da Prefeitura "
+    "Municipal de São Sebastião, em razão de descumprimento da legislação de trânsito.\n\n"
+    "Atenciosamente,\n"
+    "Divisão de Processamento de Multas\n"
+    "Secretaria de Segurança Urbana"
+)
+
+_CORPO_CONDUTOR = (
+    "Prezado condutor/proprietário,\n\n"
+    "Por meio deste, segue em anexo o Comprovante de Recolhimento e Remoção (CRR) da "
+    "Prefeitura Municipal de São Sebastião, em razão de descumprimento da legislação de trânsito.\n\n"
+    "Seguem abaixo as instruções.\n\n"
+    "Atenciosamente,\n"
+    "Divisão de Processamento de Multas\n"
+    "Secretaria de Segurança Urbana\n\n\n"
+    "Instruções\n\n"
+    "Liberação de Veículo Removido\n"
+    "• Clique aqui para baixar as instruções (arquivo em formato pdf)\n\n"
+    "----------------------------------------\n\n"
+    "Liberação de Veículo - Bloqueio Digital\n"
+    "1. Acesse a plataforma 1DOC pelo link: Solicitação de Liberação de Veículos Removidos\n"
+    "2. Faça a identificação usando seu e-mail ou CPF/CNPJ;\n"
+    "3. Insira corretamente os dados e documentos solicitados no sistema;\n"
+    "4. Junte o Laudo de Vistoria de Infração de Trânsito;\n"
+    "5. Confirme a solicitação;\n"
+    "6. Após conferência dos documentos e verificação do cumprimento dos requisitos, "
+    "será expedido um Ofício de Liberação;\n\n"
+    "----------------------------------------\n\n"
+    "Protocolo Online\n"
+    "1. Prepare a documentação;\n"
+    "2. Acessar o link do protocolo on-line;\n"
+    "3. Cadastre-se;\n"
+    "4. Ao acessar com login e senha clique no lado inferior esquerdo em Incluir Solicitação;\n"
+    "5. Escolha a opção: Conversão em Advertência, Defesa Prévia, Recurso JARI - 1ª Instância, "
+    "Recurso CETRAN - 2ª Instância ou Indicação de Condutor;\n"
+    "6. Digite o Auto de Infração e a placa, depois clique em Localizar Infração;\n"
+    "7. Preencha os demais campos e clique em Registrar Protocolo;\n"
+    "8. Anexe os documentos pedidos e clique em Enviar Arquivos;\n"
+    "9. Pronto! O processo será analisado e você receberá um e-mail confirmando se sua "
+    "solicitação foi processada ou se haverá necessidade de regularização."
+)
+
+
 def enviar_email_crr(crr):
     """
     Envia email ao pátio com o CRR como anexo .txt.
@@ -133,16 +180,12 @@ def enviar_email_crr(crr):
             if crr.dataFiscalizacao else '-'
         )
         assunto = f"CRR {crr.numeroCrr.upper()} — {placa} — {data}"
-        corpo = (
-            f"Segue em anexo o CRR {crr.numeroCrr.upper()} "
-            f"registrado pelo agente de fiscalização."
-        )
         texto = gerar_texto_crr(crr)
         nome_arquivo = f"crr_{crr.numeroCrr}.txt"
 
         email = EmailMessage(
             subject=assunto,
-            body=corpo,
+            body=_CORPO_PATIO,
             from_email=settings.DEFAULT_FROM_EMAIL,
             to=[destino],
         )
@@ -170,20 +213,12 @@ def enviar_email_condutor(crr, email_condutor):
             if crr.dataFiscalizacao else '-'
         )
         assunto = f"CRR {crr.numeroCrr.upper()} — {placa} — {data}"
-        corpo = (
-            f"Prezado(a),\n\n"
-            f"Segue em anexo o Comprovante de Recolhimento e Remoção "
-            f"(CRR) nº {crr.numeroCrr.upper()}, referente ao veículo "
-            f"de placa {placa}, lavrado em {data}.\n\n"
-            f"Atenciosamente,\n"
-            f"Fiscalização de Trânsito"
-        )
         texto = gerar_texto_crr(crr)
         nome_arquivo = f"crr_{crr.numeroCrr}.txt"
 
         email = EmailMessage(
             subject=assunto,
-            body=corpo,
+            body=_CORPO_CONDUTOR,
             from_email=settings.DEFAULT_FROM_EMAIL,
             to=[email_condutor],
         )

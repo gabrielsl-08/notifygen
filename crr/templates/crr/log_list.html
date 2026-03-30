@@ -98,17 +98,17 @@
             <ul class="pagination justify-content-center">
                 {% if page_obj.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&usuario={{ filtros.usuario }}&data_de={{ filtros.data_de }}&data_ate={{ filtros.data_ate }}&acao={{ filtros.acao }}&model={{ filtros.model }}">Anterior</a>
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&usuario={{ filtros.usuario|default:'' }}&data_de={{ filtros.data_de|default:'' }}&data_ate={{ filtros.data_ate|default:'' }}&acao={{ filtros.acao|default:'' }}&model={{ filtros.model|default:'' }}">Anterior</a>
                 </li>
                 {% endif %}
                 {% for num in page_obj.paginator.page_range %}
                 <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                    <a class="page-link" href="?page={{ num }}&usuario={{ filtros.usuario }}&data_de={{ filtros.data_de }}&data_ate={{ filtros.data_ate }}&acao={{ filtros.acao }}&model={{ filtros.model }}">{{ num }}</a>
+                    <a class="page-link" href="?page={{ num }}&usuario={{ filtros.usuario|default:'' }}&data_de={{ filtros.data_de|default:'' }}&data_ate={{ filtros.data_ate|default:'' }}&acao={{ filtros.acao|default:'' }}&model={{ filtros.model|default:'' }}">{{ num }}</a>
                 </li>
                 {% endfor %}
                 {% if page_obj.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&usuario={{ filtros.usuario }}&data_de={{ filtros.data_de }}&data_ate={{ filtros.data_ate }}&acao={{ filtros.acao }}&model={{ filtros.model }}">Próximo</a>
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&usuario={{ filtros.usuario|default:'' }}&data_de={{ filtros.data_de|default:'' }}&data_ate={{ filtros.data_ate|default:'' }}&acao={{ filtros.acao|default:'' }}&model={{ filtros.model|default:'' }}">Próximo</a>
                 </li>
                 {% endif %}
             </ul>

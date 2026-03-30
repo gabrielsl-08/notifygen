@@ -1,13 +1,5 @@
-{% extends 'crr/base.html' %}
-
-{% block title %}CRR {{ crr.numeroCrr|upper }} | SYSTRAF{% endblock %}
-{% block page_title %}Detalhes do CRR: {{ crr.numeroCrr|upper }}{% endblock %}
-
-{% block content %}
-<div class="mb-3">
-    <a href="{% url 'crr:crr_list' %}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-left"></i> Voltar
-    </a>
+<!-- Botões de ação -->
+<div class="mb-3 d-flex align-items-center gap-2 flex-wrap">
     <a href="{% url 'crr:crr_update' crr.pk %}" class="btn btn-warning btn-sm">
         <i class="bi bi-pencil"></i> Editar
     </a>
@@ -16,7 +8,7 @@
        onclick="return confirm('Enviar email do CRR {{ crr.numeroCrr|upper }} ao pátio?');">
         <i class="bi bi-envelope"></i> Enviar por Email
     </a>
-    <span class="badge badge-{{ crr.status }} ms-2" style="font-size: 1rem;">
+    <span class="badge badge-{{ crr.status }}" style="font-size: 0.9rem;">
         {{ crr.get_status_display }}
     </span>
 </div>
@@ -38,7 +30,7 @@
     <p class="text-muted">Nenhum condutor cadastrado.</p>
     {% endfor %}
     <div class="row mt-2">
-        <div class="col-md-6 d-flex align-items-center gap-2">
+        <div class="col-md-8 d-flex align-items-center gap-2 flex-wrap">
             <strong>Situação:</strong>
             {% if crr.situacaoEntrega == 'assinou e recebeu 2a via' %}
                 <span class="badge bg-success">{{ crr.get_situacaoEntrega_display }}</span>
@@ -53,25 +45,15 @@
             {% endif %}
             {% for condutor in crr.condutores.all %}
                 {% if condutor.assinaturaCondutor %}
-                <button type="button" class="btn btn-sm btn-outline-primary" title="Assinatura do Condutor"
-                        data-bs-toggle="modal" data-bs-target="#modalAssinatura{{ condutor.pk }}">
+                <button type="button" class="btn btn-sm btn-outline-primary" title="Ver assinatura do condutor"
+                        onclick="document.getElementById('assinatura-img-{{ condutor.pk }}').classList.toggle('d-none')">
                     <i class="bi bi-pen"></i>
                 </button>
-                <div class="modal fade" id="modalAssinatura{{ condutor.pk }}" tabindex="-1">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h6 class="modal-title">Assinatura - {{ condutor.nomeCondutor|title }}</h6>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body text-center">
-                                <img src="data:image/jpeg;base64,{{ condutor.assinaturaCondutor }}"
-                                     class="img-fluid rounded border"
-                                     style="max-height: 300px;"
-                                     alt="Assinatura do Condutor">
-                            </div>
-                        </div>
-                    </div>
+                <div id="assinatura-img-{{ condutor.pk }}" class="d-none w-100 mt-2">
+                    <img src="data:image/jpeg;base64,{{ condutor.assinaturaCondutor }}"
+                         class="img-fluid rounded border"
+                         style="max-height: 200px;"
+                         alt="Assinatura do Condutor">
                 </div>
                 {% endif %}
             {% endfor %}
@@ -115,32 +97,36 @@
     </div>
 </div>
 
-<!-- Enquadramentos -->
-<div class="form-section">
-    <div class="form-section-title">
-        <i class="bi bi-list-check"></i> Enquadramentos
+<!-- Enquadramentos e AITs -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="form-section">
+            <div class="form-section-title">
+                <i class="bi bi-list-check"></i> Enquadramentos
+            </div>
+            <ul class="list-unstyled mb-0">
+                {% for enq in crr.enquadramentos.all %}
+                <li><strong>{{ enq.enquadramento.codigo }}</strong> - {{ enq.enquadramento.descricao_infracao|upper }}</li>
+                {% empty %}
+                <li class="text-muted">Nenhum enquadramento.</li>
+                {% endfor %}
+            </ul>
+        </div>
     </div>
-    <ul class="list-unstyled">
-        {% for enq in crr.enquadramentos.all %}
-        <li><strong>{{ enq.enquadramento.codigo }}</strong> - {{ enq.enquadramento.descricao_infracao|upper }}</li>
-        {% empty %}
-        <li class="text-muted">Nenhum enquadramento cadastrado.</li>
-        {% endfor %}
-    </ul>
-</div>
-
-<!-- AITs -->
-<div class="form-section">
-    <div class="form-section-title">
-        <i class="bi bi-clipboard-data"></i> AITs
+    <div class="col-md-6">
+        <div class="form-section">
+            <div class="form-section-title">
+                <i class="bi bi-clipboard-data"></i> AITs
+            </div>
+            <ul class="list-unstyled mb-0">
+                {% for ait in crr.aits.all %}
+                <li>{{ ait.ait|upper }}</li>
+                {% empty %}
+                <li class="text-muted">Nenhum AIT.</li>
+                {% endfor %}
+            </ul>
+        </div>
     </div>
-    <ul class="list-unstyled">
-        {% for ait in crr.aits.all %}
-        <li>{{ ait.ait|upper }}</li>
-        {% empty %}
-        <li class="text-muted">Nenhum AIT cadastrado.</li>
-        {% endfor %}
-    </ul>
 </div>
 
 <!-- Guincho -->
@@ -202,5 +188,3 @@
         {% endfor %}
     </div>
 </div>
-
-{% endblock %}

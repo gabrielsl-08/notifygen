@@ -29,6 +29,46 @@
     {% empty %}
     <p class="text-muted">Nenhum condutor cadastrado.</p>
     {% endfor %}
+    <div class="row mt-2">
+        <div class="col-md-6 d-flex align-items-center gap-2">
+            <strong>Situação:</strong>
+            {% if crr.situacaoEntrega == 'assinou e recebeu 2a via' %}
+                <span class="badge bg-success">{{ crr.get_situacaoEntrega_display }}</span>
+            {% elif crr.situacaoEntrega == 'recusou assinar e recebeu 2a via' %}
+                <span class="badge bg-warning text-dark">{{ crr.get_situacaoEntrega_display }}</span>
+            {% elif crr.situacaoEntrega == 'recusou assinar e a receber 2a via' %}
+                <span class="badge bg-danger">{{ crr.get_situacaoEntrega_display }}</span>
+            {% elif crr.situacaoEntrega == 'condutor ausente' %}
+                <span class="badge bg-secondary">{{ crr.get_situacaoEntrega_display }}</span>
+            {% else %}
+                <span class="text-muted">Nao registrada</span>
+            {% endif %}
+            {% for condutor in crr.condutores.all %}
+                {% if condutor.assinaturaCondutor %}
+                <button type="button" class="btn btn-sm btn-outline-primary" title="Assinatura do Condutor"
+                        data-bs-toggle="modal" data-bs-target="#modalAssinaturaTri{{ condutor.pk }}">
+                    <i class="bi bi-pen"></i>
+                </button>
+                <div class="modal fade" id="modalAssinaturaTri{{ condutor.pk }}" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h6 class="modal-title">Assinatura - {{ condutor.nomeCondutor|title }}</h6>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body text-center">
+                                <img src="data:image/jpeg;base64,{{ condutor.assinaturaCondutor }}"
+                                     class="img-fluid rounded border"
+                                     style="max-height: 300px;"
+                                     alt="Assinatura do Condutor">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
 </div>
 
 <!-- Veiculo -->
@@ -159,39 +199,4 @@
     </div>
 </div>
 
-<!-- Situacao de Entrega e Assinatura do Condutor -->
-<div class="form-section">
-    <div class="form-section-title">
-        <i class="bi bi-pen"></i> Situacao de Entrega ao Condutor
-    </div>
-    <div class="row">
-        <div class="col-md-6">
-            <strong>Situacao:</strong>
-            {% if crr.situacaoEntrega == 'Assinou e recebeu 2a via' %}
-                <span class="badge bg-success">{{ crr.situacaoEntrega }}</span>
-            {% elif crr.situacaoEntrega == 'Recusou assinar e recebeu 2a via' %}
-                <span class="badge bg-warning text-dark">{{ crr.situacaoEntrega }}</span>
-            {% elif crr.situacaoEntrega == 'Recusou assinar e a receber 2a via' %}
-                <span class="badge bg-danger">{{ crr.situacaoEntrega }}</span>
-            {% elif crr.situacaoEntrega == 'Condutor ausente' %}
-                <span class="badge bg-secondary">{{ crr.situacaoEntrega }}</span>
-            {% else %}
-                <span class="text-muted">Nao registrada</span>
-            {% endif %}
-        </div>
-    </div>
-    {% if crr.assinaturaCondutor %}
-    <div class="row mt-3">
-        <div class="col-md-6">
-            <strong>Assinatura do Condutor:</strong>
-            <div class="mt-2">
-                <img src="data:image/jpeg;base64,{{ crr.assinaturaCondutor }}"
-                     class="img-fluid rounded border"
-                     style="max-height: 150px; max-width: 300px;"
-                     alt="Assinatura do Condutor">
-            </div>
-        </div>
-    </div>
-    {% endif %}
-</div>
 {% endblock %}

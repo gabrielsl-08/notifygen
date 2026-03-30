@@ -11,7 +11,7 @@ from django.core.files.storage import default_storage
 from django.contrib.auth.views import PasswordChangeView as DjangoPasswordChangeView
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User, Group
-from django.contrib.admin.models import LogEntry
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import Paginator
 from .models import Crr, Condutor, Veiculo, Ait, Enquadramento, Arrendatario, ImagemCrr, DispositivoMobile, EditalGerado, TabelaArrendatario, TabelaEnquadramento, Agente
@@ -22,6 +22,17 @@ from .forms import (
     UsuarioCreateForm, UsuarioEditForm, GrupoForm,
 )
 from .template_edital import gerar_edital_docx
+
+
+def _log(user, obj, flag, msg=''):
+    LogEntry.objects.log_action(
+        user_id=user.pk,
+        content_type_id=ContentType.objects.get_for_model(obj).pk,
+        object_id=obj.pk,
+        object_repr=str(obj)[:200],
+        action_flag=flag,
+        change_message=msg,
+    )
 
 
 class CrrListView(LoginRequiredMixin, ListView):
@@ -52,7 +63,7 @@ class CrrListView(LoginRequiredMixin, ListView):
                 veiculo__chassi__icontains=search
             )
 
-        return queryset.distinct()
+        return queryset.distinct().prefetch_related('condutores')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -68,6 +79,18 @@ class CrrDetailView(LoginRequiredMixin, DetailView):
     model = Crr
     template_name = 'crr/crr_detail.html'
     context_object_name = 'crr'
+
+
+@login_required
+def crr_detail_modal(request, pk):
+    crr = get_object_or_404(Crr, pk=pk)
+    return render(request, 'crr/crr_detail_partial.html', {'crr': crr})
+
+
+@login_required
+def triagem_detail_modal(request, pk):
+    crr = get_object_or_404(Crr, pk=pk, status='pendente')
+    return render(request, 'crr/crr_detail_partial.html', {'crr': crr})
 
 
 class CrrCreateView(LoginRequiredMixin, CreateView):
@@ -114,6 +137,7 @@ class CrrCreateView(LoginRequiredMixin, CreateView):
                     formset.instance = self.object
                     formset.save()
 
+        _log(self.request.user, self.object, ADDITION, 'CRR criado via sistema.')
         messages.success(self.request, f'CRR {self.object.numeroCrr} criado com sucesso!')
         return redirect(self.success_url)
 
@@ -165,6 +189,7 @@ class CrrUpdateView(LoginRequiredMixin, UpdateView):
                     formset.instance = self.object
                     formset.save()
 
+        _log(self.request.user, self.object, CHANGE, 'CRR editado via sistema.')
         messages.success(self.request, f'CRR {self.object.numeroCrr} atualizado com sucesso!')
         return redirect(self.success_url)
 
@@ -180,6 +205,7 @@ class CrrDeleteView(LoginRequiredMixin, DeleteView):
 
     def delete(self, request, *args, **kwargs):
         crr = self.get_object()
+        _log(request.user, crr, DELETION, f'CRR {crr.numeroCrr} excluído via sistema.')
         messages.success(request, f'CRR {crr.numeroCrr} excluído com sucesso!')
         return super().delete(request, *args, **kwargs)
 
@@ -207,7 +233,7 @@ class TriagemListView(LoginRequiredMixin, ListView):
                 veiculo__chassi__icontains=search
             )
 
-        return queryset.distinct()
+        return queryset.distinct().prefetch_related('condutores')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -277,6 +303,7 @@ class TriagemUpdateView(LoginRequiredMixin, UpdateView):
                     formset.instance = self.object
                     formset.save()
 
+        _log(self.request.user, self.object, CHANGE, 'CRR triado → status Retido.')
         messages.success(self.request, f'CRR {self.object.numeroCrr} triado com sucesso! Status: Retido')
         return redirect(self.success_url)
 
@@ -300,7 +327,8 @@ def dispositivo_create(request):
     if request.method == 'POST':
         nome = request.POST.get('nome', '').strip()
         if nome:
-            DispositivoMobile.objects.create(nome=nome)
+            dispositivo = DispositivoMobile.objects.create(nome=nome)
+            _log(request.user, dispositivo, ADDITION, f'Dispositivo "{nome}" cadastrado.')
             messages.success(request, f'Dispositivo "{nome}" cadastrado. Código de ativação gerado automaticamente.')
         else:
             messages.error(request, 'Informe o nome do dispositivo.')
@@ -321,6 +349,7 @@ def dispositivo_edit(request, pk):
             dispositivo.ativo = ativo
             dispositivo.ativado = ativado
             dispositivo.save(update_fields=['nome', 'ativo', 'ativado'])
+            _log(request.user, dispositivo, CHANGE, f'Dispositivo "{nome}" atualizado.')
             messages.success(request, f'Dispositivo "{nome}" atualizado.')
         else:
             messages.error(request, 'Informe o nome do dispositivo.')
@@ -334,6 +363,7 @@ def dispositivo_delete(request, pk):
     dispositivo = get_object_or_404(DispositivoMobile, pk=pk)
     if request.method == 'POST':
         nome = dispositivo.nome
+        _log(request.user, dispositivo, DELETION, f'Dispositivo "{nome}" removido.')
         dispositivo.delete()
         messages.success(request, f'Dispositivo "{nome}" removido.')
     return redirect('crr:dispositivo_list')
@@ -360,12 +390,13 @@ def crr_gerar_edital(request):
     filename = cd.split('filename=')[-1].strip('"')
     numero = filename.split('_')[1] if filename.count('_') >= 2 else '00'
     saved_path = default_storage.save(f'editais/{filename}', ContentFile(response.content))
-    EditalGerado.objects.create(
+    edital = EditalGerado.objects.create(
         numero=numero,
         arquivo=saved_path,
         usuario=request.user,
         crrs=', '.join(crrs_numeros),
     )
+    _log(request.user, edital, ADDITION, f'Edital gerado para CRRs: {", ".join(crrs_numeros)}.')
     return response
 
 
@@ -390,6 +421,7 @@ def triagem_status(request, pk, novo_status):
     labels = {'retido': 'Retido', 'liberado': 'Liberado', 'cancelado': 'Cancelado',
               'leiloado': 'Leiloado', 'pendente': 'Pendente'}
     label = labels.get(novo_status, novo_status.capitalize())
+    _log(request.user, crr, CHANGE, f'Status alterado para {label}.')
     messages.success(request, f'CRR {crr.numeroCrr.upper()} marcado como {label}.')
 
     next_url = request.GET.get('next', '')
@@ -415,7 +447,8 @@ def arrendatario_create(request):
     if request.method == 'POST':
         form = TabelaArrendatarioForm(request.POST)
         if form.is_valid():
-            form.save()
+            obj = form.save()
+            _log(request.user, obj, ADDITION, 'Arrendatário cadastrado.')
             messages.success(request, 'Arrendatário cadastrado com sucesso.')
             return redirect('crr:arrendatario_list')
     else:
@@ -432,6 +465,7 @@ def arrendatario_edit(request, pk):
         form = TabelaArrendatarioForm(request.POST, instance=obj)
         if form.is_valid():
             form.save()
+            _log(request.user, obj, CHANGE, 'Arrendatário atualizado.')
             messages.success(request, 'Arrendatário atualizado com sucesso.')
             return redirect('crr:arrendatario_list')
     else:
@@ -445,6 +479,7 @@ def arrendatario_delete(request, pk):
         return redirect('crr:crr_list')
     obj = get_object_or_404(TabelaArrendatario, pk=pk)
     if request.method == 'POST':
+        _log(request.user, obj, DELETION, f'Arrendatário "{obj}" excluído.')
         obj.delete()
         messages.success(request, 'Arrendatário excluído.')
         return redirect('crr:arrendatario_list')
@@ -468,7 +503,8 @@ def enquadramento_create(request):
     if request.method == 'POST':
         form = TabelaEnquadramentoForm(request.POST)
         if form.is_valid():
-            form.save()
+            obj = form.save()
+            _log(request.user, obj, ADDITION, 'Enquadramento cadastrado.')
             messages.success(request, 'Enquadramento cadastrado com sucesso.')
             return redirect('crr:enquadramento_list')
     else:
@@ -485,6 +521,7 @@ def enquadramento_edit(request, pk):
         form = TabelaEnquadramentoForm(request.POST, instance=obj)
         if form.is_valid():
             form.save()
+            _log(request.user, obj, CHANGE, 'Enquadramento atualizado.')
             messages.success(request, 'Enquadramento atualizado com sucesso.')
             return redirect('crr:enquadramento_list')
     else:
@@ -498,6 +535,7 @@ def enquadramento_delete(request, pk):
         return redirect('crr:crr_list')
     obj = get_object_or_404(TabelaEnquadramento, pk=pk)
     if request.method == 'POST':
+        _log(request.user, obj, DELETION, f'Enquadramento "{obj}" excluído.')
         obj.delete()
         messages.success(request, 'Enquadramento excluído.')
         return redirect('crr:enquadramento_list')
@@ -530,6 +568,7 @@ def agente_create(request):
                 agente.set_senha('admin')
                 agente.senha_alterada = False
             agente.save()
+            _log(request.user, agente, ADDITION, f'Agente "{agente.nome}" cadastrado.')
             messages.success(request, f'Agente {agente.nome} cadastrado. Senha inicial: "admin" (ou a definida).')
             return redirect('crr:agente_list')
     else:
@@ -546,6 +585,7 @@ def agente_edit(request, pk):
         form = AgenteForm(request.POST, request.FILES, instance=agente)
         if form.is_valid():
             form.save()
+            _log(request.user, agente, CHANGE, f'Agente "{agente.nome}" atualizado.')
             messages.success(request, f'Agente {agente.nome} atualizado.')
             return redirect('crr:agente_list')
     else:
@@ -560,6 +600,7 @@ def agente_delete(request, pk):
     agente = get_object_or_404(Agente, pk=pk)
     if request.method == 'POST':
         nome = agente.nome
+        _log(request.user, agente, DELETION, f'Agente "{nome}" removido.')
         agente.delete()
         messages.success(request, f'Agente {nome} removido.')
         return redirect('crr:agente_list')
@@ -575,11 +616,15 @@ def log_list(request):
 
     logs = LogEntry.objects.select_related('user', 'content_type').order_by('-action_time')
 
-    usuario_id = request.GET.get('usuario')
-    data_de    = request.GET.get('data_de')
-    data_ate   = request.GET.get('data_ate')
-    acao       = request.GET.get('acao')
-    model      = request.GET.get('model')
+    def _get(key):
+        v = request.GET.get(key, '').strip()
+        return v if v and v != 'None' else ''
+
+    usuario_id = _get('usuario')
+    data_de    = _get('data_de')
+    data_ate   = _get('data_ate')
+    acao       = _get('acao')
+    model      = _get('model')
 
     if usuario_id:
         logs = logs.filter(user_id=usuario_id)
@@ -626,7 +671,8 @@ def usuario_create(request):
     if request.method == 'POST':
         form = UsuarioCreateForm(request.POST)
         if form.is_valid():
-            form.save()
+            usuario = form.save()
+            _log(request.user, usuario, ADDITION, f'Usuário "{usuario.username}" criado.')
             messages.success(request, 'Usuário criado com sucesso.')
             return redirect('crr:usuario_list')
     else:
@@ -643,6 +689,7 @@ def usuario_edit(request, pk):
         form = UsuarioEditForm(request.POST, instance=usuario)
         if form.is_valid():
             form.save()
+            _log(request.user, usuario, CHANGE, f'Usuário "{usuario.username}" atualizado.')
             messages.success(request, f'Usuário {usuario.username} atualizado.')
             return redirect('crr:usuario_list')
     else:
@@ -660,6 +707,7 @@ def usuario_delete(request, pk):
             messages.error(request, 'Você não pode excluir seu próprio usuário.')
             return redirect('crr:usuario_list')
         username = usuario.username
+        _log(request.user, usuario, DELETION, f'Usuário "{username}" removido.')
         usuario.delete()
         messages.success(request, f'Usuário "{username}" removido.')
         return redirect('crr:usuario_list')
@@ -683,7 +731,8 @@ def grupo_create(request):
     if request.method == 'POST':
         form = GrupoForm(request.POST)
         if form.is_valid():
-            form.save()
+            grupo = form.save()
+            _log(request.user, grupo, ADDITION, f'Grupo "{grupo.name}" criado.')
             messages.success(request, 'Grupo criado com sucesso.')
             return redirect('crr:grupo_list')
     else:
@@ -700,6 +749,7 @@ def grupo_edit(request, pk):
         form = GrupoForm(request.POST, instance=grupo)
         if form.is_valid():
             form.save()
+            _log(request.user, grupo, CHANGE, f'Grupo "{grupo.name}" atualizado.')
             messages.success(request, f'Grupo "{grupo.name}" atualizado.')
             return redirect('crr:grupo_list')
     else:
@@ -714,6 +764,7 @@ def grupo_delete(request, pk):
     grupo = get_object_or_404(Group, pk=pk)
     if request.method == 'POST':
         nome = grupo.name
+        _log(request.user, grupo, DELETION, f'Grupo "{nome}" removido.')
         grupo.delete()
         messages.success(request, f'Grupo "{nome}" removido.')
         return redirect('crr:grupo_list')

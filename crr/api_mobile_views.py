@@ -381,6 +381,10 @@ def atualizar_condutor_crr(request, crr_id):
     situacao = request.data.get('situacaoEntrega', '').strip().lower()
     assinatura = request.data.get('assinaturaCondutor', '')
 
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.warning(f"[atualizar_condutor] crr_id={crr_id} situacao='{situacao}' assinatura_len={len(assinatura) if assinatura else 0}")
+
     if situacao and situacao not in SITUACOES_VALIDAS:
         return Response(
             {'sucesso': False, 'erro': 'Situacao de entrega invalida'},
@@ -391,13 +395,18 @@ def atualizar_condutor_crr(request, crr_id):
         crr.situacaoEntrega = situacao
         crr.save(update_fields=['situacaoEntrega'])
 
-    if assinatura is not None:
+    condutor_atualizado = False
+    if assinatura:
         condutor = crr.condutores.first()
         if condutor:
             condutor.assinaturaCondutor = assinatura
             condutor.save(update_fields=['assinaturaCondutor'])
+            condutor_atualizado = True
+            logger.warning(f"[atualizar_condutor] assinatura salva condutor_id={condutor.pk} ({len(assinatura)} chars)")
+        else:
+            logger.warning(f"[atualizar_condutor] CRR {crr_id} nao tem condutor cadastrado")
 
-    return Response({'sucesso': True, 'mensagem': 'Condutor atualizado com sucesso'})
+    return Response({'sucesso': True, 'mensagem': 'Condutor atualizado com sucesso', 'condutor_atualizado': condutor_atualizado})
 
 
 @api_view(['POST'])

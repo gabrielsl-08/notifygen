@@ -7,10 +7,23 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from django.utils import timezone
 from datetime import timedelta
+from django.contrib.admin.models import LogEntry, ADDITION, DELETION
+from django.contrib.contenttypes.models import ContentType
 
 from .models import Notificacao
 from .forms import NotificacaoForm
 from .template_pdf import render_notificacao_template
+
+
+def _log(user, obj, flag, msg=''):
+    LogEntry.objects.log_action(
+        user_id=user.pk,
+        content_type_id=ContentType.objects.get_for_model(obj).pk,
+        object_id=obj.pk,
+        object_repr=str(obj)[:200],
+        action_flag=flag,
+        change_message=msg,
+    )
 
 
 @login_required
@@ -46,6 +59,7 @@ def notificacao_create(request):
             notificacao.save()
             crr.not_gerada = True
             crr.save(update_fields=['not_gerada'])
+            _log(request.user, notificacao, ADDITION, f'Notificação emitida para CRR {crr.numeroCrr}.')
 
             # Gera e retorna PDF imediatamente (mesmo comportamento do admin)
             buffer = BytesIO()
@@ -88,6 +102,7 @@ def notificacao_delete(request, pk):
     notificacao = get_object_or_404(Notificacao, pk=pk)
     if request.method == 'POST':
         crr = notificacao.crr
+        _log(request.user, notificacao, DELETION, f'Notificação {notificacao.numero_controle} removida.')
         notificacao.delete()
         crr.not_gerada = False
         crr.save(update_fields=['not_gerada'])

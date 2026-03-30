@@ -79,9 +79,11 @@
                         </td>
                         <td class="text-center">
                             <div class="btn-group" role="group">
-                                <a href="{% url 'crr:triagem_detail' crr.pk %}" class="btn btn-sm btn-outline-info" title="Visualizar">
+                                <button type="button" class="btn btn-sm btn-outline-info"
+                                        title="Visualizar"
+                                        onclick="abrirDetalhe('{% url 'crr:triagem_detail_modal' crr.pk %}', '{{ crr.numeroCrr|upper }}')">
                                     <i class="bi bi-eye"></i>
-                                </a>
+                                </button>
                                 <a href="{% url 'crr:triagem_update' crr.pk %}" class="btn btn-sm btn-warning" title="Editar e Triar">
                                     <i class="bi bi-pencil"></i> Triar
                                 </a>
@@ -125,4 +127,41 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Modal Detalhe CRR -->
+<div class="modal fade" id="modalDetalheCrr" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-file-text me-2"></i>
+                    CRR <span id="modalCrrNumero"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalDetalheCrrBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function abrirDetalhe(url, numeroCrr) {
+    document.getElementById('modalCrrNumero').textContent = numeroCrr;
+    document.getElementById('modalDetalheCrrBody').innerHTML =
+        '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>';
+    const modal = new bootstrap.Modal(document.getElementById('modalDetalheCrr'));
+    modal.show();
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(r => r.text())
+        .then(html => { document.getElementById('modalDetalheCrrBody').innerHTML = html; })
+        .catch(() => { document.getElementById('modalDetalheCrrBody').innerHTML = '<p class="text-danger">Erro ao carregar detalhes.</p>'; });
+}
+</script>
 {% endblock %}

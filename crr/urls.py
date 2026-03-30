@@ -8,6 +8,7 @@ urlpatterns = [
     path('', views.CrrListView.as_view(), name='crr_list'),
     path('novo/', views.CrrCreateView.as_view(), name='crr_create'),
     path('<int:pk>/', views.CrrDetailView.as_view(), name='crr_detail'),
+    path('<int:pk>/modal/', views.crr_detail_modal, name='crr_detail_modal'),
     path('<int:pk>/editar/', views.CrrUpdateView.as_view(), name='crr_update'),
     path('<int:pk>/excluir/', views.CrrDeleteView.as_view(), name='crr_delete'),
     path('<int:pk>/reenviar-email/', views.reenviar_email_crr, name='reenviar_email_crr'),
@@ -25,6 +26,7 @@ urlpatterns = [
     # Triagem
     path('triagem/', views.TriagemListView.as_view(), name='triagem_list'),
     path('triagem/<int:pk>/', views.TriagemDetailView.as_view(), name='triagem_detail'),
+    path('triagem/<int:pk>/modal/', views.triagem_detail_modal, name='triagem_detail_modal'),
     path('triagem/<int:pk>/editar/', views.TriagemUpdateView.as_view(), name='triagem_update'),
     path('triagem/<int:pk>/status/<str:novo_status>/', views.triagem_status, name='triagem_status'),
 
