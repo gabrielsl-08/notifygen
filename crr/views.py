@@ -88,6 +88,38 @@ def crr_detail_modal(request, pk):
 
 
 @login_required
+def dashboard(request):
+    from django.db.models import Prefetch
+    crrs = Crr.objects.prefetch_related(
+        'veiculo',
+        Prefetch('enquadramentos', queryset=Enquadramento.objects.select_related('enquadramento'))
+    ).all()
+
+    abandonados = []
+    estacionamento = []
+    abordagem = []
+
+    for crr in crrs:
+        codigos = [e.enquadramento.codigo for e in crr.enquadramentos.all()]
+        veiculo = crr.veiculo.first()
+        item = {'crr': crr, 'veiculo': veiculo, 'codigos': codigos}
+
+        if '00000' in codigos:
+            abandonados.append(item)
+        elif any(c.startswith('5') for c in codigos):
+            estacionamento.append(item)
+        else:
+            abordagem.append(item)
+
+    context = {
+        'abandonados': abandonados,
+        'estacionamento': estacionamento,
+        'abordagem': abordagem,
+    }
+    return render(request, 'crr/dashboard.html', context)
+
+
+@login_required
 def triagem_detail_modal(request, pk):
     crr = get_object_or_404(Crr, pk=pk, status='pendente')
     return render(request, 'crr/crr_detail_partial.html', {'crr': crr})

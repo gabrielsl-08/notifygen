@@ -4,6 +4,9 @@ from . import views
 app_name = 'crr'
 
 urlpatterns = [
+    # Dashboard
+    path('dashboard/', views.dashboard, name='dashboard'),
+
     # CRR
     path('', views.CrrListView.as_view(), name='crr_list'),
     path('novo/', views.CrrCreateView.as_view(), name='crr_create'),
