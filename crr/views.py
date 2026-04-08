@@ -43,13 +43,15 @@ class CrrListView(LoginRequiredMixin, ListView):
     ordering = ['-criado_em']
 
     def get_queryset(self):
-        # Só exibe resultados após o usuário usar o filtro
-        if 'search' not in self.request.GET and 'status' not in self.request.GET:
+        has_filter = any(k in self.request.GET for k in ('search', 'status', 'data_inicio', 'data_fim'))
+        if not has_filter:
             return Crr.objects.none()
 
         queryset = super().get_queryset()
         status = self.request.GET.get('status')
         search = self.request.GET.get('search')
+        data_inicio = self.request.GET.get('data_inicio')
+        data_fim = self.request.GET.get('data_fim')
 
         if status:
             queryset = queryset.filter(status=status)
@@ -63,12 +65,20 @@ class CrrListView(LoginRequiredMixin, ListView):
                 veiculo__chassi__icontains=search
             )
 
+        if data_inicio:
+            queryset = queryset.filter(dataFiscalizacao__gte=data_inicio)
+
+        if data_fim:
+            queryset = queryset.filter(dataFiscalizacao__lte=data_fim)
+
         return queryset.distinct().prefetch_related('condutores')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['status_filter'] = self.request.GET.get('status', '')
         context['search'] = self.request.GET.get('search', '')
+        context['data_inicio'] = self.request.GET.get('data_inicio', '')
+        context['data_fim'] = self.request.GET.get('data_fim', '')
         context['total_pendentes'] = Crr.objects.filter(status='pendente').count()
         context['total_retidos'] = Crr.objects.filter(status='retido').count()
         context['total_liberados'] = Crr.objects.filter(status='liberado').count()

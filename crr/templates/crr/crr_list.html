@@ -42,11 +42,11 @@
 
         {# Filtros — GET separado para não conflitar com o form de edital #}
         <form method="get" class="row g-3 mb-3">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <input type="text" name="search" class="form-control"
                        placeholder="Buscar por CRR, placa ou chassi..." value="{{ search }}">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <select name="status" class="form-select">
                     <option value="">Todos os status</option>
                     <option value="pendente"  {% if status_filter == 'pendente'  %}selected{% endif %}>Pendente</option>
@@ -57,9 +57,20 @@
                 </select>
             </div>
             <div class="col-md-2">
+                <input type="date" name="data_inicio" class="form-control" value="{{ data_inicio }}" title="Data inicial">
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="data_fim" class="form-control" value="{{ data_fim }}" title="Data final">
+            </div>
+            <div class="col-md-2">
                 <button type="submit" class="btn btn-outline-primary w-100">
                     <i class="bi bi-search"></i> Filtrar
                 </button>
+            </div>
+            <div class="col-md-1">
+                <a href="?" class="btn btn-outline-secondary w-100" title="Limpar filtros">
+                    <i class="bi bi-x-lg"></i>
+                </a>
             </div>
         </form>
 
@@ -202,17 +213,17 @@
             <ul class="pagination pagination-sm justify-content-center flex-wrap">
                 {% if page_obj.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}&search={{ search }}">&laquo;</a>
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}&search={{ search }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}">&laquo;</a>
                 </li>
                 {% endif %}
                 {% for num in page_obj.paginator.page_range %}
                 <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                    <a class="page-link" href="?page={{ num }}&status={{ status_filter }}&search={{ search }}">{{ num }}</a>
+                    <a class="page-link" href="?page={{ num }}&status={{ status_filter }}&search={{ search }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}">{{ num }}</a>
                 </li>
                 {% endfor %}
                 {% if page_obj.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}&search={{ search }}">&raquo;</a>
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}&search={{ search }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}">&raquo;</a>
                 </li>
                 {% endif %}
             </ul>
