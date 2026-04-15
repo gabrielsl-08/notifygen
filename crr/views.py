@@ -97,6 +97,14 @@ def crr_detail_modal(request, pk):
     return render(request, 'crr/crr_detail_partial.html', {'crr': crr})
 
 
+CODIGOS_ESTACIONAMENTO = {
+    '53980', '54440', '53800', '54100', '54360', '54600', '54790', '55090',
+    '55500', '54010', '54521', '54522', '54523', '54870', '54950', '55171',
+    '55330', '55411', '55412', '55414', '55680', '54281', '76251', '76252',
+    '73740', '76171', '76172', '76173',
+}
+
+
 @login_required
 def dashboard(request):
     from django.db.models import Prefetch
@@ -116,7 +124,7 @@ def dashboard(request):
 
         if '00000' in codigos:
             abandonados.append(item)
-        elif any(c.startswith('5') for c in codigos):
+        elif any(c in CODIGOS_ESTACIONAMENTO for c in codigos):
             estacionamento.append(item)
         else:
             abordagem.append(item)
