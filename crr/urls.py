@@ -57,6 +57,13 @@ urlpatterns = [
     # Logs do sistema (superuser)
     path('logs/', views.log_list, name='log_list'),
 
+    # Sincronização com pátio
+    path(
+    'sincronizar-status-patio/',
+    views.sincronizar_status_patio,
+    name='sincronizar_status_patio'
+    ),
+
     # Usuários (superuser)
     path('usuarios/', views.usuario_list, name='usuario_list'),
     path('usuarios/novo/', views.usuario_create, name='usuario_create'),
