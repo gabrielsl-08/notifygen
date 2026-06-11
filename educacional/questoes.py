@@ -17,13 +17,13 @@ QUESTOES = [
         'enunciado': 'Segundo o Código de Trânsito Brasileiro, considera-se trânsito:',
         'imagem': None,
         'alternativas': {
-            'A': 'Apenas a circulação de veículos automotores.',
-            'B': 'A circulação de veículos em vias urbanas.',
-            'C': 'A utilização das vias por pessoas, veículos e animais para fins de '
+            'A': 'A utilização das vias por pessoas, veículos e animais para fins de '
                  'circulação, parada, estacionamento e operação de carga ou descarga.',
+            'B': 'Apenas a circulação de veículos automotores.',
+            'C': 'A circulação de veículos em vias urbanas.',
             'D': 'Apenas a circulação de pedestres e veículos.',
         },
-        'correta': 'C',
+        'correta': 'A',
     },
     {
         'id': 2,
@@ -31,12 +31,12 @@ QUESTOES = [
         'imagem': None,
         'alternativas': {
             'A': 'Verificar apenas os pneus.',
-            'B': 'Verificar apenas a documentação do veículo.',
-            'C': 'Verificar os equipamentos obrigatórios e assegurar combustível '
+            'B': 'Verificar os equipamentos obrigatórios e assegurar combustível '
                  'suficiente para chegar ao destino.',
+            'C': 'Verificar apenas a documentação do veículo.',
             'D': 'Verificar somente o sistema de iluminação.',
         },
-        'correta': 'C',
+        'correta': 'B',
     },
     {
         'id': 3,
@@ -57,22 +57,22 @@ QUESTOES = [
         'alternativas': {
             'A': 'Reduzir a velocidade.',
             'B': 'Dar preferência aos veículos da direita.',
-            'C': 'Parada obrigatória antes de prosseguir.',
-            'D': 'Proibido estacionar.',
+            'C': 'Proibido estacionar.',
+            'D': 'Parada obrigatória antes de prosseguir.',
         },
-        'correta': 'C',
+        'correta': 'D',
     },
     {
         'id': 5,
         'enunciado': 'Observe a placa abaixo. Esta sinalização determina que o condutor:',
         'imagem': 'educacional/img/placa_dar_preferencia.png',
         'alternativas': {
-            'A': 'Deve parar obrigatoriamente.',
-            'B': 'Deve conceder preferência aos veículos que transitam na via preferencial.',
+            'A': 'Deve conceder preferência aos veículos que transitam na via preferencial.',
+            'B': 'Deve parar obrigatoriamente.',
             'C': 'Pode seguir sem reduzir a velocidade.',
             'D': 'Deve realizar retorno obrigatório.',
         },
-        'correta': 'B',
+        'correta': 'A',
     },
     {
         'id': 6,
@@ -81,11 +81,11 @@ QUESTOES = [
         'imagem': 'educacional/img/placa_proibido_estacionar.png',
         'alternativas': {
             'A': 'É permitida por ser veículo de transporte público.',
-            'B': 'É permitida se permanecer dentro do veículo.',
-            'C': 'Configura estacionamento em desacordo com a sinalização.',
+            'B': 'Configura estacionamento em desacordo com a sinalização.',
+            'C': 'É permitida se permanecer dentro do veículo.',
             'D': 'É permitida por até cinco minutos.',
         },
-        'correta': 'C',
+        'correta': 'B',
     },
     {
         'id': 7,
@@ -106,10 +106,10 @@ QUESTOES = [
         'alternativas': {
             'A': 'Velocidade mínima de 60 km/h.',
             'B': 'Velocidade recomendada de 60 km/h.',
-            'C': 'Velocidade máxima permitida de 60 km/h.',
-            'D': 'Velocidade média da via.',
+            'C': 'Velocidade média da via.',
+            'D': 'Velocidade máxima permitida de 60 km/h.',
         },
-        'correta': 'C',
+        'correta': 'D',
     },
     {
         'id': 9,
@@ -117,12 +117,12 @@ QUESTOES = [
                       'CNH e atingiu 30 pontos no período de 12 meses. Segundo o CTB, ele poderá:',
         'imagem': None,
         'alternativas': {
-            'A': 'Solicitar o cancelamento dos pontos.',
-            'B': 'Realizar curso preventivo de reciclagem.',
+            'A': 'Realizar curso preventivo de reciclagem.',
+            'B': 'Solicitar o cancelamento dos pontos.',
             'C': 'Renovar a CNH antecipadamente.',
             'D': 'Transferir a pontuação para outro condutor.',
         },
-        'correta': 'B',
+        'correta': 'A',
     },
     {
         'id': 10,
@@ -137,6 +137,19 @@ QUESTOES = [
             'D': 'Apenas as infrações cometidas no ano civil.',
         },
         'correta': 'B',
+    },
+    {
+        'id': 11,
+        'enunciado': 'Observe a placa abaixo. Um taxista deixa o veículo num local com essa '
+                      'sinalização. Sua conduta está:',
+        'imagem': 'educacional/img/placa_proibido_estacionar.png',
+        'alternativas': {
+            'A': 'Correta, por ser veículo de transporte público.',
+            'B': 'Correta, se ele permanecer dentro do veículo.',
+            'C': 'Correta, se parar pelo tempo necessário para embarque/desembarque de passageiros.',
+            'D': 'Correta, se ficar por até cinco minutos para aguardar passageiros.',
+        },
+        'correta': 'C',
     },
 ]
 

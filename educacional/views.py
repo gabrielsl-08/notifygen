@@ -109,6 +109,8 @@ def estatisticas_view(request):
     participantes_7d = respostas_qs.filter(criado_em__gte=agora - timedelta(days=7)).count()
     participantes_30d = respostas_qs.filter(criado_em__gte=agora - timedelta(days=30)).count()
 
+    sugestoes = respostas_qs.exclude(criticas_sugestoes='')
+
     return render(request, 'educacional/estatisticas.html', {
         'total_participantes': total_participantes,
         'media_pontuacao': round(media_pontuacao, 2),
@@ -119,4 +121,5 @@ def estatisticas_view(request):
         'participantes_7d': participantes_7d,
         'participantes_30d': participantes_30d,
         'ultimas_respostas': respostas_qs[:10],
+        'sugestoes': sugestoes[:20],
     })
