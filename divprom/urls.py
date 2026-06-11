@@ -9,6 +9,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('crr/', include('crr.urls')),
     path('notificacoes/', include('notificacao.urls')),
+    path('educacional/', include('educacional.urls')),
     path('api/v1/', include('crr.api_urls')),
     path('api/v1/', include('authentication.urls')),
     path('api/v1/mobile/', include('crr.api_mobile_urls')),

@@ -116,6 +116,7 @@ INSTALLED_APPS = [
     'authentication',
     "bootstrap5",
     'storages',
+    'educacional',
 
 ]
 

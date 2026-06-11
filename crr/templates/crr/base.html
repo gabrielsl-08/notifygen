@@ -195,6 +195,9 @@
             <a href="{% url 'crr:edital_list' %}" class="{% if 'editais' in request.path %}active{% endif %}">
                 <i class="bi bi-file-earmark-word"></i> Editais
             </a>
+            <a href="{% url 'educacional:estatisticas' %}" class="{% if 'educacional' in request.path %}active{% endif %}">
+                <i class="bi bi-mortarboard"></i> Educacional
+            </a>
             {% if user.is_superuser %}
             <a href="{% url 'crr:dispositivo_list' %}" class="{% if 'dispositivo' in request.path %}active{% endif %}">
                 <i class="bi bi-phone"></i> Dispositivos Mobile

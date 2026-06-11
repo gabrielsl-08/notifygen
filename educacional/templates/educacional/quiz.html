@@ -1,0 +1,203 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programa de Capacitação de Taxistas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0a3d62;
+            --accent: #2980b9;
+        }
+        body {
+            background: linear-gradient(135deg, #0a3d62 0%, #1a5276 50%, #2980b9 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
+            padding: 30px 16px 60px;
+        }
+        .main-card {
+            max-width: 760px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .card-header-gov {
+            background: #fff;
+            color: var(--primary);
+            padding: 28px 32px 24px;
+            text-align: center;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .card-header-gov img { height: 72px; }
+        .card-header-gov h6 {
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #555;
+            margin: 10px 0 2px;
+        }
+        .card-header-gov h5 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0;
+            color: var(--primary);
+        }
+        .card-header-gov .page-title {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+        .card-header-gov .page-title h4 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 0;
+            color: var(--primary);
+        }
+        .card-body-form { padding: 32px; }
+        .form-label { font-weight: 600; color: #333; font-size: 0.9rem; }
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1.5px solid #dee2e6;
+            padding: 10px 14px;
+            font-size: 0.95rem;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(41,128,185,0.15);
+        }
+        .questao-card {
+            border: 1.5px solid #e9ecef;
+            border-radius: 12px;
+            padding: 18px 20px;
+            margin-bottom: 18px;
+        }
+        .questao-card .questao-titulo {
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 12px;
+        }
+        .questao-card img {
+            max-width: 140px;
+            display: block;
+            margin: 0 auto 14px;
+        }
+        .form-check {
+            padding: 8px 12px 8px 2.5em;
+            border-radius: 8px;
+            transition: background 0.15s;
+        }
+        .form-check:hover { background: #f0f6ff; }
+        .form-check-input { margin-top: 0.3em; }
+        .btn-enviar {
+            background: linear-gradient(135deg, #0a3d62, #2980b9);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 32px;
+            font-weight: 600;
+            font-size: 1rem;
+            width: 100%;
+        }
+        .btn-enviar:hover { opacity: 0.92; color: #fff; }
+        .errorlist { color: #dc3545; font-size: 0.85rem; padding-left: 0; list-style: none; margin: 4px 0 0; }
+        .page-footer {
+            max-width: 760px;
+            margin: 24px auto 0;
+            text-align: center;
+            color: rgba(255,255,255,0.65);
+            font-size: 0.82rem;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-card">
+    <div class="card-header-gov">
+        <img src="{% static 'brasao.jpg' %}" alt="Brasão de São Sebastião">
+        <h6>Prefeitura Municipal de</h6>
+        <h5>São Sebastião — SP</h5>
+        <div class="page-title">
+            <h4><i class="bi bi-mortarboard me-2"></i>Programa de Capacitação de Taxistas</h4>
+            <div class="subtitle" style="font-size:0.82rem; margin-top:4px; color:#777;">
+                SEGUR — Divisão de Processamento de Multas
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body-form">
+        <p class="text-muted mb-4" style="font-size:0.9rem;">
+            <i class="bi bi-info-circle me-1"></i>
+            Responda às 10 questões abaixo sobre legislação de trânsito. Ao final, você verá sua
+            pontuação e quais questões acertou ou errou.
+        </p>
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.nome_completo.id_for_label }}" class="form-label">
+                        <i class="bi bi-person me-1"></i>{{ form.nome_completo.label }}
+                    </label>
+                    {{ form.nome_completo }}
+                    {{ form.nome_completo.errors }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.email.id_for_label }}" class="form-label">
+                        <i class="bi bi-envelope me-1"></i>{{ form.email.label }}
+                    </label>
+                    {{ form.email }}
+                    {{ form.email.errors }}
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            {% for questao, campo in form.campos_questoes %}
+                <div class="questao-card">
+                    <div class="questao-titulo">{{ forloop.counter }}. {{ questao.enunciado }}</div>
+                    {% if questao.imagem %}
+                        <img src="{% static questao.imagem %}" alt="Placa de sinalização">
+                    {% endif %}
+                    {% for radio in campo %}
+                        <div class="form-check">
+                            {{ radio.tag }}
+                            <label class="form-check-label" for="{{ radio.id_for_label }}">
+                                <strong>{{ radio.data.value }})</strong> {{ radio.choice_label }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                    {{ campo.errors }}
+                </div>
+            {% endfor %}
+
+            <div class="mb-4">
+                <label for="{{ form.criticas_sugestoes.id_for_label }}" class="form-label">
+                    <i class="bi bi-chat-left-text me-1"></i>{{ form.criticas_sugestoes.label }}
+                </label>
+                {{ form.criticas_sugestoes }}
+            </div>
+
+            <button type="submit" class="btn btn-enviar">
+                <i class="bi bi-send-check me-2"></i>Enviar respostas
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="page-footer">
+    <div>Rua Amazonas, 84 — Industrial, São Sebastião/SP</div>
+    <div>
+        <i class="bi bi-envelope me-1"></i>
+        <a href="mailto:transito@saosebastiao.sp.gov.br" style="color: rgba(255,255,255,0.85);">transito@saosebastiao.sp.gov.br</a>
+    </div>
+</div>
+
+</body>
+</html>

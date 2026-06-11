@@ -1,0 +1,121 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultado | Programa de Capacitação de Taxistas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root { --primary: #0a3d62; --accent: #2980b9; }
+        body {
+            background: linear-gradient(135deg, #0a3d62 0%, #1a5276 50%, #2980b9 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
+            padding: 30px 16px 60px;
+        }
+        .main-card {
+            max-width: 760px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .card-header-gov {
+            background: #fff;
+            color: var(--primary);
+            padding: 28px 32px 24px;
+            text-align: center;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .card-header-gov img { height: 72px; }
+        .card-header-gov h6 {
+            font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase;
+            color: #555; margin: 10px 0 2px;
+        }
+        .card-header-gov h5 { font-size: 1rem; font-weight: 700; margin: 0; color: var(--primary); }
+        .card-body-result { padding: 32px; }
+        .score-box {
+            text-align: center;
+            background: #f0f6ff;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .score-box .score { font-size: 2.6rem; font-weight: 800; color: var(--primary); }
+        .score-box .score-label { color: #666; font-size: 0.95rem; }
+        .questao-card {
+            border: 1.5px solid #e9ecef;
+            border-radius: 12px;
+            padding: 18px 20px;
+            margin-bottom: 14px;
+        }
+        .questao-card.acerto { border-color: #b7e4c7; background: #f4fcf6; }
+        .questao-card.erro { border-color: #f5c2c7; background: #fdf3f4; }
+        .questao-card .questao-titulo { font-weight: 700; color: var(--primary); margin-bottom: 8px; }
+        .questao-card img { max-width: 120px; display: block; margin: 0 auto 12px; }
+        .resposta-info { font-size: 0.9rem; }
+        .badge-resultado { font-size: 0.85rem; }
+        .btn-voltar {
+            background: linear-gradient(135deg, #0a3d62, #2980b9);
+            color: #fff; border: none; border-radius: 8px;
+            padding: 10px 28px; font-weight: 600; text-decoration: none;
+            display: inline-block;
+        }
+        .btn-voltar:hover { opacity: 0.92; color: #fff; }
+        .page-footer {
+            max-width: 760px; margin: 24px auto 0; text-align: center;
+            color: rgba(255,255,255,0.65); font-size: 0.82rem; line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-card">
+    <div class="card-header-gov">
+        <img src="{% static 'brasao.jpg' %}" alt="Brasão de São Sebastião">
+        <h6>Prefeitura Municipal de</h6>
+        <h5>São Sebastião — SP</h5>
+    </div>
+
+    <div class="card-body-result">
+        <div class="score-box">
+            <div class="score">{{ resposta_obj.pontuacao }}/{{ resposta_obj.total_questoes }}</div>
+            <div class="score-label">
+                Você acertou {{ resposta_obj.percentual_acerto }}% das questões. Obrigado por participar, {{ resposta_obj.participante.nome_completo }}!
+            </div>
+        </div>
+
+        {% for item in detalhes %}
+            <div class="questao-card {% if item.acertou %}acerto{% else %}erro{% endif %}">
+                <div class="questao-titulo">{{ forloop.counter }}. {{ item.questao.enunciado }}</div>
+                {% if item.questao.imagem %}
+                    <img src="{% static item.questao.imagem %}" alt="Placa de sinalização">
+                {% endif %}
+                {% if item.acertou %}
+                    <span class="badge bg-success badge-resultado"><i class="bi bi-check-circle me-1"></i>Você acertou!</span>
+                    <div class="resposta-info mt-2">Sua resposta: <strong>{{ item.resposta_marcada }}) {{ item.texto_marcado }}</strong></div>
+                {% else %}
+                    <span class="badge bg-danger badge-resultado"><i class="bi bi-x-circle me-1"></i>Você errou</span>
+                    <div class="resposta-info mt-2">Sua resposta: <strong>{{ item.resposta_marcada }}) {{ item.texto_marcado }}</strong></div>
+                    <div class="resposta-info">Resposta correta: <strong>{{ item.correta }}) {{ item.texto_correto }}</strong></div>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <div class="text-center mt-4">
+            <a href="{% url 'educacional:quiz' %}" class="btn-voltar">
+                <i class="bi bi-arrow-repeat me-2"></i>Responder novamente
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="page-footer">
+    <div>Rua Amazonas, 84 — Industrial, São Sebastião/SP</div>
+</div>
+
+</body>
+</html>
