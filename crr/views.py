@@ -5,6 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.db import transaction
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
@@ -860,3 +862,59 @@ class MinhaSenhaView(DjangoPasswordChangeView):
         if self.action == 'retrieve':
             return CrrJavaDetalheSerializer
         return CrrJavaSerializer
+@login_required
+@require_POST
+def sincronizar_status_patio(request):
+    total_retidos_analisados = 0
+    total_atualizados_para_liberado = 0
+    total_mantidos_retidos = 0
+    total_com_erro = 0
+    atualizados = []
+
+    crrs_retidos = Crr.objects.filter(status='retido').prefetch_related('veiculo')
+
+    total_retidos_analisados = crrs_retidos.count()
+
+    for crr in crrs_retidos:
+        try:
+            veiculo = crr.veiculo.first()
+            placa = veiculo.placa if veiculo else ''
+
+            status_anterior = crr.status
+
+            # Aqui entra a regra real de consulta ao pátio.
+            # Por enquanto é apenas exemplo:
+            veiculo_liberado_no_patio = False
+
+            if veiculo_liberado_no_patio:
+                crr.status = 'liberado'
+                crr.save(update_fields=['status'])
+
+                total_atualizados_para_liberado += 1
+
+                atualizados.append({
+                    "id": crr.id,
+                    "placa": placa,
+                    "statusAnterior": status_anterior,
+                    "statusNovo": "liberado"
+                })
+
+                _log(
+                    request.user,
+                    crr,
+                    CHANGE,
+                    'Status sincronizado com o pátio: retido → liberado.'
+                )
+            else:
+                total_mantidos_retidos += 1
+
+        except Exception:
+            total_com_erro += 1
+
+    return JsonResponse({
+        "totalRetidosAnalisados": total_retidos_analisados,
+        "totalAtualizadosParaLiberado": total_atualizados_para_liberado,
+        "totalMantidosRetidos": total_mantidos_retidos,
+        "totalComErro": total_com_erro,
+        "atualizados": atualizados
+    })
