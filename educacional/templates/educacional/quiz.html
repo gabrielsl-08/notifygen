@@ -87,12 +87,18 @@
             margin: 0 auto 14px;
         }
         .form-check {
-            padding: 8px 12px 8px 2.5em;
+            padding: 8px 12px;
+            margin-left: 0;
             border-radius: 8px;
             transition: background 0.15s;
         }
         .form-check:hover { background: #f0f6ff; }
-        .form-check-input { margin-top: 0.3em; }
+        .form-check-input {
+            position: static;
+            float: none;
+            margin: 0.2em 0 0 0;
+            flex-shrink: 0;
+        }
         .btn-enviar {
             background: linear-gradient(135deg, #0a3d62, #2980b9);
             color: #fff;
@@ -133,7 +139,7 @@
     <div class="card-body-form">
         <p class="text-muted mb-4" style="font-size:0.9rem;">
             <i class="bi bi-info-circle me-1"></i>
-            Responda às 10 questões abaixo sobre legislação de trânsito. Ao final, você verá sua
+            Às 11 questões abaixo sobre legislação de trânsito. Ao final, você verá sua
             pontuação e quais questões acertou ou errou.
         </p>
 
@@ -166,9 +172,9 @@
                         <img src="{% static questao.imagem %}" alt="Placa de sinalização">
                     {% endif %}
                     {% for radio in campo %}
-                        <div class="form-check">
+                        <div class="form-check d-flex align-items-start">
                             {{ radio.tag }}
-                            <label class="form-check-label" for="{{ radio.id_for_label }}">
+                            <label class="form-check-label ms-2" for="{{ radio.id_for_label }}">
                                 <strong>{{ radio.data.value }})</strong> {{ radio.choice_label }}
                             </label>
                         </div>
