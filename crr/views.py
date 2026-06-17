@@ -45,7 +45,7 @@ class CrrListView(LoginRequiredMixin, ListView):
     ordering = ['-criado_em']
 
     def get_queryset(self):
-        has_filter = any(k in self.request.GET for k in ('search', 'status', 'data_inicio', 'data_fim'))
+        has_filter = any(k in self.request.GET for k in ('search', 'status', 'data_inicio', 'data_fim', 'enquadramento'))
         if not has_filter:
             return Crr.objects.none()
 
@@ -54,6 +54,7 @@ class CrrListView(LoginRequiredMixin, ListView):
         search = self.request.GET.get('search')
         data_inicio = self.request.GET.get('data_inicio')
         data_fim = self.request.GET.get('data_fim')
+        enquadramento = self.request.GET.get('enquadramento', '').strip()
 
         if status:
             queryset = queryset.filter(status=status)
@@ -73,6 +74,11 @@ class CrrListView(LoginRequiredMixin, ListView):
         if data_fim:
             queryset = queryset.filter(dataFiscalizacao__lte=data_fim)
 
+        if enquadramento:
+            queryset = queryset.filter(
+                enquadramentos__enquadramento__codigo__icontains=enquadramento
+            )
+
         return queryset.distinct().prefetch_related('condutores')
 
     def get_context_data(self, **kwargs):
@@ -81,6 +87,7 @@ class CrrListView(LoginRequiredMixin, ListView):
         context['search'] = self.request.GET.get('search', '')
         context['data_inicio'] = self.request.GET.get('data_inicio', '')
         context['data_fim'] = self.request.GET.get('data_fim', '')
+        context['enquadramento_filter'] = self.request.GET.get('enquadramento', '')
         context['total_pendentes'] = Crr.objects.filter(status='pendente').count()
         context['total_retidos'] = Crr.objects.filter(status='retido').count()
         context['total_liberados'] = Crr.objects.filter(status='liberado').count()
