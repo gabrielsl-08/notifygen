@@ -7,7 +7,7 @@
 
 <!-- Cards de resumo -->
 <div class="row g-3 mb-4">
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #e74c3c !important;">
             <div class="card-body d-flex align-items-center gap-3">
                 <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:54px;height:54px;background:#fde8e8;">
@@ -20,7 +20,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #f39c12 !important;">
             <div class="card-body d-flex align-items-center gap-3">
                 <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:54px;height:54px;background:#fef5e7;">
@@ -33,7 +33,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #3498db !important;">
             <div class="card-body d-flex align-items-center gap-3">
                 <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:54px;height:54px;background:#eaf4fb;">
@@ -46,6 +46,41 @@
             </div>
         </div>
     </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #6f42c1 !important;">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:54px;height:54px;background:#f1eafb;">
+                    <i class="bi bi-file-earmark-x fs-4" style="color:#6f42c1;"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">Veículos sem Registro</div>
+                    <div class="fs-3 fw-bold" style="color:#6f42c1;">{{ sem_registro|length }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Botões PDF -->
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <span class="fw-semibold me-1 align-self-center text-muted small">
+        <i class="bi bi-file-earmark-pdf me-1"></i>Gerar PDF:
+    </span>
+    <a href="{% url 'crr:dashboard_pdf' %}?tipo=todos" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-file-earmark-pdf me-1"></i>Todos
+    </a>
+    <a href="{% url 'crr:dashboard_pdf' %}?tipo=abandonados" class="btn btn-sm btn-outline-danger">
+        <i class="bi bi-file-earmark-pdf me-1"></i>Abandonados
+    </a>
+    <a href="{% url 'crr:dashboard_pdf' %}?tipo=estacionamento" class="btn btn-sm btn-outline-warning">
+        <i class="bi bi-file-earmark-pdf me-1"></i>Estacionamento Irregular
+    </a>
+    <a href="{% url 'crr:dashboard_pdf' %}?tipo=abordagem" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-file-earmark-pdf me-1"></i>Abordagem
+    </a>
+    <a href="{% url 'crr:dashboard_pdf' %}?tipo=sem_registro" class="btn btn-sm btn-outline-secondary" style="color:#6f42c1;border-color:#6f42c1;">
+        <i class="bi bi-file-earmark-pdf me-1"></i>Sem Registro
+    </a>
 </div>
 
 <!-- Veículos Abandonados -->
@@ -60,15 +95,7 @@
         <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead class="table-light">
-                    <tr>
-                        <th>CRR</th>
-                        <th>Placa</th>
-                        <th>Marca / Modelo</th>
-                        <th>Cor</th>
-                        <th>Status</th>
-                        <th>Enquadramento(s)</th>
-                        <th></th>
-                    </tr>
+                    <tr><th>CRR</th><th>Placa</th><th>Marca / Modelo</th><th>Cor</th><th>Status</th><th>Enquadramento(s)</th><th></th></tr>
                 </thead>
                 <tbody>
                     {% for item in abandonados %}
@@ -77,19 +104,9 @@
                         <td>{% if item.veiculo %}<strong>{{ item.veiculo.placa }}</strong>{% else %}-{% endif %}</td>
                         <td>{% if item.veiculo %}{{ item.veiculo.marca }} {{ item.veiculo.modelo }}{% else %}-{% endif %}</td>
                         <td>{% if item.veiculo %}{{ item.veiculo.cor }}{% else %}-{% endif %}</td>
-                        <td>
-                            <span class="badge badge-{{ item.crr.status }}">{{ item.crr.get_status_display }}</span>
-                        </td>
-                        <td>
-                            {% for cod in item.codigos %}
-                            <span class="badge bg-secondary">{{ cod }}</span>
-                            {% endfor %}
-                        </td>
-                        <td>
-                            <a href="{% url 'crr:crr_detail' item.crr.pk %}" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                        </td>
+                        <td><span class="badge badge-{{ item.crr.status }}">{{ item.crr.get_status_display }}</span></td>
+                        <td>{% for cod in item.codigos %}<span class="badge bg-secondary">{{ cod }}</span>{% endfor %}</td>
+                        <td><a href="{% url 'crr:crr_detail' item.crr.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a></td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -113,15 +130,7 @@
         <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead class="table-light">
-                    <tr>
-                        <th>CRR</th>
-                        <th>Placa</th>
-                        <th>Marca / Modelo</th>
-                        <th>Cor</th>
-                        <th>Status</th>
-                        <th>Enquadramento(s)</th>
-                        <th></th>
-                    </tr>
+                    <tr><th>CRR</th><th>Placa</th><th>Marca / Modelo</th><th>Cor</th><th>Status</th><th>Enquadramento(s)</th><th></th></tr>
                 </thead>
                 <tbody>
                     {% for item in estacionamento %}
@@ -130,19 +139,44 @@
                         <td>{% if item.veiculo %}<strong>{{ item.veiculo.placa }}</strong>{% else %}-{% endif %}</td>
                         <td>{% if item.veiculo %}{{ item.veiculo.marca }} {{ item.veiculo.modelo }}{% else %}-{% endif %}</td>
                         <td>{% if item.veiculo %}{{ item.veiculo.cor }}{% else %}-{% endif %}</td>
-                        <td>
-                            <span class="badge badge-{{ item.crr.status }}">{{ item.crr.get_status_display }}</span>
-                        </td>
-                        <td>
-                            {% for cod in item.codigos %}
-                            <span class="badge bg-secondary">{{ cod }}</span>
-                            {% endfor %}
-                        </td>
-                        <td>
-                            <a href="{% url 'crr:crr_detail' item.crr.pk %}" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                        </td>
+                        <td><span class="badge badge-{{ item.crr.status }}">{{ item.crr.get_status_display }}</span></td>
+                        <td>{% for cod in item.codigos %}<span class="badge bg-secondary">{{ cod }}</span>{% endfor %}</td>
+                        <td><a href="{% url 'crr:crr_detail' item.crr.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted p-3 mb-0">Nenhum registro.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Veículos sem Registro -->
+<div class="card mb-4">
+    <div class="card-header d-flex align-items-center gap-2">
+        <span class="badge rounded-pill" style="background:#6f42c1;">{{ sem_registro|length }}</span>
+        <i class="bi bi-file-earmark-x" style="color:#6f42c1;"></i>
+        <strong>Veículos sem Registro</strong>
+    </div>
+    <div class="card-body p-0">
+        {% if sem_registro %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr><th>CRR</th><th>Placa</th><th>Marca / Modelo</th><th>Cor</th><th>Status</th><th>Enquadramento(s)</th><th></th></tr>
+                </thead>
+                <tbody>
+                    {% for item in sem_registro %}
+                    <tr>
+                        <td>{{ item.crr.numeroCrr }}</td>
+                        <td>{% if item.veiculo %}<strong>{{ item.veiculo.placa }}</strong>{% else %}-{% endif %}</td>
+                        <td>{% if item.veiculo %}{{ item.veiculo.marca }} {{ item.veiculo.modelo }}{% else %}-{% endif %}</td>
+                        <td>{% if item.veiculo %}{{ item.veiculo.cor }}{% else %}-{% endif %}</td>
+                        <td><span class="badge badge-{{ item.crr.status }}">{{ item.crr.get_status_display }}</span></td>
+                        <td>{% for cod in item.codigos %}<span class="badge bg-secondary">{{ cod }}</span>{% endfor %}</td>
+                        <td><a href="{% url 'crr:crr_detail' item.crr.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a></td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -166,15 +200,7 @@
         <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead class="table-light">
-                    <tr>
-                        <th>CRR</th>
-                        <th>Placa</th>
-                        <th>Marca / Modelo</th>
-                        <th>Cor</th>
-                        <th>Status</th>
-                        <th>Enquadramento(s)</th>
-                        <th></th>
-                    </tr>
+                    <tr><th>CRR</th><th>Placa</th><th>Marca / Modelo</th><th>Cor</th><th>Status</th><th>Enquadramento(s)</th><th></th></tr>
                 </thead>
                 <tbody>
                     {% for item in abordagem %}
@@ -183,19 +209,9 @@
                         <td>{% if item.veiculo %}<strong>{{ item.veiculo.placa }}</strong>{% else %}-{% endif %}</td>
                         <td>{% if item.veiculo %}{{ item.veiculo.marca }} {{ item.veiculo.modelo }}{% else %}-{% endif %}</td>
                         <td>{% if item.veiculo %}{{ item.veiculo.cor }}{% else %}-{% endif %}</td>
-                        <td>
-                            <span class="badge badge-{{ item.crr.status }}">{{ item.crr.get_status_display }}</span>
-                        </td>
-                        <td>
-                            {% for cod in item.codigos %}
-                            <span class="badge bg-secondary">{{ cod }}</span>
-                            {% endfor %}
-                        </td>
-                        <td>
-                            <a href="{% url 'crr:crr_detail' item.crr.pk %}" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                        </td>
+                        <td><span class="badge badge-{{ item.crr.status }}">{{ item.crr.get_status_display }}</span></td>
+                        <td>{% for cod in item.codigos %}<span class="badge bg-secondary">{{ cod }}</span>{% endfor %}</td>
+                        <td><a href="{% url 'crr:crr_detail' item.crr.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a></td>
                     </tr>
                     {% endfor %}
                 </tbody>

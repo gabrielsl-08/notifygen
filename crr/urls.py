@@ -6,6 +6,7 @@ app_name = 'crr'
 urlpatterns = [
     # Dashboard
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('dashboard/pdf/', views.dashboard_pdf, name='dashboard_pdf'),
 
     # CRR
     path('', views.CrrListView.as_view(), name='crr_list'),

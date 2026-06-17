@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
 
 from django.core.files.base import ContentFile
@@ -106,18 +106,18 @@ CODIGOS_ESTACIONAMENTO = {
     '73740', '76171', '76172', '76173',
 }
 
+CODIGO_SEM_REGISTRO = '65991'
 
-@login_required
-def dashboard(request):
+
+def _classificar_crrs():
+    """Classifica todos os CRRs nas 4 categorias do dashboard."""
     from django.db.models import Prefetch
     crrs = Crr.objects.prefetch_related(
         'veiculo',
         Prefetch('enquadramentos', queryset=Enquadramento.objects.select_related('enquadramento'))
     ).all()
 
-    abandonados = []
-    estacionamento = []
-    abordagem = []
+    abandonados, estacionamento, sem_registro, abordagem = [], [], [], []
 
     for crr in crrs:
         codigos = [e.enquadramento.codigo for e in crr.enquadramentos.all()]
@@ -128,15 +128,123 @@ def dashboard(request):
             abandonados.append(item)
         elif any(c in CODIGOS_ESTACIONAMENTO for c in codigos):
             estacionamento.append(item)
+        elif CODIGO_SEM_REGISTRO in codigos:
+            sem_registro.append(item)
         else:
             abordagem.append(item)
 
-    context = {
+    return abandonados, estacionamento, sem_registro, abordagem
+
+
+@login_required
+def dashboard(request):
+    abandonados, estacionamento, sem_registro, abordagem = _classificar_crrs()
+    return render(request, 'crr/dashboard.html', {
         'abandonados': abandonados,
         'estacionamento': estacionamento,
+        'sem_registro': sem_registro,
         'abordagem': abordagem,
+    })
+
+
+@login_required
+def dashboard_pdf(request):
+    import io
+    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.lib import colors
+    from reportlab.lib.units import cm
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER
+
+    tipo = request.GET.get('tipo', 'todos')
+
+    abandonados, estacionamento, sem_registro, abordagem = _classificar_crrs()
+
+    CATEGORIAS = {
+        'abandonados':   ('Veículos Abandonados',    abandonados,   colors.HexColor('#e74c3c')),
+        'estacionamento':('Estacionamento Irregular', estacionamento, colors.HexColor('#f39c12')),
+        'sem_registro':  ('Veículos sem Registro',   sem_registro,   colors.HexColor('#6f42c1')),
+        'abordagem':     ('Abordagem',               abordagem,      colors.HexColor('#3498db')),
     }
-    return render(request, 'crr/dashboard.html', context)
+
+    if tipo == 'todos':
+        selecionadas = list(CATEGORIAS.values())
+    elif tipo in CATEGORIAS:
+        selecionadas = [CATEGORIAS[tipo]]
+    else:
+        selecionadas = list(CATEGORIAS.values())
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, pagesize=landscape(A4),
+        leftMargin=1.5*cm, rightMargin=1.5*cm,
+        topMargin=1.5*cm, bottomMargin=1.5*cm,
+    )
+
+    styles = getSampleStyleSheet()
+    titulo_style = ParagraphStyle('titulo', parent=styles['Heading1'], fontSize=14,
+                                  spaceAfter=6, textColor=colors.HexColor('#2c3e50'))
+    sub_style = ParagraphStyle('sub', parent=styles['Heading2'], fontSize=11,
+                               spaceAfter=4, textColor=colors.white)
+
+    col_widths = [2.5*cm, 3*cm, 5*cm, 3*cm, 3*cm, 5*cm]
+    cabecalho = ['CRR', 'Placa', 'Marca / Modelo', 'Cor', 'Status', 'Enquadramento(s)']
+
+    story = [Paragraph('Relatório — Dashboard de Veículos', titulo_style),
+             Paragraph(f'Prefeitura Municipal de São Sebastião — SEGUR', styles['Normal']),
+             Spacer(1, 0.4*cm)]
+
+    for titulo, itens, cor in selecionadas:
+        story.append(Spacer(1, 0.3*cm))
+
+        header_data = [[Paragraph(f'<b>{titulo} ({len(itens)})</b>',
+                                  ParagraphStyle('h', textColor=colors.white, fontSize=11))]]
+        header_table = Table(header_data, colWidths=[sum(col_widths)])
+        header_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), cor),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('LEFTPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        story.append(header_table)
+
+        rows = [cabecalho]
+        for item in itens:
+            crr = item['crr']
+            v = item['veiculo']
+            rows.append([
+                crr.numeroCrr or '',
+                v.placa if v else '-',
+                f"{v.marca or ''} {v.modelo or ''}".strip() if v else '-',
+                v.cor if v else '-',
+                crr.get_status_display(),
+                ', '.join(item['codigos']),
+            ])
+
+        if len(rows) == 1:
+            rows.append(['Nenhum registro', '', '', '', '', ''])
+
+        t = Table(rows, colWidths=col_widths, repeatRows=1)
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#ecf0f1')),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#bdc3c7')),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9f9f9')]),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ('LEFTPADDING', (0, 0), (-1, -1), 5),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        story.append(t)
+
+    doc.build(story)
+    buffer.seek(0)
+    nome_arquivo = f'dashboard_{tipo}.pdf'
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{nome_arquivo}"'
+    return response
 
 
 @login_required
