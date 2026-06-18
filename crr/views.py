@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.db import transaction
+from django.db.models import Q
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
 
@@ -44,6 +45,11 @@ class CrrListView(LoginRequiredMixin, ListView):
     paginate_by = 20
     ordering = ['-criado_em']
 
+    ORDER_FIELDS = {
+        'crr': 'numeroCrr',
+        'data': 'dataFiscalizacao',
+    }
+
     def get_queryset(self):
         has_filter = any(k in self.request.GET for k in ('search', 'status', 'data_inicio', 'data_fim', 'enquadramento'))
         if not has_filter:
@@ -61,11 +67,9 @@ class CrrListView(LoginRequiredMixin, ListView):
 
         if search:
             queryset = queryset.filter(
-                numeroCrr__icontains=search
-            ) | queryset.filter(
-                veiculo__placa__icontains=search
-            ) | queryset.filter(
-                veiculo__chassi__icontains=search
+                Q(numeroCrr__icontains=search) |
+                Q(veiculo__placa__icontains=search) |
+                Q(veiculo__chassi__icontains=search)
             )
 
         if data_inicio:
@@ -79,7 +83,15 @@ class CrrListView(LoginRequiredMixin, ListView):
                 enquadramentos__enquadramento__codigo__icontains=enquadramento
             )
 
-        return queryset.distinct().prefetch_related('condutores')
+        queryset = queryset.distinct().prefetch_related('condutores')
+
+        order = self.request.GET.get('order', '')
+        campo = order.lstrip('-')
+        if campo in self.ORDER_FIELDS:
+            sentido = '-' if order.startswith('-') else ''
+            queryset = queryset.order_by(f'{sentido}{self.ORDER_FIELDS[campo]}')
+
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -88,6 +100,7 @@ class CrrListView(LoginRequiredMixin, ListView):
         context['data_inicio'] = self.request.GET.get('data_inicio', '')
         context['data_fim'] = self.request.GET.get('data_fim', '')
         context['enquadramento_filter'] = self.request.GET.get('enquadramento', '')
+        context['order'] = self.request.GET.get('order', '')
         context['total_pendentes'] = Crr.objects.filter(status='pendente').count()
         context['total_retidos'] = Crr.objects.filter(status='retido').count()
         context['total_liberados'] = Crr.objects.filter(status='liberado').count()

@@ -104,12 +104,28 @@
                             <th style="width:36px;">
                                 <input type="checkbox" id="select-all" title="Selecionar todos os retidos">
                             </th>
-                            <th>CRR</th>
+                            <th>
+                                <a href="?search={{ search }}&status={{ status_filter }}&enquadramento={{ enquadramento_filter }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}&order={% if order == 'crr' %}-crr{% else %}crr{% endif %}"
+                                   class="text-decoration-none text-dark d-inline-flex align-items-center gap-1">
+                                    CRR
+                                    {% if order == 'crr' %}<i class="bi bi-caret-up-fill"></i>
+                                    {% elif order == '-crr' %}<i class="bi bi-caret-down-fill"></i>
+                                    {% else %}<i class="bi bi-arrow-down-up text-muted small"></i>{% endif %}
+                                </a>
+                            </th>
                             <th>Placa</th>
                             <th>Chassi</th>
                             <th>Marca</th>
                             <th>Modelo</th>
-                            <th>Data</th>
+                            <th>
+                                <a href="?search={{ search }}&status={{ status_filter }}&enquadramento={{ enquadramento_filter }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}&order={% if order == 'data' %}-data{% else %}data{% endif %}"
+                                   class="text-decoration-none text-dark d-inline-flex align-items-center gap-1">
+                                    Data
+                                    {% if order == 'data' %}<i class="bi bi-caret-up-fill"></i>
+                                    {% elif order == '-data' %}<i class="bi bi-caret-down-fill"></i>
+                                    {% else %}<i class="bi bi-arrow-down-up text-muted small"></i>{% endif %}
+                                </a>
+                            </th>
                             <th>Status</th>
                             <th class="text-center">Edital</th>
                             <th class="text-center">Ações</th>
@@ -225,17 +241,17 @@
             <ul class="pagination pagination-sm justify-content-center flex-wrap">
                 {% if page_obj.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}&search={{ search }}&enquadramento={{ enquadramento_filter }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}">&laquo;</a>
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}&search={{ search }}&enquadramento={{ enquadramento_filter }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}&order={{ order }}">&laquo;</a>
                 </li>
                 {% endif %}
                 {% for num in page_obj.paginator.page_range %}
                 <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                    <a class="page-link" href="?page={{ num }}&status={{ status_filter }}&search={{ search }}&enquadramento={{ enquadramento_filter }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}">{{ num }}</a>
+                    <a class="page-link" href="?page={{ num }}&status={{ status_filter }}&search={{ search }}&enquadramento={{ enquadramento_filter }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}&order={{ order }}">{{ num }}</a>
                 </li>
                 {% endfor %}
                 {% if page_obj.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}&search={{ search }}&enquadramento={{ enquadramento_filter }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}">&raquo;</a>
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}&search={{ search }}&enquadramento={{ enquadramento_filter }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}&order={{ order }}">&raquo;</a>
                 </li>
                 {% endif %}
             </ul>
