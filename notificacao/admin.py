@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.http import HttpResponse
-from .models import Notificacao
+from .models import Notificacao, NumeroEdital
 from crr.models import Crr, ImagemCrr, Condutor
 from io import BytesIO
 from reportlab.pdfgen import canvas
@@ -131,7 +131,27 @@ class NotificacaoAdmin(admin.ModelAdmin):
 
     class Media:
         js = (
-            
+
             'js/mascaras.js',
-        
+
         )
+
+
+@admin.register(NumeroEdital)
+class NumeroEditalAdmin(admin.ModelAdmin):
+    list_display = ('id', 'numero')
+
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return False
