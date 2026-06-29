@@ -445,7 +445,7 @@ def render_notificacao_template(c, notificacao, width, height):
     c.drawString(2.2 * cm, 27.7 * cm, notificacao.destinatario.upper())
     
     c.drawString(2.2 * cm, 26.6 * cm, f"{notificacao.endereco.upper()}, {notificacao.numero.upper()}    {notificacao.complemento.upper()}  -   {notificacao.bairro.upper()}")
-    c.drawString(2.2 * cm, 26.1 * cm,f"{notificacao.cep.upper()}           {notificacao.cidade_destinatario.upper()} / {notificacao.uf_destinatario.upper()}")
+    c.drawString(2.2 * cm, 26.1 * cm,f"CEP {notificacao.cep.upper()}           {notificacao.cidade_destinatario.upper()} / {notificacao.uf_destinatario.upper()}")
 
     c.setFont("Helvetica-Bold", 12)
     c.drawString(6 * cm, 25.15 * cm, "NOTIFICAÇÃO DE REMOÇÃO DE VEÍCULO")
@@ -496,7 +496,7 @@ def render_notificacao_template(c, notificacao, width, height):
     c.drawString(3.2 * cm, 5 * cm, notificacao.destinatario.upper())
     
     c.drawString(3.2 * cm, 4 * cm,f"{notificacao.endereco.upper()}, {notificacao.numero.upper()} - {notificacao.complemento.upper()} - {notificacao.bairro.upper()}")
-    c.drawString(3.2 * cm, 3.5 * cm, f"{notificacao.cep.upper()}              {notificacao.cidade_destinatario.upper()} / {notificacao.uf_destinatario.upper()}")
+    c.drawString(3.2 * cm, 3.5 * cm, f"CEP {notificacao.cep.upper()}              {notificacao.cidade_destinatario.upper()} / {notificacao.uf_destinatario.upper()}")
     
     
     print("PDF '' criado com sucesso!")
