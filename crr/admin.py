@@ -3,7 +3,7 @@ from django.utils.html import format_html
 from .models import (
     Crr, Ait, Condutor, Enquadramento, Arrendatario, Veiculo,
     TabelaEnquadramento, TabelaArrendatario, ImagemCrr,
-    DispositivoMobile, Agente
+    DispositivoMobile, Agente, EditalGerado
 )
 
 from django import forms
@@ -310,6 +310,33 @@ class CrrAdmin(admin.ModelAdmin):
         js = (
             'js/mascaras.js',
         )
+
+
+# ==================== EDITAIS GERADOS (somente superuser) ==================== #
+
+@admin.register(EditalGerado)
+class EditalGeradoAdmin(admin.ModelAdmin):
+    list_display = ('numero', 'gerado_em', 'usuario', 'crrs')
+    list_filter = ('gerado_em',)
+    search_fields = ('numero', 'crrs')
+    readonly_fields = ('arquivo', 'usuario', 'crrs', 'gerado_em')
+    ordering = ('-gerado_em',)
+
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return False
+
 
 # ==================== DISPOSITIVOS MOBILE ==================== #
 
