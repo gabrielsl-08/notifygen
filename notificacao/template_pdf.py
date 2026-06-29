@@ -240,9 +240,13 @@ def render_notificacao_template(c, notificacao, width, height):
     c.rect(12*cm, 12.53*cm, 7.5*cm, 4.41*cm , stroke=1, fill=0)
 
     # Imagem Brasão
-    #imagem =  notificacao.crr.imagens.first() if notificacao.crr.imagens.exists() else None 
+    #imagem =  notificacao.crr.imagens.first() if notificacao.crr.imagens.exists() else None
     try:
-        c.drawImage(imagemVeiculo, 12.1 * cm, altura - 15.4 * cm, width=7.3 * cm, height=4.4 * cm, preserveAspectRatio=True)
+        if imagemVeiculo:
+            c.drawImage(imagemVeiculo, 12.1 * cm, altura - 15.4 * cm, width=7.3 * cm, height=4.4 * cm, preserveAspectRatio=True)
+        else:
+            c.setFont("Helvetica", 9)
+            c.drawCentredString(15.75 * cm, 14.6 * cm, "Sem imagem")
     except Exception as e:
         print(f"Erro ao carregar a imagem: {e}")
 
