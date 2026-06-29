@@ -153,7 +153,7 @@ class CrrAdmin(admin.ModelAdmin):
     list_filter = (FiltroCrrAtrasado,'dataFiscalizacao', 'status',)
     actions = ['gerar_edital_docx_action']
     search_fields = ['numeroCrr', 'veiculo__placa','veiculo__chassi','veiculo__marca'] 
-    list_editable = ('status',)
+    list_editable = ('status', 'edital_emitido')
     ordering = ('numeroCrr',)
     fieldsets = (
         ("Identificação do CRR", {
@@ -263,6 +263,10 @@ class CrrAdmin(admin.ModelAdmin):
                                     if choice[0] in [current_value, 'liberado']
                                 ]
                             form.fields['status'].choices = allowed_choices
+
+                        # Edital emitido só pode ser alterado por superusuário
+                        if 'edital_emitido' in form.fields:
+                            form.fields['edital_emitido'].disabled = True
 
         return CustomFormSet
     
