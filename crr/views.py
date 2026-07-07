@@ -581,6 +581,17 @@ def crr_gerar_edital(request):
 
 
 @login_required
+def edital_preparar(request):
+    crrs_pendentes = (
+        Crr.objects
+        .filter(status='retido', edital_emitido=False)
+        .prefetch_related('veiculo', 'enquadramentos__enquadramento')
+        .order_by('dataFiscalizacao')
+    )
+    return render(request, 'crr/edital_preparar.html', {'crrs_pendentes': crrs_pendentes})
+
+
+@login_required
 def edital_list(request):
     editais = EditalGerado.objects.select_related('usuario').order_by('-gerado_em')
     return render(request, 'crr/edital_list.html', {'editais': editais})

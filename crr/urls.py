@@ -26,6 +26,7 @@ urlpatterns = [
     # Edital
     path('gerar-edital/', views.crr_gerar_edital, name='crr_gerar_edital'),
     path('editais/', views.edital_list, name='edital_list'),
+    path('editais/preparar/', views.edital_preparar, name='edital_preparar'),
 
     # Triagem
     path('triagem/', views.TriagemListView.as_view(), name='triagem_list'),
