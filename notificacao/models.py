@@ -54,7 +54,7 @@ def __str__(self):
 
 
 class NumeroEdital(models.Model):
-    numero = models.PositiveIntegerField(default=1)
+    numero = models.PositiveIntegerField(default=0)
 
     def incrementar(self):
         self.numero += 1
