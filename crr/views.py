@@ -582,9 +582,16 @@ def crr_gerar_edital(request):
 
 @login_required
 def edital_preparar(request):
+    from datetime import date, timedelta
+    limite = date.today() - timedelta(days=30)
     crrs_pendentes = (
         Crr.objects
-        .filter(status='retido', edital_emitido=False)
+        .filter(
+            status='retido',
+            edital_emitido=False,
+            not_gerada=True,
+            dataFiscalizacao__lte=limite,
+        )
         .prefetch_related('veiculo', 'enquadramentos__enquadramento')
         .order_by('dataFiscalizacao')
     )
